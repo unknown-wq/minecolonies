@@ -20,7 +20,12 @@ public final class AssetFetchLang
     /** Title of the consent screen. */
     public static final String CONSENT_TITLE = P + "consent.title";
 
-    /** The main explanation: what is missing and what will be downloaded. */
+    /**
+     * The main explanation: what is missing and what will be downloaded.
+     *
+     * <p>One argument, a bare number of megabytes. The unit belongs to the translation, as on the progress
+     * screen, so each language says it once and in its own alphabet.</p>
+     */
     public static final String CONSENT_BODY = P + "consent.body";
 
     /** The licence sentence: All Rights Reserved, stays on this machine. */
@@ -66,19 +71,34 @@ public final class AssetFetchLang
     /** Title of the progress screen. */
     public static final String PROGRESS_TITLE = P + "progress.title";
 
-    /** "Source: %s (%s)" line, shown when a source starts. */
-    public static final String PROGRESS_SOURCE = P + "progress.source";
+    /**
+     * The source line for LDTTeam's current official build; the argument is the version, e.g. {@code 1.1.1374}.
+     *
+     * <p>There are four of these, one per kind of source, because a player wants to know <i>what</i> is being
+     * fetched, not from which URL. The URL is still written to the log and to the failure screen's per-source
+     * detail lines, where it is being read as diagnostics rather than as prose.</p>
+     */
+    public static final String PROGRESS_SOURCE_OFFICIAL = P + "progress.source.official";
 
-    /** "%s of %s" byte line during the download. */
+    /** The source line for the older Maven build, tried when the current one is gone. */
+    public static final String PROGRESS_SOURCE_BACKUP = P + "progress.source.backup";
+
+    /** The source line for a host this build knows nothing else about; the argument is the host name. */
+    public static final String PROGRESS_SOURCE_HOST = P + "progress.source.host";
+
+    /** The source line for a jar the player picked; the argument is the file name, without its directory. */
+    public static final String PROGRESS_SOURCE_FILE = P + "progress.source.file";
+
+    /** Byte line during the download. The unit belongs to the translation, so the arguments are bare numbers. */
     public static final String PROGRESS_BYTES = P + "progress.bytes";
 
     /** Byte line when the server did not send a content length. */
     public static final String PROGRESS_BYTES_UNKNOWN = P + "progress.bytes.unknown";
 
-    /** "%s of %s files" line during extract, patch and verify. */
+    /** File line during extract, patch and verify. Argument 1 is the phase label, then done and total. */
     public static final String PROGRESS_FILES = P + "progress.files";
 
-    /** File line while the total is still unknown. */
+    /** File line while the total is still unknown. Argument 1 is the phase label. */
     public static final String PROGRESS_FILES_UNKNOWN = P + "progress.files.unknown";
 
     /** Told to the player while the game reloads its resources. */
@@ -86,7 +106,13 @@ public final class AssetFetchLang
 
     // ---- phase labels ----
 
-    /** Label prefix for {@code InstallPhase}; the enum name in lower case is appended. */
+    /**
+     * Label prefix for {@code InstallPhase}; the enum name in lower case is appended.
+     *
+     * <p>These read as bare noun phrases — "Unpacking", not "Unpacking..." — because they are shown next to
+     * the file counter on one line ("Unpacking — 3,210 of 8,474 files") as often as they are shown alone. The
+     * bar above them is what says the work is still going.</p>
+     */
     public static final String PHASE_PREFIX = P + "phase.";
 
     // ---- result screens ----
@@ -94,7 +120,12 @@ public final class AssetFetchLang
     /** Title of the success screen. */
     public static final String DONE_TITLE = P + "done.title";
 
-    /** Body of the success screen: source, files and size. */
+    /**
+     * Body of the success screen: how many files, and how big they are.
+     *
+     * <p>No source id and no claim about readiness. Which chain entry answered is a fact for the log; whether
+     * the mod "is ready" is a promise this screen is in no position to make.</p>
+     */
     public static final String DONE_BODY = P + "done.body";
 
     /** Title of the failure screen. */

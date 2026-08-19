@@ -33,7 +33,7 @@ import static com.minecolonies.api.util.constant.Constants.MOD_ID;
  * <pre>
  * {
  *   "version":        1,
- *   "status":         "installed" | "declined",
+ *   "status":         "installed",   // "declined" is legacy: read tolerantly, never written any more
  *   "sourceId":       string,   // which entry of the source chain produced the install
  *   "sourceUrl":      string,   // the URL (or local path) the jar came from
  *   "jarSha256":      string,   // whole-jar hash of what was downloaded
@@ -42,6 +42,11 @@ import static com.minecolonies.api.util.constant.Constants.MOD_ID;
  *   "customSourceUrl": string   // owner-supplied override for source 3; may be absent or empty
  * }
  * </pre>
+ *
+ * <p>{@code "declined"} was written by builds up to 0.0.52, when "not now" was permanent. It no longer is:
+ * the answer lives in a field that dies with the game, so the prompt returns on the next launch. A leftover
+ * {@code "declined"} in an existing {@code state.json} still parses, is still not {@code "installed"}, and is
+ * therefore simply ignored — it cannot silence the prompt.</p>
  *
  * <p>This class only ever <em>reads</em> that file, and treats every kind of damage — missing, unreadable,
  * not an object, unknown {@code version}, absent {@code status} — as "not installed". A half-written or

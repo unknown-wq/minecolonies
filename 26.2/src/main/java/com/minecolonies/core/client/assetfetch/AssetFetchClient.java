@@ -14,9 +14,10 @@ import net.minecraft.network.chat.Component;
  * Wires the consent flow into the client (task D1): when to ask, and how to get back in after a "not now".
  *
  * <h2>When it asks</h2>
- * <p>On the first arrival at the title screen, and only when the assets are neither installed nor declined.
- * The hook is {@code fabric-screen-api-v1}'s {@link ScreenEvents#AFTER_INIT}, which fires for every screen
- * that finishes initialising; this filters for {@link TitleScreen}. <b>No mixin is involved</b> — the port has
+ * <p>On the first arrival at the title screen, and only when the assets are not installed and "not now" has
+ * not already been pressed <i>this session</i>. The hook is {@code fabric-screen-api-v1}'s
+ * {@link ScreenEvents#AFTER_INIT}, which fires for every screen that finishes initialising; this filters for
+ * {@link TitleScreen}. <b>No mixin is involved</b> — the port has
  * exactly one mixin, for the pack injection, and that is deliberate.</p>
  *
  * <p>The screen is not opened from inside the title screen's own {@code init}: that would be re-entering a
@@ -26,8 +27,11 @@ import net.minecraft.network.chat.Component;
  * which re-runs its {@code init}, and without the latch that would reopen the prompt forever.</p>
  *
  * <h2>Getting back in</h2>
- * <p>"Not now" is recorded in {@code state.json} and is not asked about again. Two ways back: the
- * {@code /minecolonies-client fetchassets} client command registered here, and the Download button on the
+ * <p>"Not now" holds for the rest of the session and nothing more — it is not written to {@code state.json},
+ * so <b>the next launch asks again</b>, and goes on asking until the assets are installed. That is the point:
+ * a mod that cannot draw a single one of its own windows should say so every time it starts, not once. Within
+ * a session there are still the two other ways back — the {@code /minecolonies-client fetchassets} client
+ * command registered here, and the Download button on the
  * {@link com.minecolonies.core.client.assetfetch.gui.AssetsMissingScreen} that the window-open gate shows.</p>
  */
 @Environment(EnvType.CLIENT)
@@ -98,7 +102,7 @@ public final class AssetFetchClient
 
     /**
      * Whether the player should be asked at all: not if the assets are already there, and not if they have
-     * said no.
+     * said "not now" since this game started.
      *
      * @return true when the consent screen is due.
      */

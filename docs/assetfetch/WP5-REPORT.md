@@ -28,7 +28,7 @@ are precisely what cannot be opened in this state.
 ## 2. The UI flow
 
 ```
-title screen (first arrival, not installed, not declined)
+title screen (first arrival, not installed, not declined this session)
    │  ScreenEvents.AFTER_INIT -> client.execute(...)
    ▼
 AssetConsentScreen ──"Not now"──▶ recordDeclined(), back to the title screen
@@ -79,8 +79,13 @@ second. Two details that matter:
   screen change from within one;
 - a static latch makes it a genuine one-shot. Closing the consent screen puts the title
   screen back, which re-runs its `init` and re-fires `AFTER_INIT`; without the latch the
-  prompt would reopen forever. "Not now" additionally persists through
+  prompt would reopen forever. "Not now" additionally sets
   `AssetInstaller.recordDeclined()`.
+
+> **Superseded.** As written, "Not now" was persisted in `state.json` and the prompt never
+> came back. It is now a session-only flag: the next launch asks again, and goes on asking
+> until the assets are installed. Nothing writes `status: "declined"` any more; a leftover
+> one from 0.0.52 is read tolerantly and ignored.
 
 ### The ways back in after a decline
 

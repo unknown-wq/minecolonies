@@ -58,9 +58,10 @@ public class AssetConsentScreen extends Screen
 
         layout.addChild(new StringWidget(this.title, this.font));
         layout.addChild(new MultiLineTextWidget(
-            Component.translatable(AssetFetchLang.CONSENT_BODY,
-                AssetFetchScreenSupport.megabytes(size),
-                AssetFetchScreenSupport.exactBytes(size)),
+            // A bare number, because consent.body carries the unit itself -- MB, МБ, Mo, whichever the
+            // language uses. The exact byte count that used to sit next to it said nothing a player acts on;
+            // it is in the log, on both the successful attempt and the size-mismatch error.
+            Component.translatable(AssetFetchLang.CONSENT_BODY, AssetFetchScreenSupport.megabytesNumber(size)),
             this.font).setMaxWidth(textWidth).setCentered(true));
         layout.addChild(new MultiLineTextWidget(Component.translatable(AssetFetchLang.CONSENT_LICENCE), this.font)
             .setMaxWidth(textWidth).setCentered(true));

@@ -16,6 +16,7 @@ import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -24,10 +25,11 @@ import java.util.Locale;
 /**
  * The install screen (task D1): progress while it runs, and the result when it stops.
  *
- * <p>One screen covers both because they are the same conversation. While the installer runs it shows the
- * phase, the source being tried, and either bytes (the download is ~78 MB, which is long enough to need a
- * number) or files (extract, patch and verify each walk thousands). When the run ends it rebuilds itself into
- * one of three result states — installed, failed, or cancelled.</p>
+ * <p>One screen covers both because they are the same conversation. While the installer runs it shows which
+ * build is being fetched, a {@link AssetProgressBar} carrying whichever number the current phase has (bytes
+ * while downloading, files while extracting, patching and verifying, a sliding block when the total is not
+ * known yet), and one status line under it. When the run ends it rebuilds itself into one of three result
+ * states — installed, failed, or cancelled.</p>
  *
  * <p><b>Threading.</b> Every {@link InstallListener} callback arrives on the installer's own thread, so all
  * this class does there is write volatile fields; {@link #tick()} reads them on the client thread and
@@ -104,19 +106,29 @@ public class AssetInstallScreen extends Screen implements InstallListener
     private boolean reloading = false;
 
     /**
-     * The line that shows the phase; rebuilt every tick while running.
+     * The bar; updated every tick while running.
      */
-    private @Nullable StringWidget phaseWidget = null;
+    private @Nullable AssetProgressBar barWidget = null;
 
     /**
-     * The line that shows bytes or files; rebuilt every tick while running.
+     * The one status line under the bar: phase, and whatever it can count. Updated every tick while running.
      */
-    private @Nullable StringWidget detailWidget = null;
+    private @Nullable StringWidget statusWidget = null;
 
     /**
-     * The line that shows the current source; rebuilt every tick while running.
+     * The line that names the source being fetched; updated every tick while running.
      */
     private @Nullable StringWidget sourceWidget = null;
+
+    /**
+     * The running state's layout, kept so the two live lines can be re-centred when their text changes.
+     *
+     * <p>A {@link StringWidget} is exactly as wide as its message, and the layout centres it by that width —
+     * measured once, when the widgets are built. Both live lines start out short or empty (no source has been
+     * tried yet, nothing has been counted yet), so without re-arranging, the source line would be laid out at
+     * width zero and then draw from the middle of the screen off the right-hand edge.</p>
+     */
+    private @Nullable LinearLayout runningLayout = null;
 
     /**
      * Creates the screen. Use {@link #startAutomatic} or {@link #startLocalJar}, which also start the run.
@@ -183,9 +195,10 @@ public class AssetInstallScreen extends Screen implements InstallListener
     {
         super.init();
 
-        this.phaseWidget = null;
-        this.detailWidget = null;
+        this.barWidget = null;
+        this.statusWidget = null;
         this.sourceWidget = null;
+        this.runningLayout = null;
 
         final int textWidth = Math.min(this.width - 40, 380);
         final LinearLayout layout = LinearLayout.vertical().spacing(8);
@@ -194,6 +207,7 @@ public class AssetInstallScreen extends Screen implements InstallListener
         final InstallReport finished = this.report;
         if (finished == null)
         {
+            this.runningLayout = layout;
             this.buildRunning(layout, textWidth);
         }
         else if (finished.succeeded())
@@ -215,7 +229,10 @@ public class AssetInstallScreen extends Screen implements InstallListener
     }
 
     /**
-     * The running state: phase, source, progress and a Cancel button.
+     * The running state: what is being fetched, the bar, one status line and a Cancel button.
+     *
+     * <p>There is deliberately no separate "Downloading..." line: the title says that already, the bar says it
+     * is still happening, and the status line says how far along it is.</p>
      *
      * @param layout    the layout to fill.
      * @param textWidth how wide text may be.
@@ -224,9 +241,12 @@ public class AssetInstallScreen extends Screen implements InstallListener
     {
         layout.addChild(new StringWidget(this.title, this.font));
 
-        this.phaseWidget = layout.addChild(new StringWidget(this.phaseLabel(), this.font).setMaxWidth(textWidth));
         this.sourceWidget = layout.addChild(new StringWidget(this.sourceLabel(), this.font).setMaxWidth(textWidth));
-        this.detailWidget = layout.addChild(new StringWidget(this.detailLabel(), this.font).setMaxWidth(textWidth));
+
+        this.barWidget = layout.addChild(new AssetProgressBar(barWidth(this.width), this.font));
+        this.updateBar();
+
+        this.statusWidget = layout.addChild(new StringWidget(this.statusLabel(), this.font).setMaxWidth(textWidth));
 
         final LinearLayout buttons = layout.addChild(LinearLayout.horizontal().spacing(8));
         buttons.defaultCellSetting().paddingTop(12);
@@ -245,9 +265,8 @@ public class AssetInstallScreen extends Screen implements InstallListener
         layout.addChild(new StringWidget(Component.translatable(AssetFetchLang.DONE_TITLE), this.font));
         layout.addChild(new MultiLineTextWidget(
             Component.translatable(AssetFetchLang.DONE_BODY,
-                String.valueOf(finished.sourceId()),
                 AssetFetchScreenSupport.count(finished.filesVerified()),
-                AssetFetchScreenSupport.megabytes(finished.packBytes())),
+                AssetFetchScreenSupport.megabytesNumber(finished.packBytes())),
             this.font).setMaxWidth(textWidth).setCentered(true));
 
         if (this.reloading)
@@ -343,22 +362,56 @@ public class AssetInstallScreen extends Screen implements InstallListener
             return;
         }
 
-        if (this.phaseWidget != null)
-        {
-            this.phaseWidget.setMessage(this.phaseLabel());
-        }
+        boolean resized = false;
         if (this.sourceWidget != null)
         {
-            this.sourceWidget.setMessage(this.sourceLabel());
+            resized |= retitle(this.sourceWidget, this.sourceLabel());
         }
-        if (this.detailWidget != null)
+        if (this.statusWidget != null)
         {
-            this.detailWidget.setMessage(this.detailLabel());
+            resized |= retitle(this.statusWidget, this.statusLabel());
         }
+        if (resized)
+        {
+            this.recentre();
+        }
+        this.updateBar();
     }
 
     /**
-     * The phase line, e.g. "Downloading".
+     * Puts new text on a line, and says whether that changed how wide it is.
+     *
+     * @param widget  the line.
+     * @param message the new text.
+     * @return true when the line has to be re-centred.
+     */
+    private static boolean retitle(final StringWidget widget, final Component message)
+    {
+        if (message.equals(widget.getMessage()))
+        {
+            return false;
+        }
+        final int before = widget.getWidth();
+        widget.setMessage(message);
+        return widget.getWidth() != before;
+    }
+
+    /**
+     * Re-centres the running layout after one of its lines changed width.
+     */
+    private void recentre()
+    {
+        final LinearLayout layout = this.runningLayout;
+        if (layout == null)
+        {
+            return;
+        }
+        layout.arrangeElements();
+        FrameLayout.centerInRectangle(layout, this.getRectangle());
+    }
+
+    /**
+     * The phase label, e.g. "Unpacking". Shown on its own only when the phase has nothing to count.
      *
      * @return the component.
      */
@@ -368,7 +421,7 @@ public class AssetInstallScreen extends Screen implements InstallListener
     }
 
     /**
-     * The source line, or an empty line before the first source starts.
+     * The line naming the source, or an empty line before the first source starts.
      *
      * @return the component.
      */
@@ -379,34 +432,77 @@ public class AssetInstallScreen extends Screen implements InstallListener
     }
 
     /**
-     * The progress line: bytes while downloading, files while extracting, patching and verifying.
+     * The one status line under the bar: megabytes while downloading, the phase and a file count while
+     * extracting, patching and verifying, and the bare phase when there is nothing yet to count.
+     *
+     * <p>The unit is not appended here. {@code progress.bytes} carries its own {@code MB} / {@code МБ}, so a
+     * translation says it once, in its own alphabet, and can put it where that language puts it.</p>
      *
      * @return the component.
      */
-    private Component detailLabel()
+    private Component statusLabel()
     {
         if (this.phase == InstallPhase.DOWNLOADING)
         {
             final long total = this.bytesTotal;
+            final long done = this.bytes;
             if (total > 0)
             {
                 return Component.translatable(AssetFetchLang.PROGRESS_BYTES,
-                    AssetFetchScreenSupport.megabytes(this.bytes), AssetFetchScreenSupport.megabytes(total));
+                    AssetFetchScreenSupport.megabytesNumber(done), AssetFetchScreenSupport.megabytesNumber(total));
             }
-            return Component.translatable(AssetFetchLang.PROGRESS_BYTES_UNKNOWN, AssetFetchScreenSupport.megabytes(this.bytes));
+            if (done <= 0)
+            {
+                return this.phaseLabel();
+            }
+            return Component.translatable(AssetFetchLang.PROGRESS_BYTES_UNKNOWN, AssetFetchScreenSupport.megabytesNumber(done));
         }
 
         final int total = this.filesTotal;
         if (this.files <= 0 && total <= 0)
         {
-            return Component.empty();
+            return this.phaseLabel();
         }
         if (total > 0)
         {
-            return Component.translatable(AssetFetchLang.PROGRESS_FILES,
+            return Component.translatable(AssetFetchLang.PROGRESS_FILES, this.phaseLabel(),
                 AssetFetchScreenSupport.count(this.files), AssetFetchScreenSupport.count(total));
         }
-        return Component.translatable(AssetFetchLang.PROGRESS_FILES_UNKNOWN, AssetFetchScreenSupport.count(this.files));
+        return Component.translatable(AssetFetchLang.PROGRESS_FILES_UNKNOWN, this.phaseLabel(),
+            AssetFetchScreenSupport.count(this.files));
+    }
+
+    /**
+     * Points the bar at whichever number the current phase has.
+     *
+     * <p>Downloading counts bytes, extract/patch/verify count files, and everything else — and any phase whose
+     * total the installer has not worked out yet, which is what {@code EXTRACTING} does while it walks the jar
+     * — gets the sliding block instead of a lie about how far along it is.</p>
+     */
+    private void updateBar()
+    {
+        final AssetProgressBar bar = this.barWidget;
+        if (bar == null)
+        {
+            return;
+        }
+        if (this.phase == InstallPhase.DOWNLOADING)
+        {
+            bar.setProgress(this.bytes, this.bytesTotal);
+            return;
+        }
+        bar.setProgress(this.files, this.filesTotal);
+    }
+
+    /**
+     * How wide the bar is: about two thirds of the screen, kept sane on very narrow and very wide windows.
+     *
+     * @param screenWidth the screen width.
+     * @return the bar width in pixels.
+     */
+    private static int barWidth(final int screenWidth)
+    {
+        return Mth.clamp(screenWidth * 2 / 3, 120, 400);
     }
 
     // ------------------------------------------------------------------ installer callbacks (installer thread)
@@ -414,15 +510,26 @@ public class AssetInstallScreen extends Screen implements InstallListener
     @Override
     public void onPhase(final InstallPhase newPhase)
     {
+        if (newPhase != this.phase)
+        {
+            // Each phase counts its own files; carrying the last one's total over would put the bar at 100%
+            // for the tick between the phase change and its first onFiles.
+            this.files = 0;
+            this.filesTotal = -1;
+        }
         this.phase = newPhase;
     }
 
     @Override
     public void onSourceStarted(final String sourceId, final String url, final String description)
     {
-        this.sourceLine = Component.translatable(AssetFetchLang.PROGRESS_SOURCE, description, url);
+        // description is the chain's own English blurb and url is a 130-character diagnostic; neither belongs
+        // in front of a player mid-download, so the human name is built from the id instead.
+        this.sourceLine = AssetFetchScreenSupport.sourceLine(sourceId, url);
         this.bytes = 0L;
         this.bytesTotal = -1L;
+        this.files = 0;
+        this.filesTotal = -1;
     }
 
     @Override

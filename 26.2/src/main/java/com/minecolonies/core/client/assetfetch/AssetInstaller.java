@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * The installer as the consent UI sees it: start it, watch it, cancel it, or record that the player said no.
+ * The installer as the consent UI sees it: start it, watch it, cancel it, or note that the player said no.
  *
  * <p>This is the only class in the feature that touches Minecraft, and it touches exactly one thing —
  * the running game's client resource pack format, for {@link PackMetaWriter} — plus Fabric's game directory
@@ -51,6 +51,13 @@ public final class AssetInstaller
      * Name of the installer thread, so it is recognisable in a thread dump or a crash report.
      */
     private static final String THREAD_NAME = "MineColonies asset install";
+
+    /**
+     * Whether the player pressed "not now" since the game started. Deliberately not persisted — see
+     * {@link #recordDeclined()}. Volatile because the screens that set it and the title-screen hook that reads
+     * it are not guaranteed to be the same thread.
+     */
+    private static volatile boolean declinedThisSession = false;
 
     /**
      * What to install and where.
@@ -144,33 +151,33 @@ public final class AssetInstaller
     }
 
     /**
-     * Records that the player said "not now", so the consent screen does not come back on every start.
+     * Records that the player said "not now" — <b>for this session only</b>.
      *
-     * <p>Nothing is downloaded and nothing is deleted; only {@code state.json} changes, and the owner's
-     * {@code customSourceUrl} override survives it.</p>
+     * <p>It used to be written to {@code state.json}, which meant one "not now" silenced the prompt forever
+     * and the only ways back were a command and the window-open gate. A player who declines while installing a
+     * modpack, or who simply does not want to download 78 MB right then, is not saying "never ask again"; they
+     * are saying "not now". So the answer lives in a field that dies with the JVM, and the next launch asks
+     * again — until the assets are actually installed, which is the only state that stops the asking.</p>
+     *
+     * <p>Nothing is downloaded, nothing is deleted and no file is touched.</p>
      */
     public static void recordDeclined()
     {
-        try
-        {
-            InstallState.writeDeclined(AssetFetch.stateFile());
-            AssetFetch.invalidate();
-        }
-        catch (final AssetInstallException e)
-        {
-            Log.getLogger().error("Could not record the declined asset download", e);
-        }
+        declinedThisSession = true;
     }
 
     /**
-     * Whether the player has already declined, so the UI knows to offer a way back in rather than asking
-     * again.
+     * Whether the player has already said "not now" since the game started.
      *
-     * @return true if {@code state.json} records a decline.
+     * <p>{@code state.json} is deliberately not consulted: a {@code "status": "declined"} left behind by an
+     * older build is read tolerantly by {@link InstallState} and then ignored, so it can no longer suppress
+     * the prompt.</p>
+     *
+     * @return true if "not now" was pressed this session.
      */
     public static boolean hasDeclined()
     {
-        return InstallState.read(AssetFetch.stateFile()).isDeclined();
+        return declinedThisSession;
     }
 
     /**

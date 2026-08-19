@@ -21,7 +21,7 @@ import java.time.Instant;
  * <pre>
  * {
  *   "version": 1,
- *   "status": "installed" | "declined",
+ *   "status": "installed",  // "declined" is legacy, read-only -- see STATUS_DECLINED
  *   "sourceId": ..., "sourceUrl": ..., "jarSha256": ..., "manifestSha256": ...,
  *   "installedAt": ..., "customSourceUrl": ...
  * }
@@ -47,6 +47,10 @@ public final class InstallState
 
     /**
      * {@code status} for "the player said not now".
+     *
+     * <p><b>Legacy, read-only.</b> Builds up to 0.0.52 wrote it and treated it as permanent; nothing writes
+     * it any more, because a decline now lasts one session. It is kept so a file written by such a build
+     * still parses into a state that is recognisably not an install.</p>
      */
     public static final String STATUS_DECLINED = "declined";
 
@@ -98,7 +102,7 @@ public final class InstallState
     /**
      * The recorded status.
      *
-     * @return {@code installed}, {@code declined}, or null when neither has been recorded.
+     * @return {@code installed}, the legacy {@code declined}, or null when neither has been recorded.
      */
     public String status()
     {
@@ -118,7 +122,10 @@ public final class InstallState
     /**
      * Whether the player has said no.
      *
-     * @return true if {@code status} is {@code declined}.
+     * <p>Only a file written by a build up to 0.0.52 can say so; a decline is no longer persisted. Kept so
+     * that such a file is understood rather than merely unrecognised.</p>
+     *
+     * @return true if {@code status} is the legacy {@code declined}.
      */
     public boolean isDeclined()
     {
@@ -183,22 +190,6 @@ public final class InstallState
         out.addProperty("sourceUrl", sourceUrl);
         out.addProperty("jarSha256", jarSha256);
         out.addProperty("manifestSha256", manifestSha256);
-        out.addProperty("installedAt", Instant.now().toString());
-        write(stateFile, out);
-    }
-
-    /**
-     * Records that the player declined.
-     *
-     * <p>Everything an install would have recorded is left out, so a later install writes a clean record.</p>
-     *
-     * @param stateFile where to write.
-     * @throws AssetInstallException if the file cannot be written.
-     */
-    public static void writeDeclined(final Path stateFile) throws AssetInstallException
-    {
-        final JsonObject out = base(stateFile);
-        out.addProperty("status", STATUS_DECLINED);
         out.addProperty("installedAt", Instant.now().toString());
         write(stateFile, out);
     }

@@ -7,6 +7,15 @@ being placed here: `Done (1.269s)`, no `/ERROR]` and no `/FATAL]` line, 23 warni
 recorded baseline line for line. Also client-tested under Xvfb: the downloaded asset pack is selected
 (`Reloading ResourceManager: minecolonies:fetched_assets`) and the GUI atlas stitches fully.
 
+**0.0.53 gives the download a face and eleven languages.** The install screen got a real progress
+bar (bytes while downloading, files while unpacking and verifying); the texts dropped raw URLs and
+mixed-language debris ("Скачано: 23,1 из 74,5 МБ", source named as "официальная сборка 1.1.1374,
+сервер LDTTeam"); the success screen no longer claims anything beyond what was verified. "Not now"
+now means *this session* — the game asks again on the next launch until the assets are installed.
+The whole fetch UI (consent included) is translated into Russian, German, French, Spanish, Italian,
+Polish, Brazilian Portuguese, Ukrainian, Chinese, Japanese and Korean, with locale-aware number
+formatting. Screenshots and a headless-client guide live in `docs/`.
+
 **0.0.52 ships no MineColonies assets and downloads them on first start.** The All-Rights-Reserved
 `assets/minecolonies` tree is gone from the jar and the repository; on first client start a consent
 screen (English/Russian) offers to download LDTTeam's own build (~74.5 MB) from LDTTeam's own Maven,
