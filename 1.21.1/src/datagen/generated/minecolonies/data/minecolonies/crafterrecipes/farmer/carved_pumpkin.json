@@ -1,0 +1,14 @@
+{
+  "type": "recipe",
+  "crafter": "farmer_crafting",
+  "inputs": [
+    {
+      "id": "minecraft:pumpkin"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "result": {
+    "id": "minecraft:carved_pumpkin"
+  },
+  "tool": "minecolonies:shears"
+}

@@ -1,0 +1,26 @@
+{
+  "branch": "minecolonies:civilian",
+  "costs": [
+    {
+      "count": 9,
+      "item": "minecraft:cake"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/happinessmultiplier",
+      "level": 2
+    }
+  ],
+  "icon": "minecolonies:textures/icons/research/happy2.png",
+  "parentResearch": "minecolonies:civilian/circus",
+  "requirements": [
+    {
+      "type": "minecolonies:building",
+      "building": "minecolonies:cook",
+      "level": 3
+    }
+  ],
+  "researchLevel": 3,
+  "subtitle": "com.minecolonies.research.civilian.festival.subtitle"
+}

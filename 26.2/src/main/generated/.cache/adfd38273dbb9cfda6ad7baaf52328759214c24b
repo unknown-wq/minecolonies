@@ -1,0 +1,22 @@
+// 26.2	-999999999-01-01T00:00:00	MineColonies Fabric 26.2 (Unofficial)/MineColonies Block Tags
+00c88debbcc08079f6a3bc306368fc341d6e6a20 data/minecolonies/tags/block/concrete.json
+a9a4ab228ee715cd785f63b6f7a171b9434623cd data/minecolonies/tags/block/concrete_powder.json
+35133e95f1c8fdd7a1c21afcc231fc0bffefb9a8 data/minecolonies/tags/block/dangerousblocks.json
+c291d11538c1b81194d0202909b9a73ad7a648ef data/minecolonies/tags/block/decoblocks.json
+81f2f172a820f0cba1a3265d491fa43826e7e56c data/minecolonies/tags/block/extra_tree.json
+235d3452a9e10879e872408c045b7759ba95524e data/minecolonies/tags/block/freeclimbblocks.json
+c976a431fe457491a188b4d5fed9f589b233cd39 data/minecolonies/tags/block/fungi.json
+cfab2ab481bf476a645d326b87627918009b9e50 data/minecolonies/tags/block/indestructible.json
+ea05a95afb692da6b94e4fa61b344cea1da1e5ac data/minecolonies/tags/block/mangrove_tree.json
+19e11fe166c340dfa85d5cf6fb216048895a9af1 data/minecolonies/tags/block/mushrooms.json
+19e6de889d7c8dcda4e8b2225f99a91ed115168e data/minecolonies/tags/block/mushrooms_huge.json
+dbcec3f735f9f8d72c5c05165067a29461b7b6ee data/minecolonies/tags/block/orechanceblocks.json
+aeb8eb35f604107044f6afeb03f1b9e30865192f data/minecolonies/tags/block/pathblocks.json
+4854db2568fabf657271aa095e715029b47158f6 data/minecolonies/tags/block/protectionexception.json
+414a0bdf08f5950b07d178249fbda954c4b17b9f data/minecolonies/tags/block/tree.json
+a8f55077de001353e6619dd292c7aebd8735a69c data/minecolonies/tags/block/validspawnblocks.json
+b8c99ade1b8de746b1ccf911ad93b0b46fd1dbf1 data/minecraft/tags/block/mineable/axe.json
+a71a07667086e4b0b9813b4b0a593737b2f54faf data/minecraft/tags/block/mineable/pickaxe.json
+bc3804ff7619922c079863dcca1ab5a1fa5b3a30 data/minecraft/tags/block/mineable/shovel.json
+ada894d2825d11a0638c6c47c65e585f4ba50831 data/minecraft/tags/block/supports_vegetation.json
+d89354448054dc67ef19977d1d62641a90e751dd data/structurize/tags/block/good_solid_for_placeholder.json

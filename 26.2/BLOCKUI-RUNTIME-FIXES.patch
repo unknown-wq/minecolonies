@@ -1,0 +1,46 @@
+diff --git a/26.2/src/main/java/com/ldtteam/common/language/ClientLocale.java b/26.2/src/main/java/com/ldtteam/common/language/ClientLocale.java
+index c42a8f9..399684e 100644
+--- a/26.2/src/main/java/com/ldtteam/common/language/ClientLocale.java
++++ b/26.2/src/main/java/com/ldtteam/common/language/ClientLocale.java
+@@ -7,6 +7,11 @@ public class ClientLocale
+     public static String getLocale()
+     {
+         // Trust me, Minecraft.getInstance() can be null, when you run Data Generators!
+-        return Minecraft.getInstance() == null ? null : Minecraft.getInstance().options.languageCode;
++        // 26.2: and it can also be non-null with options still unset -- mod entrypoints are invoked from
++        // inside Minecraft.<init>, before the options are loaded, so anything that reads the locale during
++        // mod init NPEs here. Returning null is safe: load() formats the path with it, finds nothing and
++        // falls back to the default locale.
++        final Minecraft mc = Minecraft.getInstance();
++        return mc == null || mc.options == null ? null : mc.options.languageCode;
+     }
+ }
+diff --git a/26.2/src/main/java/com/ldtteam/common/language/LanguageHandler.java b/26.2/src/main/java/com/ldtteam/common/language/LanguageHandler.java
+index 83c2ac6..daea734 100644
+--- a/26.2/src/main/java/com/ldtteam/common/language/LanguageHandler.java
++++ b/26.2/src/main/java/com/ldtteam/common/language/LanguageHandler.java
+@@ -3,6 +3,7 @@ package com.ldtteam.common.language;
+ import com.google.gson.Gson;
+ import com.google.gson.reflect.TypeToken;
+ import com.ldtteam.blockui.mod.BlockUI;
++import com.ldtteam.blockui.mod.Log;
+ import net.minecraft.locale.Language;
+ import org.apache.commons.io.IOUtils;
+ import java.io.InputStream;
+@@ -72,6 +73,16 @@ public final class LanguageHandler
+             {
+                 is = Thread.currentThread().getContextClassLoader().getResourceAsStream(String.format(path, defaultLocale));
+             }
++            if (is == null)
++            {
++                // A dependent mod may legitimately ship no pre-load lang file at all -- MineColonies' en_us.json
++                // comes from the translation pipeline, not from source control, so it is absent in dev and
++                // datagen runs. Dereferencing the missing stream crashed mod init; an empty cache is the correct
++                // outcome, since translateKey falls through to Language.getInstance() anyway.
++                Log.getLogger().warn("No pre-load language file for path '{}' (locale '{}'); "
++                                     + "translations before resource load will fall back to vanilla.", path, locale);
++                return;
++            }
+             languageMap.putAll(new Gson().fromJson(new InputStreamReader(is, StandardCharsets.UTF_8), new TypeToken<Map<String, String>>()
+             {}.getType()));
+ 

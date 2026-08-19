@@ -1,0 +1,25 @@
+{
+  "branch": "minecolonies:combat",
+  "costs": [
+    {
+      "count": 8,
+      "item": "minecraft:iron_block"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/meleedamageaddition",
+      "level": 3
+    }
+  ],
+  "icon": "minecraft:iron_sword",
+  "parentResearch": "minecolonies:combat/powerattack",
+  "requirements": [
+    {
+      "type": "minecolonies:building",
+      "building": "minecolonies:guardtower",
+      "level": 10
+    }
+  ],
+  "researchLevel": 4
+}

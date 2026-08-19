@@ -1,0 +1,26 @@
+{
+  "branch": "minecolonies:combat",
+  "costs": [
+    {
+      "count": 64,
+      "item": "minecraft:leather"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/archerarmormultiplier",
+      "level": 3
+    }
+  ],
+  "icon": "minecraft:iron_boots",
+  "parentResearch": "minecolonies:combat/improveddodge",
+  "requirements": [
+    {
+      "type": "minecolonies:building",
+      "building": "minecolonies:smeltery",
+      "level": 3
+    }
+  ],
+  "researchLevel": 4,
+  "subtitle": "com.minecolonies.research.combat.evasion.subtitle"
+}

@@ -1,0 +1,72 @@
+package com.minecolonies.core.colony.buildings.moduleviews;
+
+import com.ldtteam.blockui.views.BOWindow;
+import com.minecolonies.api.colony.buildings.modules.AbstractBuildingModuleView;
+import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.client.gui.modules.building.ExpeditionLogModuleWindow;
+import com.minecolonies.core.colony.buildings.modules.expedition.ExpeditionLog;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Building module view to display an expedition log
+ */
+public class ExpeditionLogModuleView extends AbstractBuildingModuleView
+{
+    private boolean updated;
+    private boolean unlocked;
+    private ExpeditionLog log = new ExpeditionLog();
+
+    @Override
+    public void deserialize(@NotNull final RegistryFriendlyByteBuf buf)
+    {
+        this.unlocked = buf.readBoolean();
+        if (this.unlocked)
+        {
+            this.log.deserialize(buf);
+        }
+        this.updated = true;
+    }
+
+    public boolean checkAndResetUpdated()
+    {
+        final boolean wasUpdated = this.updated;
+        this.updated = false;
+        return wasUpdated;
+    }
+
+    public ExpeditionLog getLog()
+    {
+        return this.log;
+    }
+
+    @Override
+    public boolean isPageVisible()
+    {
+        return this.unlocked;
+    }
+
+    @Environment(EnvType.CLIENT)
+    @Override
+    public BOWindow getWindow()
+    {
+        return new ExpeditionLogModuleWindow(this);
+    }
+
+    @Override
+    public Identifier getIconResourceLocation()
+    {
+        return Identifier.fromNamespaceAndPath(Constants.MOD_ID, "textures/gui/modules/sword.png");
+    }
+
+    @Override
+    public Component getDesc()
+    {
+        return Component.translatable("com.minecolonies.gui.workerhuts.expeditionlog");
+    }
+}

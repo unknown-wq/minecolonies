@@ -1,0 +1,212 @@
+package com.minecolonies.core.colony.buildingextensions;
+
+import com.minecolonies.api.colony.buildingextensions.IBuildingExtension;
+import com.minecolonies.api.colony.buildingextensions.modules.IBuildingExtensionModule;
+import com.minecolonies.api.colony.buildingextensions.registry.BuildingExtensionRegistries;
+import com.minecolonies.api.colony.buildingextensions.registry.BuildingExtensionRegistries.BuildingExtensionEntry;
+import com.minecolonies.api.colony.buildings.views.IBuildingView;
+import com.minecolonies.api.util.BlockPosUtil;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_OWNER;
+
+/**
+ * Abstract implementation for building extension instances.
+ * Contains some basic mandatory logic for building extensions.
+ */
+public abstract class AbstractBuildingExtension implements IBuildingExtension
+{
+    /**
+     * Set of building extension modules this building extension has.
+     */
+    private final List<IBuildingExtensionModule> modules = new ArrayList<>();
+
+    /**
+     * The type of the building extension.
+     */
+    private final BuildingExtensionEntry buildingExtensionEntry;
+
+    /**
+     * The position of the building extension.
+     */
+    private final BlockPos position;
+
+    /**
+     * Building id of the building owning the building extension.
+     */
+    @Nullable
+    private BlockPos buildingId = null;
+
+    /**
+     * Unique extension id.
+     */
+    private final ExtensionId extensionId;
+
+    /**
+     * Constructor used in NBT deserialization.
+     *
+     * @param buildingExtensionEntry the type of building extension.
+     * @param position  the position of the building extension.
+     */
+    protected AbstractBuildingExtension(final @NotNull BuildingExtensionRegistries.BuildingExtensionEntry buildingExtensionEntry, final @NotNull BlockPos position)
+    {
+        this.buildingExtensionEntry = buildingExtensionEntry;
+        this.position = position;
+        this.extensionId = new ExtensionId(position, buildingExtensionEntry);
+    }
+
+    @Override
+    @NotNull
+    public List<IBuildingExtensionModule> getModules()
+    {
+        return modules;
+    }
+
+    @Override
+    @NotNull
+    public Class<IBuildingExtensionModule> getClassType()
+    {
+        return IBuildingExtensionModule.class;
+    }
+
+    @Override
+    public void registerModule(final @NotNull IBuildingExtensionModule module)
+    {
+        this.modules.add(module);
+    }
+
+    @Override
+    @NotNull
+    public final BuildingExtensionRegistries.BuildingExtensionEntry getBuildingExtensionType()
+    {
+        return buildingExtensionEntry;
+    }
+
+    @Override
+    @NotNull
+    public final BlockPos getPosition()
+    {
+        return position;
+    }
+
+    @Override
+    @Nullable
+    public final BlockPos getBuildingId()
+    {
+        return buildingId;
+    }
+
+    @Override
+    public final void setBuilding(final BlockPos buildingId)
+    {
+        this.buildingId = buildingId;
+    }
+
+    @Override
+    public final void resetOwningBuilding()
+    {
+        buildingId = null;
+    }
+
+    @Override
+    public final boolean isTaken()
+    {
+        return buildingId != null;
+    }
+
+    @Override
+    public final int getSqDistance(final IBuildingView building)
+    {
+        return (int) Math.sqrt(BlockPosUtil.getDistanceSquared(position, building.getPosition()));
+    }
+
+    @Override
+    public @NotNull CompoundTag serializeNBT(@NotNull final HolderLookup.Provider provider)
+    {
+        CompoundTag compound = new CompoundTag();
+        if (buildingId != null)
+        {
+            BlockPosUtil.write(compound, TAG_OWNER, buildingId);
+        }
+        return compound;
+    }
+
+    @Override
+    public void deserializeNBT(@NotNull final HolderLookup.Provider provider, final @NotNull CompoundTag compound)
+    {
+        if (compound.contains(TAG_OWNER))
+        {
+            buildingId = BlockPosUtil.read(compound, TAG_OWNER);
+        }
+        else
+        {
+            buildingId = null;
+        }
+    }
+
+    @Override
+    public void serialize(final @NotNull RegistryFriendlyByteBuf buf)
+    {
+        buf.writeBoolean(buildingId != null);
+        if (buildingId != null)
+        {
+            buf.writeBlockPos(buildingId);
+        }
+    }
+
+    @Override
+    public void deserialize(final @NotNull RegistryFriendlyByteBuf buf)
+    {
+        if (buf.readBoolean())
+        {
+            buildingId = buf.readBlockPos();
+        }
+        else
+        {
+            buildingId = null;
+        }
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = position.hashCode();
+        result = 31 * result + buildingExtensionEntry.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+
+        final AbstractBuildingExtension that = (AbstractBuildingExtension) o;
+
+        if (!position.equals(that.position))
+        {
+            return false;
+        }
+        return buildingExtensionEntry.equals(that.buildingExtensionEntry);
+    }
+
+    @Override
+    public ExtensionId getId()
+    {
+        return extensionId;
+    }
+}

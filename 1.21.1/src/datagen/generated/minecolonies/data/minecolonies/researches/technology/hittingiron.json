@@ -1,0 +1,26 @@
+{
+  "branch": "minecolonies:technology",
+  "costs": [
+    {
+      "count": 1,
+      "item": "minecraft:anvil"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/blockhutblacksmith",
+      "level": 1
+    }
+  ],
+  "icon": "minecolonies:blockhutblacksmith",
+  "requirements": [
+    {
+      "type": "minecolonies:building",
+      "building": "minecolonies:miner",
+      "level": 3
+    }
+  ],
+  "researchLevel": 1,
+  "sortOrder": 7,
+  "subtitle": "com.minecolonies.research.technology.hittingiron.subtitle"
+}

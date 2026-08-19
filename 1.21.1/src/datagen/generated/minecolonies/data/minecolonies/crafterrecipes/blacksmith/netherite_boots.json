@@ -1,0 +1,32 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecraft:netherite_upgrade_smithing_template"
+    }
+  ],
+  "crafter": "blacksmith_crafting",
+  "inputs": [
+    {
+      "id": "minecraft:diamond_boots"
+    },
+    {
+      "id": "minecraft:netherite_upgrade_smithing_template"
+    },
+    {
+      "id": "minecraft:netherite_ingot"
+    },
+    {
+      "count": 7,
+      "id": "minecraft:diamond"
+    },
+    {
+      "id": "minecraft:netherrack"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "min-building-level": 4,
+  "result": {
+    "id": "minecraft:netherite_boots"
+  }
+}

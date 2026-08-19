@@ -1,0 +1,46 @@
+package com.minecolonies.api.configuration;
+
+import com.ldtteam.common.config.AbstractConfiguration;
+import com.minecolonies.api.util.constant.Constants;
+import com.ldtteam.common.config.ConfigValue.BooleanValue;
+
+import com.ldtteam.common.config.ConfigValue.Builder;
+
+import com.ldtteam.common.config.ConfigValue.IntValue;
+
+/**
+ * Mod client configuration. Loaded clientside, not synced.
+ */
+public class ClientConfiguration extends AbstractConfiguration
+{
+    public final BooleanValue citizenVoices;
+    public final BooleanValue neighborbuildingrendering;
+    public final IntValue neighborbuildingrange;
+    public final IntValue buildgogglerange;
+    public final BooleanValue colonyteamborders;
+    public final BooleanValue holidayFeatures;
+    public final BooleanValue showdyetooltips;
+
+    /**
+     * Builds client configuration.
+     *
+     * @param builder config builder
+     */
+    public ClientConfiguration(final Builder builder)
+    {
+        super(builder, Constants.MOD_ID);
+
+        createCategory("gameplay");
+        citizenVoices = defineBoolean("enablecitizenvoices", true);
+        neighborbuildingrendering = defineBoolean("neighborbuildingrendering", true);
+        neighborbuildingrange = defineInteger("neighborbuildingrange", 4, -2, 16);
+        buildgogglerange = defineInteger("buildgogglerange", 50, 1, 250);
+        colonyteamborders = defineBoolean("colonyteamborders", true);
+        holidayFeatures = defineBoolean("holidayfeatures", true);
+        showdyetooltips = defineBoolean("showdyetooltips", true);
+
+        swapToCategory("pathfinding");
+
+        finishCategory();
+    }
+}

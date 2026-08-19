@@ -1,0 +1,29 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecolonies:sifter_mesh_flint"
+    },
+    {
+      "id": "minecraft:nether_wart"
+    },
+    {
+      "id": "minecraft:quartz"
+    },
+    {
+      "id": "minecraft:glowstone_dust"
+    }
+  ],
+  "crafter": "sifter_custom",
+  "inputs": [
+    {
+      "id": "minecraft:soul_sand"
+    },
+    {
+      "id": "minecolonies:sifter_mesh_flint"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/flint/soul_sand",
+  "min-building-level": 3
+}

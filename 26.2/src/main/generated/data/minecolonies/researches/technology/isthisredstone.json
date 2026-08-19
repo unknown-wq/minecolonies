@@ -1,0 +1,18 @@
+{
+  "branch": "minecolonies:technology",
+  "costs": [
+    {
+      "count": 128,
+      "item": "minecraft:redstone"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/blockbreakspeedmultiplier",
+      "level": 1
+    }
+  ],
+  "icon": "minecraft:redstone",
+  "parentResearch": "minecolonies:technology/hot",
+  "researchLevel": 2
+}

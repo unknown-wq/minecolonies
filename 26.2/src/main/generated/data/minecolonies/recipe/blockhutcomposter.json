@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": "minecolonies:barrel_block",
+    "T": "structurize:sceptergold",
+    "X": "#minecraft:planks"
+  },
+  "pattern": [
+    "XTX",
+    "XBX",
+    "XXX"
+  ],
+  "result": {
+    "id": "minecolonies:blockhutcomposter"
+  }
+}

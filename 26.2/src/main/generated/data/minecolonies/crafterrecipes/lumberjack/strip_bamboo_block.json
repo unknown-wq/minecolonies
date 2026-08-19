@@ -1,0 +1,14 @@
+{
+  "type": "recipe",
+  "crafter": "lumberjack_custom",
+  "inputs": [
+    {
+      "id": "minecraft:bamboo_block"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "result": {
+    "id": "minecraft:stripped_bamboo_block"
+  },
+  "tool": "minecolonies:axe"
+}

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecolonies:garlic"
+    },
+    {
+      "item": "minecolonies:onion"
+    },
+    {
+      "item": "minecolonies:durum"
+    },
+    {
+      "tag": "c:foods/raw_fish"
+    },
+    {
+      "item": "minecraft:potato"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecolonies:fish_n_chips"
+  }
+}

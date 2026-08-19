@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "M": "minecolonies:large_milk_bottle"
+  },
+  "pattern": [
+    "MMM",
+    "MMM"
+  ],
+  "result": {
+    "count": 3,
+    "id": "minecolonies:butter"
+  }
+}

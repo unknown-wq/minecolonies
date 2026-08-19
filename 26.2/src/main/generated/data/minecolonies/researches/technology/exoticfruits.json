@@ -1,0 +1,26 @@
+{
+  "branch": "minecolonies:technology",
+  "costs": [
+    {
+      "count": 32,
+      "item": "minecraft:glow_berries"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/plantationexotic",
+      "level": 1
+    }
+  ],
+  "icon": "minecraft:glow_berries",
+  "parentResearch": "minecolonies:technology/letitgrow",
+  "requirements": [
+    {
+      "type": "minecolonies:building",
+      "building": "minecolonies:plantation",
+      "level": 3
+    }
+  ],
+  "researchLevel": 3,
+  "subtitle": "com.minecolonies.research.technology.exoticfruits.subtitle"
+}

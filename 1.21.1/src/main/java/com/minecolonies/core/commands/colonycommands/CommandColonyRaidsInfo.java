@@ -1,0 +1,63 @@
+package com.minecolonies.core.commands.colonycommands;
+
+import com.minecolonies.api.colony.IColony;
+import com.minecolonies.core.MineColonies;
+import com.minecolonies.core.colony.events.raid.RaidManager;
+import com.minecolonies.core.commands.arguments.ColonyIdArgument;
+import com.minecolonies.core.commands.commandTypes.IMCCommand;
+import com.minecolonies.core.commands.commandTypes.IMCOPCommand;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+
+import java.util.List;
+
+import static com.minecolonies.api.util.constant.translation.CommandTranslationConstants.COMMAND_DISABLED_IN_CONFIG;
+import static com.minecolonies.core.commands.CommandArgumentNames.COLONYID_ARG;
+
+public class CommandColonyRaidsInfo implements IMCOPCommand
+{
+    /**
+     * What happens when the command is executed after preConditions are successful.
+     *
+     * @param context the context of the command execution
+     */
+    @Override
+    public int onExecute(final CommandContext<CommandSourceStack> context)
+    {
+        final IColony colony = ColonyIdArgument.getColony(context, COLONYID_ARG);
+
+        if (!context.getSource().hasPermission(OP_PERM_LEVEL) && !MineColonies.getConfig().getServer().canPlayerUseShowColonyInfoCommand.get())
+        {
+            context.getSource().sendSuccess(() -> Component.translatableEscape(COMMAND_DISABLED_IN_CONFIG), true);
+            return 0;
+        }
+
+        List<RaidManager.RaidHistory> allRaids = ((RaidManager) colony.getRaiderManager()).getAllRaids();
+        for (int i = 0; i < allRaids.size(); i++)
+        {
+            final RaidManager.RaidHistory history = allRaids.get(i);
+            final double hoursSince = Math.round(100 * (colony.getWorld().getGameTime() - history.raidTime) / (20.0 * 60 * 60)) / 100.0;
+            context.getSource().sendSuccess(() -> Component.literal(hoursSince + " hours ago:" + history), true);
+        }
+
+        return 1;
+    }
+
+    /**
+     * Name string of the command.
+     */
+    @Override
+    public String getName()
+    {
+        return "raidhistory";
+    }
+
+    @Override
+    public LiteralArgumentBuilder<CommandSourceStack> build()
+    {
+        return IMCCommand.newLiteral(getName())
+          .then(IMCCommand.newArgument(COLONYID_ARG, ColonyIdArgument.id()).executes(this::checkPreConditionAndExecute));
+    }
+}

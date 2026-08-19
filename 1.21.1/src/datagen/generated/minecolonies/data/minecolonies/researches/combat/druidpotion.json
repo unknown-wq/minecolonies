@@ -1,0 +1,25 @@
+{
+  "branch": "minecolonies:combat",
+  "costs": [
+    {
+      "count": 64,
+      "item": "minecolonies:mistletoe"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/consumepotions",
+      "level": 1
+    }
+  ],
+  "icon": "minecolonies:mistletoe",
+  "parentResearch": "minecolonies:combat/arrowuse",
+  "requirements": [
+    {
+      "type": "minecolonies:building",
+      "building": "minecolonies:barracks",
+      "level": 3
+    }
+  ],
+  "researchLevel": 3
+}

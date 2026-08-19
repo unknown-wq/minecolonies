@@ -1,0 +1,14 @@
+{
+  "type": "recipe",
+  "crafter": "baker_smelting",
+  "inputs": [
+    {
+      "id": "minecolonies:cake_batter"
+    }
+  ],
+  "intermediate": "minecraft:furnace",
+  "min-building-level": 4,
+  "result": {
+    "id": "minecraft:cake"
+  }
+}

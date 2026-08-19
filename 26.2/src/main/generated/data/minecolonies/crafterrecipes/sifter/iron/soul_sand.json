@@ -1,0 +1,35 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecolonies:sifter_mesh_iron"
+    },
+    {
+      "id": "minecraft:nether_wart"
+    },
+    {
+      "id": "minecraft:quartz"
+    },
+    {
+      "id": "minecraft:glowstone_dust"
+    },
+    {
+      "id": "minecraft:blaze_powder"
+    },
+    {
+      "id": "minecraft:magma_cream"
+    }
+  ],
+  "crafter": "sifter_custom",
+  "inputs": [
+    {
+      "id": "minecraft:soul_sand"
+    },
+    {
+      "id": "minecolonies:sifter_mesh_iron"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/iron/soul_sand",
+  "min-building-level": 4
+}

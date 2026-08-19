@@ -1,0 +1,268 @@
+package com.minecolonies.core.blocks;
+
+import com.minecolonies.api.blocks.interfaces.IBlockMinecolonies;
+import com.minecolonies.api.blocks.AbstractBlockMinecolonies;
+import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.util.InventoryUtils;
+import com.minecolonies.api.util.WorldUtil;
+import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.colony.Colony;
+import com.minecolonies.core.items.ItemCrop;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.util.RandomSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
+
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.*;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+import static com.minecolonies.api.research.util.ResearchConstants.GREEN_REVOLUTION;
+import static com.minecolonies.api.util.constant.Constants.UPDATE_FLAG;
+
+/**
+ * Abstract Minecolonies crop type. We have our own to avoid cheesing the crop.s
+ */
+public class MinecoloniesCropBlock extends AbstractBlockMinecolonies<MinecoloniesCropBlock>
+{
+    public static String BELL_PEPPER = "bell_pepper";
+    public static String CABBAGE = "cabbage";
+    public static String CHICKPEA = "chickpea";
+    public static String DURUM = "durum";
+    public static String EGGPLANT = "eggplant";
+    public static String GARLIC = "garlic";
+    public static String ONION = "onion";
+    public static String SOYBEAN = "soybean";
+    public static String TOMATO = "tomato";
+    public static String RICE = "rice";
+
+    public static String BUTTERNUT_SQUASH = "butternut_squash";
+    public static String CORN = "corn";
+    public static String MINT = "mint";
+    public static String NETHER_PEPPER = "nether_pepper";
+    public static String PEAS = "peas";
+
+    public static final  IntegerProperty AGE = IntegerProperty.create("age", 0, 6);
+    private static final VoxelShape[] SHAPE_BY_AGE = new VoxelShape[] {
+      Block.box(0.0, 0.0, 0.0, 16.0, 2.0, 16.0),
+      Block.box(0.0, 0.0, 0.0, 16.0, 4.0, 16.0),
+      Block.box(0.0, 0.0, 0.0, 16.0, 6.0, 16.0),
+      Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0),
+      Block.box(0.0, 0.0, 0.0, 16.0, 10.0, 16.0),
+      Block.box(0.0, 0.0, 0.0, 16.0, 12.0, 16.0),
+      Block.box(0.0, 0.0, 0.0, 16.0, 14.0, 16.0)};
+
+    private final Block preferredFarmland;
+    private final List<Block> droppedFrom;
+
+    private final Identifier blockId;
+    private final TagKey<Biome>    preferredBiome;
+
+    /**
+     * Constructor to create a block of this type.
+     * @param blockName the block id.
+     */
+    public MinecoloniesCropBlock(final String blockName, final Block preferredFarmland, final List<Block> droppedFrom, @Nullable final TagKey<Biome> preferredBiome)
+    {
+        super(IBlockMinecolonies.withBlockId(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).noCollision().instabreak().sound(SoundType.CROP).pushReaction(PushReaction.DESTROY), blockName));
+        this.registerDefaultState(this.stateDefinition.any().setValue(AGE, 0));
+        this.blockId = Identifier.fromNamespaceAndPath(Constants.MOD_ID, blockName);
+        this.preferredFarmland = preferredFarmland;
+        this.droppedFrom = droppedFrom;
+        this.preferredBiome = preferredBiome;
+    }
+
+    @NotNull
+    @Override
+    public VoxelShape getShape(BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext ctx)
+    {
+        return SHAPE_BY_AGE[state.getValue(AGE)];
+    }
+
+    /**
+     * Check if the block is of max age.
+     * @param state the state its at.
+     * @return true if max age.
+     */
+    public final boolean isMaxAge(BlockState state)
+    {
+        return state.getValue(AGE) >= this.getMaxAge();
+    }
+
+    /**
+     * Get the default max crop age.
+     * @return the max age.
+     */
+    protected int getMaxAge()
+    {
+        return 6;
+    }
+
+    /**
+     * Method to be called to attempt grow this crop.
+     * @param state current state.
+     * @param level level its in.
+     * @param pos pos its at.
+     */
+    public void attemptGrow(BlockState state, ServerLevel level, BlockPos pos)
+    {
+        if (level.hasChunksAt(pos.offset(-1, -1, -1), pos.offset(1, 1, 1)))
+        {
+            if (level.getRawBrightness(pos, 0) >= 9)
+            {
+                final BlockPos offset = pos.relative(Direction.Plane.HORIZONTAL.getRandomDirection(level.getRandom()));
+                if (WorldUtil.isBlockLoaded(level, offset)
+                    && level.getBlockState(offset.below()).getBlock() == level.getBlockState(pos.below()).getBlock()
+                    && level.getBlockState(offset).isAir()
+                    && IColonyManager.getInstance().getColonyByPosFromWorld(level, pos) instanceof Colony colony && colony.getResearchManager().getResearchEffects().getEffectStrength(
+                    GREEN_REVOLUTION) > 0)
+                {
+                    level.setBlock(offset, defaultBlockState(), UPDATE_FLAG);
+                }
+                else
+                {
+                    int i = state.getValue(AGE);
+                    if (i < this.getMaxAge())
+                    {
+                        level.setBlock(pos, state.setValue(AGE, (i + 1)), 2);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    protected InteractionResult useItemOn(
+        final ItemStack stack,
+        final BlockState state,
+        final Level level,
+        final BlockPos pos,
+        final Player player,
+        final InteractionHand hand,
+        final BlockHitResult result)
+    {
+        if (stack.is(ItemTags.HOES) && hand == InteractionHand.MAIN_HAND)
+        {
+            final int i = state.getValue(AGE);
+            if (i >= this.getMaxAge())
+            {
+                if (level instanceof ServerLevel serverLevel)
+                {
+                    for (final ItemStack dropStack : getDrops(state, serverLevel, pos, null))
+                    {
+                        InventoryUtils.spawnItemStack(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, dropStack);
+                    }
+                    stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+                }
+                level.setBlock(pos, state.setValue(AGE, 0), 2);
+            }
+        }
+        return super.useItemOn(stack, state, level, pos, player, hand, result);
+    }
+
+    @Override
+    public boolean canSurvive(@NotNull BlockState state, LevelReader level, @NotNull BlockPos pos)
+    {
+        return (level.getRawBrightness(pos, 0) >= 8 || level.canSeeSky(pos)) && super.canSurvive(state, level, pos) && level.getBlockState(pos.below()).getBlock() == preferredFarmland && (preferredBiome == null || level.getBiome(pos).is(preferredBiome));
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> creator)
+    {
+        creator.add(AGE);
+    }
+
+    @NotNull
+    @Override
+    public BlockState updateShape(
+      @NotNull final BlockState state,
+      @NotNull final LevelReader level,
+      @NotNull final ScheduledTickAccess ticks,
+      @NotNull final BlockPos pos,
+      @NotNull final Direction dir,
+      @NotNull final BlockPos neighborPos,
+      @NotNull final BlockState newState,
+      @NotNull final RandomSource random)
+    {
+        return !state.canSurvive(level, pos) ? Blocks.AIR.defaultBlockState() : super.updateShape(state, level, ticks, pos, dir, neighborPos, newState, random);
+    }
+
+    @Override
+    protected boolean propagatesSkylightDown(@NotNull final BlockState state)
+    {
+        return state.getFluidState().isEmpty();
+    }
+
+    @Override
+    public boolean isPathfindable(@NotNull BlockState state, @NotNull PathComputationType pathComputationType)
+    {
+        return pathComputationType == PathComputationType.AIR && !this.hasCollision || super.isPathfindable(state, pathComputationType);
+    }
+
+    @Override
+    public Identifier getRegistryName()
+    {
+        return blockId;
+    }
+
+    @Override
+    public void registerBlockItem(final Registry<Item> registry, final Item.Properties properties)
+    {
+        Registry.register(registry, getRegistryName(), new ItemCrop(this, IBlockMinecolonies.withBlockItemId(properties, getRegistryName()), preferredBiome));
+    }
+
+    /**
+     * Get the preferred farmland for this crop.
+     * @return the preferred farmland.
+     */
+    public Block getPreferredFarmland()
+    {
+        return preferredFarmland;
+    }
+
+    /**
+     * Get the blocks that this crop drops from.
+     */
+    public List<Block> getDroppedFrom()
+    {
+        return droppedFrom;
+    }
+
+    /**
+     * Get the preferred biome for this crop.
+     * @return the preferred biome, or null if not picky.
+     */
+    @Nullable
+    public TagKey<Biome> getPreferredBiome()
+    {
+        return preferredBiome;
+    }
+}

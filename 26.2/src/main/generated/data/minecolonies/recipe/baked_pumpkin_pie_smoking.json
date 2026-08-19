@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smoking",
+  "category": "food",
+  "experience": 0.35,
+  "ingredient": "minecolonies:raw_pumpkin_pie",
+  "result": {
+    "id": "minecraft:pumpkin_pie"
+  }
+}

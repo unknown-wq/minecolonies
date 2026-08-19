@@ -1,0 +1,18 @@
+{
+  "branch": "minecolonies:combat",
+  "costs": [
+    {
+      "count": 64,
+      "item": "minecraft:diamond"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/armordurabilitymultiplier",
+      "level": 6
+    }
+  ],
+  "icon": "minecraft:diamond_helmet",
+  "parentResearch": "minecolonies:combat/steelarmor",
+  "researchLevel": 6
+}

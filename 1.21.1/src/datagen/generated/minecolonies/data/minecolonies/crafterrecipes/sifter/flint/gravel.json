@@ -1,0 +1,32 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecolonies:sifter_mesh_flint"
+    },
+    {
+      "id": "minecraft:iron_nugget"
+    },
+    {
+      "id": "minecraft:flint"
+    },
+    {
+      "id": "minecraft:coal"
+    },
+    {
+      "id": "minecraft:redstone"
+    }
+  ],
+  "crafter": "sifter_custom",
+  "inputs": [
+    {
+      "id": "minecraft:gravel"
+    },
+    {
+      "id": "minecolonies:sifter_mesh_flint"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/flint/gravel",
+  "min-building-level": 3
+}

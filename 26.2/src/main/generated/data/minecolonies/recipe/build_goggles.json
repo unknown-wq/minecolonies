@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "G": "minecraft:glass_pane",
+    "I": "minecraft:iron_ingot",
+    "L": "minecraft:leather",
+    "N": "minecraft:gold_nugget",
+    "T": "structurize:sceptergold"
+  },
+  "pattern": [
+    "NIN",
+    "GTG",
+    "L L"
+  ],
+  "result": {
+    "id": "minecolonies:build_goggles"
+  }
+}

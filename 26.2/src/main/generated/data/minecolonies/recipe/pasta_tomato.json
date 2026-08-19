@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecolonies:raw_noodle",
+    "minecolonies:tomato",
+    "minecolonies:onion",
+    "minecraft:bowl",
+    "minecolonies:garlic"
+  ],
+  "result": {
+    "id": "minecolonies:pasta_tomato"
+  }
+}

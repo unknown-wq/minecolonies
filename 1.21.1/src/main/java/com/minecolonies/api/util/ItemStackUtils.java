@@ -1,0 +1,1047 @@
+package com.minecolonies.api.util;
+
+import com.google.gson.JsonParser;
+import com.minecolonies.api.advancements.AdvancementTriggers;
+import com.minecolonies.api.colony.ICitizenData;
+import com.minecolonies.api.colony.IColony;
+import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.compatibility.Compatibility;
+import com.minecolonies.api.crafting.ItemStorage;
+import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.entity.citizen.happiness.ExpirationBasedHappinessModifier;
+import com.minecolonies.api.entity.citizen.happiness.StaticHappinessSupplier;
+import com.minecolonies.api.equipment.ModEquipmentTypes;
+import com.minecolonies.api.equipment.registry.EquipmentTypeEntry;
+import com.minecolonies.api.items.IMinecoloniesFoodItem;
+import com.minecolonies.api.items.ModItems;
+import com.minecolonies.api.items.ModTags;
+import com.minecolonies.core.items.ItemSpear;
+import com.minecolonies.core.util.AdvancementUtils;
+import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
+import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
+import net.minecraft.world.phys.EntityHitResult;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.minecolonies.api.items.ModTags.fungi;
+import static com.minecolonies.api.util.constant.Constants.*;
+import static com.minecolonies.api.util.constant.HappinessConstants.HADGREATFOOD;
+import static java.util.Map.entry;
+
+/**
+ * Utility methods for the inventories.
+ */
+public final class ItemStackUtils
+{
+    /**
+     * Pattern for {@link #parseIdTemplate}.
+     */
+    private static final Pattern TEMPLATE_PATH_PATTERN = Pattern.compile("\\[PATH(?::([^=]*)=([^]]*))?]");
+
+    private static final Map<Item, Integer> VANILLA_ARMOR_DISTRIBUTION = Map.ofEntries(entry(Items.LEATHER_HELMET, 1),
+      entry(Items.LEATHER_CHESTPLATE, 1),
+      entry(Items.LEATHER_LEGGINGS, 1),
+      entry(Items.LEATHER_BOOTS, 1),
+      entry(Items.GOLDEN_HELMET, 1),
+      entry(Items.GOLDEN_CHESTPLATE, 1),
+      entry(Items.GOLDEN_LEGGINGS, 1),
+      entry(Items.GOLDEN_BOOTS, 1),
+      entry(Items.CHAINMAIL_HELMET, 2),
+      entry(Items.CHAINMAIL_CHESTPLATE, 2),
+      entry(Items.CHAINMAIL_LEGGINGS, 2),
+      entry(Items.CHAINMAIL_BOOTS, 2),
+      entry(Items.IRON_HELMET, 3),
+      entry(Items.IRON_CHESTPLATE, 3),
+      entry(Items.IRON_LEGGINGS, 3),
+      entry(Items.IRON_BOOTS, 3),
+      entry(Items.DIAMOND_HELMET, 4),
+      entry(Items.DIAMOND_CHESTPLATE, 4),
+      entry(Items.DIAMOND_LEGGINGS, 4),
+      entry(Items.DIAMOND_BOOTS, 4),
+      entry(Items.NETHERITE_HELMET, 5),
+      entry(Items.NETHERITE_CHESTPLATE, 5),
+      entry(Items.NETHERITE_LEGGINGS, 5),
+      entry(Items.NETHERITE_BOOTS, 5));
+
+    private static final Map<EquipmentSlot, List<Item>> VANILLA_ARMOR_MAPPING =
+      Map.ofEntries(entry(EquipmentSlot.HEAD, List.of(Items.LEATHER_HELMET, Items.CHAINMAIL_HELMET, Items.IRON_HELMET, Items.DIAMOND_HELMET)),
+        entry(EquipmentSlot.CHEST, List.of(Items.LEATHER_CHESTPLATE, Items.CHAINMAIL_CHESTPLATE, Items.IRON_CHESTPLATE, Items.DIAMOND_CHESTPLATE)),
+        entry(EquipmentSlot.LEGS, List.of(Items.LEATHER_LEGGINGS, Items.CHAINMAIL_LEGGINGS, Items.IRON_LEGGINGS, Items.DIAMOND_LEGGINGS)),
+        entry(EquipmentSlot.FEET, List.of(Items.LEATHER_BOOTS, Items.CHAINMAIL_BOOTS, Items.IRON_BOOTS, Items.DIAMOND_BOOTS)));
+
+    /**
+     * Variable representing the empty itemstack in 1.10. Used for easy updating to 1.11
+     */
+    public static final ItemStack EMPTY = ItemStack.EMPTY;
+
+    /**
+     * Predicate to check if an itemStack is empty.
+     */
+    @NotNull
+    public static final Predicate<ItemStack> EMPTY_PREDICATE = ItemStackUtils::isEmpty;
+
+    /**
+     * Negation of the itemStack empty predicate (not empty).
+     */
+    @NotNull
+    public static final Predicate<ItemStack> NOT_EMPTY_PREDICATE = EMPTY_PREDICATE.negate();
+
+    /**
+     * List of the checked nbt sets for itemstack comparisons.
+     */
+    public static HashMap<Item, Set<DataComponentType<?>>> CHECKED_NBT_KEYS = new HashMap<>();
+
+    /**
+     * True if this stack is a standard food item (has at least some healing and some saturation, not purely for effects).
+     */
+    public static final Predicate<ItemStack> IS_ANY_FOOD =
+            stack ->
+            {
+                final FoodProperties foodProperties = stack.getFoodProperties(null);
+                return ItemStackUtils.isNotEmpty(stack) && foodProperties != null && foodProperties.nutrition() > 0
+                        && foodProperties.saturation() > 0;
+            };
+
+    /**
+     * True if this stack is a standard food item that isn't excluded for colonists.
+     */
+    public static final Predicate<ItemStack> ISFOOD =
+      stack -> IS_ANY_FOOD.test(stack) && !stack.is(ModTags.excludedFood);
+
+    /**
+     * Predicate describing things which work in the furnace.
+     */
+    public static Predicate<ItemStack> IS_SMELTABLE =
+        itemStack -> !ItemStackUtils.isEmpty(IColonyManager.getInstance().getCompatibilityManager().getFurnaceRecipes().getSmeltingResult(itemStack));
+
+    /**
+     * Predicate describing cookables.
+     */
+    public static Predicate<ItemStack> ISCOOKABLE =
+        itemStack -> ItemStackUtils.ISFOOD.test(IColonyManager.getInstance().getCompatibilityManager().getFurnaceRecipes().getSmeltingResult(itemStack));
+
+    /**
+     * Predicate to check for compost items.
+     */
+    public static final Predicate<ItemStack> IS_COMPOST = stack -> !stack.isEmpty() && stack.getItem() == ModItems.compost;
+
+    /**
+     * Private constructor to hide the implicit one.
+     */
+    private ItemStackUtils()
+    {
+        /*
+         * Intentionally left empty.
+         */
+    }
+
+    /**
+     * Adds entities to the builder building if he needs it.
+     *
+     * @param entity the entity object.
+     * @param placer the entity placer.
+     * @return a list of stacks.
+     */
+    public static List<ItemStorage> getListOfStackForEntity(final Entity entity, final Entity placer)
+    {
+        if (entity != null)
+        {
+            final List<ItemStorage> request = new ArrayList<>();
+            if (entity instanceof ItemFrame)
+            {
+                final ItemStack stack = ((ItemFrame) entity).getItem();
+                if (!ItemStackUtils.isEmpty(stack))
+                {
+                    ItemStackUtils.setSize(stack, 1);
+                    request.add(new ItemStorage(stack));
+                }
+                request.add(new ItemStorage(new ItemStack(Items.ITEM_FRAME, 1)));
+            }
+            else if (entity instanceof ArmorStand)
+            {
+                request.add(new ItemStorage(entity.getPickedResult(new EntityHitResult(placer))));
+                ((ArmorStand) entity).getArmorSlots().forEach(item -> request.add(new ItemStorage(item)));
+                ((ArmorStand) entity).getHandSlots().forEach(item -> request.add(new ItemStorage(item)));
+            }
+
+            /*
+            todo: deactivated until forge fixes this problem.
+            else if (!(entity instanceof MobEntity))
+            {
+                request.add(new ItemStorage(entity.getPickedResult(new EntityRayTraceResult(placer))));
+            }*/
+
+            return request.stream().filter(stack -> !stack.getItemStack().isEmpty()).collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Verifies if there is equipment with an acceptable level in a worker's inventory.
+     *
+     * @param stack        the stack to test.
+     * @param equipmentType     the type of equipment needed
+     * @param minimalLevel the minimum level for the equipment to find.
+     * @param maximumLevel the maximum level for the equipment to find.
+     * @return true if equipment is acceptable
+     */
+    public static boolean hasEquipmentLevel(@Nullable final ItemStack stack, final EquipmentTypeEntry equipmentType, final int minimalLevel, final int maximumLevel)
+    {
+        if (isEmpty(stack))
+        {
+            return false;
+        }
+
+        return equipmentType.checkIsEquipment(stack) && verifyEquipmentLevel(stack, equipmentType.getMiningLevel(stack), minimalLevel, maximumLevel);
+    }
+
+    /**
+     * Wrapper method to check if a stack is empty. Used for easy updating to 1.11.
+     *
+     * @param stack The stack to check.
+     * @return True when the stack is empty, false when not.
+     */
+    public static boolean isEmpty(@Nullable final ItemStack stack)
+    {
+        return stack == null || stack.isEmpty();
+    }
+
+    public static boolean isNotEmpty(@Nullable final ItemStack stack)
+    {
+        return !isEmpty(stack);
+    }
+
+    /**
+     * Verifies if an item has an appropriated grade.
+     *
+     * @param itemStack    the equipment
+     * @param equipmentLevel    the equipment level
+     * @param minimalLevel the minimum level needed
+     * @param maximumLevel the maximum level needed (usually the worker's hut level)
+     * @return true if equipment is acceptable
+     */
+    public static boolean verifyEquipmentLevel(@NotNull final ItemStack itemStack, final int equipmentLevel, final int minimalLevel, final int maximumLevel)
+    {
+        if (equipmentLevel + getMaxEnchantmentLevel(itemStack) < minimalLevel)
+        {
+            return false;
+        }
+        return (equipmentLevel + getMaxEnchantmentLevel(itemStack) <= maximumLevel);
+    }
+
+    /**
+     * Calculates the max level enchantment this equipment has.
+     *
+     * @param itemStack the equipment to check.
+     * @return max enchantment level.
+     */
+    public static int getMaxEnchantmentLevel(final ItemStack itemStack)
+    {
+        if (itemStack == null)
+        {
+            return 0;
+        }
+        int maxLevel = 0;
+
+        for (Object2IntMap.Entry<Holder<Enchantment>> entry : itemStack.getTagEnchantments().entrySet())
+        {
+            final int level = entry.getIntValue();
+            maxLevel = Math.max(level, maxLevel);
+        }
+
+        return Math.max(maxLevel - 1, 0);
+    }
+
+    /**
+     * This routine converts the {@link ItemStackUtils#getArmorValue(ItemStack, EquipmentSlot)}} of an item stack into a given
+     * request system level, based on the standard leather - netherite armor levels.
+     *
+     * @param itemStack the input item stack.
+     * @return armor level
+     */
+    public static int getArmorLevel(final ItemStack itemStack)
+    {
+        final Integer value = VANILLA_ARMOR_DISTRIBUTION.get(itemStack.getItem());
+        if (value != null)
+        {
+            return value;
+        }
+
+        final EquipmentSlot targetEquipmentSlot = Optional.ofNullable(Equipable.get(itemStack)).map(Equipable::getEquipmentSlot).orElse(EquipmentSlot.MAINHAND);
+        final List<Item> armorItems = VANILLA_ARMOR_MAPPING.get(targetEquipmentSlot);
+        if (armorItems == null)
+        {
+            return 5;
+        }
+
+        final double targetArmorLevel = getArmorValue(itemStack, targetEquipmentSlot);
+
+        for (final Item item : armorItems)
+        {
+            if (item instanceof ArmorItem armorItem)
+            {
+                final double armorValue = getArmorValue(armorItem.getDefaultInstance(), armorItem.getEquipmentSlot());
+                if (targetArmorLevel <= armorValue)
+                {
+                    return VANILLA_ARMOR_DISTRIBUTION.get(armorItem);
+                }
+            }
+        }
+
+        return 5;
+    }
+
+    /**
+     * Calculate the armor level for an item stack.
+     * (Level is determined by taking the base armor rating, and 4 points for each toughness level.)
+     *
+     * @param itemStack     the input item stack.
+     * @param equipmentSlot the equipment slot the item goes in.
+     * @return the armor value.
+     */
+    private static double getArmorValue(final ItemStack itemStack, final EquipmentSlot equipmentSlot)
+    {
+        final double armor = getItemStackAttributeValue(itemStack, equipmentSlot, Attributes.ARMOR);
+        final double toughness = getItemStackAttributeValue(itemStack, equipmentSlot, Attributes.ARMOR_TOUGHNESS);
+
+        return armor + (toughness * 4);
+    }
+
+    /**
+     * Check if the first stack is better equipment than the second stack.
+     *
+     * @param stack1 the first stack to check.
+     * @param stack2 the second to compare with.
+     * @return true if better, false if worse or either of them are not equipment.
+     */
+    public static boolean isBetterEquipment(final ItemStack stack1, final ItemStack stack2)
+    {
+        for (EquipmentTypeEntry equipmentType : ModEquipmentTypes.getRegistry())
+        {
+            if (equipmentType.checkIsEquipment(stack1) && equipmentType.checkIsEquipment(stack2) && equipmentType.getMiningLevel(stack1) > equipmentType.getMiningLevel(stack2))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Calculates the fortune level this tool has.
+     *
+     * @param tool the tool to check.
+     * @return fortune level.
+     */
+    public static int getFortuneOf(@Nullable final ItemStack tool, final Level level)
+    {
+        if (tool == null)
+        {
+            return 0;
+        }
+        //calculate fortune enchantment
+        int fortune = 0;
+        if (tool.isEnchanted())
+        {
+            return tool.getTagEnchantments().getLevel(Utils.getRegistryValue(Enchantments.FORTUNE, level));
+        }
+        return fortune;
+    }
+
+    /**
+     * Checks if an item serves as a weapon.
+     *
+     * @param stack the stack to analyze.
+     * @return true if it is a tool or sword.
+     */
+    public static boolean doesItemServeAsWeapon(@NotNull final ItemStack stack)
+    {
+        return stack.getItem() instanceof SwordItem || stack.getItem() instanceof DiggerItem || Compatibility.isTinkersWeapon(stack) || stack.getItem() instanceof ItemSpear;
+    }
+
+    /**
+     * Assigns a string containing the grade of the toolGrade.
+     *
+     * @param toolGrade the number of the grade of a tool
+     * @return a string corresponding to the tool
+     */
+    public static MutableComponent swapArmorGrade(final int toolGrade)
+    {
+        if (toolGrade >= 0 && toolGrade <= 4)
+        {
+            return Component.translatableEscape("com.minecolonies.coremod.armorlevel." + toolGrade);
+        }
+
+        // this shouldn't really ever happen, but just in case...
+        return Component.translatableEscape("com.minecolonies.coremod.armorlevel.etc");
+    }
+
+    /**
+     * Assigns a string containing the grade of the armor grade.
+     *
+     * @param toolGrade the number of the grade of an armor
+     * @return a string corresponding to the armor
+     */
+    public static MutableComponent swapToolGrade(final int toolGrade)
+    {
+        if (toolGrade >= 0 && toolGrade <= 4)
+        {
+            return Component.translatableEscape("com.minecolonies.coremod.toollevel." + toolGrade);
+        }
+
+        return Component.translatableEscape("com.minecolonies.coremod.toollevel.etc");
+    }
+
+    /**
+     * Method to check if two ItemStacks can be merged together.
+     *
+     * @param existingStack The existing stack.
+     * @param mergingStack  The merging stack
+     * @return True when they can be merged, false when not.
+     */
+    @NotNull
+    public static Boolean areItemStacksMergable(final ItemStack existingStack, final ItemStack mergingStack)
+    {
+        if (!compareItemStacksIgnoreStackSize(existingStack, mergingStack))
+        {
+            return false;
+        }
+
+        return existingStack.getMaxStackSize() >= (getSize(existingStack) + getSize(mergingStack));
+    }
+
+    /**
+     * Method to compare to stacks, ignoring their stacksize.
+     *
+     * @param itemStack1 The left stack to compare.
+     * @param itemStack2 The right stack to compare.
+     * @return True when they are equal except the stacksize, false when not.
+     */
+    @NotNull
+    public static Boolean compareItemStacksIgnoreStackSize(final ItemStack itemStack1, final ItemStack itemStack2)
+    {
+        return compareItemStacksIgnoreStackSize(itemStack1, itemStack2, true, true);
+    }
+
+    /**
+     * get the size of the stack
+     *
+     * @param stack to get the size from
+     * @return the size of the stack
+     */
+    public static int getSize(@NotNull final ItemStack stack)
+    {
+        return stack.getCount();
+    }
+
+    /**
+     * get the Durability of the stack.
+     *
+     * @param stack to get the size from
+     * @return the size of the stack
+     */
+    public static int getDurability(@NotNull final ItemStack stack)
+    {
+        if (ItemStackUtils.isEmpty(stack))
+        {
+            return 0;
+        }
+
+        return stack.getMaxDamage() - stack.getDamageValue();
+    }
+
+    /**
+     * Method to compare to stacks, ignoring their stacksize.
+     *
+     * @param itemStack1  The left stack to compare.
+     * @param itemStack2  The right stack to compare.
+     * @param matchDamage Set to true to match damage data.
+     * @param matchNBT    Set to true to match nbt
+     * @return True when they are equal except the stacksize, false when not.
+     */
+    public static boolean compareItemStacksIgnoreStackSize(final ItemStack itemStack1, final ItemStack itemStack2, final boolean matchDamage, final boolean matchNBT)
+    {
+        return compareItemStacksIgnoreStackSize(itemStack1, itemStack2, matchDamage, matchNBT, false);
+    }
+
+    /**
+     * Method to compare to stacks, ignoring their stacksize.
+     *
+     * @param itemStack1  The left stack to compare.
+     * @param itemStack2  The right stack to compare.
+     * @param matchDamage Set to true to match damage data.
+     * @param matchNBT    Set to true to match nbt
+     * @param min         if the count of stack2 has to be at least the same as stack1.
+     * @return True when they are equal except the stacksize, false when not.
+     */
+    public static boolean compareItemStacksIgnoreStackSize(final ItemStack itemStack1, final ItemStack itemStack2, final boolean matchDamage, final boolean matchNBT, final boolean min)
+    {
+        return compareItemStacksIgnoreStackSize(itemStack1, itemStack2, matchDamage, matchNBT, false, false);
+    }
+
+    /**
+     * Method to compare to stacks, ignoring their stacksize.
+     *
+     * @param itemStack1  The left stack to compare.
+     * @param itemStack2  The right stack to compare.
+     * @param matchDamage Set to true to match damage data.
+     * @param matchNBT    Set to true to match nbt
+     * @param min         if the count of stack2 has to be at least the same as stack1.
+     * @return True when they are equal except the stacksize, false when not.
+     */
+    public static boolean compareItemStacksIgnoreStackSize(
+      final ItemStack itemStack1,
+      final ItemStack itemStack2,
+      final boolean matchDamage,
+      final boolean matchNBT,
+      final boolean min,
+      final boolean matchNBTExactly)
+    {
+        if (isEmpty(itemStack1) && isEmpty(itemStack2))
+        {
+            return true;
+        }
+
+        if (isEmpty(itemStack1) != isEmpty(itemStack2))
+        {
+            return false;
+        }
+
+        if (itemStack1.getItem() == itemStack2.getItem() && (!matchDamage || itemStack1.getDamageValue() == itemStack2.getDamageValue()))
+        {
+            if (!matchNBT)
+            {
+                // Not comparing nbt
+                return true;
+            }
+
+            if (min && itemStack1.getCount() > itemStack2.getCount())
+            {
+                return false;
+            }
+
+            if (matchNBTExactly)
+            {
+                return ItemStack.isSameItemSameComponents(itemStack1, itemStack2);
+            }
+
+            final Set<DataComponentType<?>> checkedKeys = CHECKED_NBT_KEYS.get(itemStack1.getItem());
+            if (checkedKeys == null || checkedKeys.isEmpty())
+            {
+                return true;
+            }
+
+            for (final DataComponentType<?> key : checkedKeys)
+            {
+                //todo double check this works, otherwise we might have to serialize it before comparison.
+                if (!Objects.equals(itemStack1.getComponents().get(key), itemStack2.getComponents().get(key)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Method to check if a stack is in a list of stacks.
+     *
+     * @param stacks the list of stacks.
+     * @param stack  the stack.
+     * @return true if so.
+     */
+    public static boolean compareItemStackListIgnoreStackSize(final List<ItemStack> stacks, final ItemStack stack)
+    {
+        return compareItemStackListIgnoreStackSize(stacks, stack, true, true);
+    }
+
+    /**
+     * Method to check if a stack is in a list of ItemStorage items.
+     *
+     * @param stacks the list of stacks.
+     * @param stack  the stack.
+     * @return true if so.
+     */
+    public static boolean compareItemStorageListIgnoreStackSize(final List<ItemStorage> stacks, final ItemStack stack)
+    {
+        for (final ItemStorage tempStack : stacks)
+        {
+            if (compareItemStacksIgnoreStackSize(tempStack.getItemStack(), stack, true, true))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Method to check if a stack is in a list of stacks.
+     *
+     * @param stacks      the list of stacks.
+     * @param stack       the stack.
+     * @param matchDamage if damage has to match.
+     * @param matchNBT    if nbt has to match.
+     * @return true if so.
+     */
+    public static boolean compareItemStackListIgnoreStackSize(final List<ItemStack> stacks, final ItemStack stack, final boolean matchDamage, final boolean matchNBT)
+    {
+        for (final ItemStack tempStack : stacks)
+        {
+            if (compareItemStacksIgnoreStackSize(tempStack, stack, matchDamage, matchNBT))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * set the size of the stack. This is for compatibility between 1.10 and 1.11
+     *
+     * @param stack to set the size to
+     * @param size  of the stack
+     */
+    public static void setSize(@NotNull final ItemStack stack, final int size)
+    {
+        stack.setCount(size);
+    }
+
+    /**
+     * Increase or decrease the stack size.
+     *
+     * @param stack  to set the size to
+     * @param amount to increase the stack's size of (negative value to decrease)
+     */
+    public static void changeSize(@NotNull final ItemStack stack, final int amount)
+    {
+        stack.setCount(stack.getCount() + amount);
+    }
+
+    /**
+     * Update method to allow for easy reading the ItemStack data from NBT.
+     *
+     * @param compound The compound to read from.
+     * @return The ItemStack stored in the NBT Data.
+     */
+    @NotNull
+    public static ItemStack deserializeFromNBT(@NotNull final CompoundTag compound, @NotNull final HolderLookup.Provider provider)
+    {
+        return ItemStack.parseOptional(provider, compound);
+    }
+
+    /**
+     * Checks if a stack is a type of sapling, using Oredict
+     *
+     * @param stack the stack to check.
+     * @return true if sapling.
+     */
+    public static boolean isStackSapling(@Nullable final ItemStack stack)
+    {
+        if (ItemStackUtils.isEmpty(stack))
+        {
+            return false;
+        }
+
+        return stack.is(ItemTags.SAPLINGS) || stack.is(Tags.Items.MUSHROOMS) || stack.is(fungi) || Compatibility.isDynamicTreeSapling(stack);
+    }
+
+    /**
+     * Check if the furnace has smeltable in it and fuel empty.
+     *
+     * @param entity the furnace.
+     * @return true if so.
+     */
+    public static boolean hasSmeltableInFurnaceAndNoFuel(final FurnaceBlockEntity entity)
+    {
+        return !ItemStackUtils.isEmpty(entity.getItem(SMELTABLE_SLOT))
+                 && ItemStackUtils.isEmpty(entity.getItem(FUEL_SLOT));
+    }
+
+    /**
+     * Check if the furnace has smeltable in it and fuel empty.
+     *
+     * @param entity the furnace.
+     * @return true if so.
+     */
+    public static boolean hasNeitherFuelNorSmeltAble(final FurnaceBlockEntity entity)
+    {
+        return ItemStackUtils.isEmpty(entity.getItem(SMELTABLE_SLOT))
+                 && ItemStackUtils.isEmpty(entity.getItem(FUEL_SLOT));
+    }
+
+    /**
+     * Check if the furnace has fuel in it and smeltable empty.
+     *
+     * @param entity the furnace.
+     * @return true if so.
+     */
+    public static boolean hasFuelInFurnaceAndNoSmeltable(final FurnaceBlockEntity entity)
+    {
+        return ItemStackUtils.isEmpty(entity.getItem(SMELTABLE_SLOT))
+                 && !ItemStackUtils.isEmpty(entity.getItem(FUEL_SLOT));
+    }
+
+    /**
+     * Check if the brewingStand has smeltable in it and fuel empty.
+     *
+     * @param entity the brewingStand.
+     * @return true if so.
+     */
+    public static boolean hasBrewableAndNoFuel(final BrewingStandBlockEntity entity)
+    {
+        return !ItemStackUtils.isEmpty(entity.getItem(INGREDIENT_SLOT))
+                 && ItemStackUtils.isEmpty(entity.getItem(BREWING_FUEL_SLOT));
+    }
+
+    /**
+     * Check if the brewingStand has smeltable in it and fuel empty.
+     *
+     * @param entity the brewingStand.
+     * @return true if so.
+     */
+    public static boolean hasNeitherFuelNorBrewable(final BrewingStandBlockEntity entity)
+    {
+        return ItemStackUtils.isEmpty(entity.getItem(INGREDIENT_SLOT))
+                 && ItemStackUtils.isEmpty(entity.getItem(BREWING_FUEL_SLOT));
+    }
+
+    /**
+     * Check if the brewingStand has fuel in it and smeltable empty.
+     *
+     * @param entity the brewingStand.
+     * @return true if so.
+     */
+    public static boolean hasFuelAndNoBrewable(final BrewingStandBlockEntity entity)
+    {
+        return ItemStackUtils.isEmpty(entity.getItem(INGREDIENT_SLOT))
+                 && !ItemStackUtils.isEmpty(entity.getItem(BREWING_FUEL_SLOT));
+    }
+
+    /**
+     * Convert an Item string with NBT to an ItemStack
+     *
+     * @param itemData ie: minecraft:potion{"minecraft:potion_contents":{"potion":"minecraft:water"}}
+     * @return stack with any defined NBT
+     */
+    public static ItemStack idToItemStack(final String itemData, final HolderLookup.Provider provider)
+    {
+        String itemId = itemData;
+        final int tagIndex = itemId.indexOf("{");
+        final String tag = tagIndex > 0 ? itemId.substring(tagIndex) : null;
+        itemId = tagIndex > 0 ? itemId.substring(0, tagIndex) : itemId;
+        final Item item;
+        try
+        {
+            item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemId));
+        }
+        catch (Throwable t)
+        {
+            Log.getLogger().error("Unable to parse item definition: {}", itemData, t);
+            return ItemStack.EMPTY;
+        }
+        final ItemStack stack = new ItemStack(item);
+        if (tag != null)
+        {
+            try
+            {
+                stack.applyComponents(Utils.deserializeCodecMessFromJson(DataComponentPatch.CODEC, provider, JsonParser.parseString(tag)));
+            }
+            catch (Throwable t)
+            {
+                //Unable to parse tags, drop them.
+                Log.getLogger().error("Unable to parse item definition: {}", itemData, t);
+            }
+        }
+        if (stack.isEmpty())
+        {
+            Log.getLogger().warn("Parsed item definition returned empty: {}", itemData);
+        }
+        return stack;
+    }
+
+    /**
+     * Parses an item id that may contain replaceable template components:
+     *
+     * <pre>
+     *     [NS]           => {@code baseItemId.getNamespace()}
+     *     [PATH]         => {@code baseItemId.getPath()}
+     *     [PATH:foo=bar] => {@code baseItemId.getPath()} but with "foo" replaced with "bar"</pre>
+     *
+     * @param itemId     the id to parse
+     * @param baseItemId the base item id to use to fill in the components
+     * @return a tuple of (boolean, result), where the boolean is false if result didn't resolve to a valid item
+     */
+    @NotNull
+    public static Tuple<Boolean, String> parseIdTemplate(@Nullable String itemId,
+                                                         @NotNull final ResourceLocation baseItemId)
+    {
+        if (itemId == null)
+        {
+            return new Tuple<>(false, null);
+        }
+
+        itemId = itemId.replace("[NS]", baseItemId.getNamespace());
+        itemId = TEMPLATE_PATH_PATTERN.matcher(itemId).replaceAll(m ->
+        {
+            if (m.group(1) != null && m.group(2) != null)
+            {
+                return baseItemId.getPath().replace(m.group(1), m.group(2));
+            }
+            return baseItemId.getPath();
+        });
+
+        return new Tuple<>(BuiltInRegistries.ITEM.containsKey(ResourceLocation.parse(itemId)), itemId);
+    }
+
+    /**
+     * Reports if this stack has a custom Tag value that is not purely a damage value.
+     * @param stack the stack to inspect
+     * @return      true if the stack has a non-damage tag value
+     */
+    public static boolean hasTag(@NotNull final ItemStack stack)
+    {
+        return stack.getComponents() != null && stack.getComponents().size() > (stack.isDamageableItem() ? 1 : 0);
+    }
+
+    /**
+     * Obtains a list of all basic items in the game, plus any extra items present in the player's
+     * inventory (allowing for items with custom NBT, e.g. DO blocks or dyed armour).
+     *
+     * @param player The player whose inventory to check.
+     * @return The set of items.
+     */
+    public static List<ItemStack> allItemsPlusInventory(@NotNull final Player player)
+    {
+        // get all known items first
+        final Set<ItemStorage> allItems = new HashSet<>(IColonyManager.getInstance().getCompatibilityManager().getSetOfAllItems());
+
+        // plus all items from the player's inventory not already listed (adds items with extra NBT)
+        for (final ItemStack stack : player.getInventory().items)
+        {
+            if (stack.isEmpty())
+            {
+                continue;
+            }
+
+            if (allItems.contains(new ItemStorage(stack, true, false)))
+            {
+                continue;
+            }
+
+            final ItemStack pristine = stack.copy();
+            pristine.setCount(1);
+            if (stack.isDamageableItem() && stack.isDamaged())
+            {
+                pristine.setDamageValue(0);
+                // in case the item wasn't already in the set, we want to only store a pristine one!
+            }
+            allItems.add(new ItemStorage(pristine, true));
+        }
+
+        final List<ItemStack> stacks = new ArrayList<>(allItems.size());
+        for (ItemStorage allItem : allItems)
+        {
+            ItemStack itemStack = allItem.getItemStack();
+            stacks.add(itemStack);
+        }
+        return stacks;
+    }
+
+    /**
+     * Consume food helper.
+     *
+     * @param foodStack   the itemstack of food.
+     * @param citizen     the citizen entity.
+     * @param player      optional player providing the food.
+     */
+    public static void consumeFood(final ItemStack foodStack, final AbstractEntityCitizen citizen, @Nullable final Player player)
+    {
+        final ICitizenData citizenData = citizen.getCitizenData();
+        final double satIncrease = FoodUtils.getFoodValue(foodStack, citizen);
+        citizenData.increaseSaturation(satIncrease);
+
+        ItemStack itemUseReturn = FoodUtils.consumeFoodStack(foodStack, citizen);
+        // Special handling for these as those are stackable + have a return per item.
+        if (player != null && player.hasInfiniteMaterials())
+        {
+            itemUseReturn = ItemStack.EMPTY;
+        }
+
+        if (!itemUseReturn.isEmpty())
+        {
+            if (citizenData.getInventory().isFull() || (player != null && !player.getInventory().add(itemUseReturn)))
+            {
+                InventoryUtils.spawnItemStack(
+                  citizen.level(),
+                  citizen.getX(),
+                  citizen.getY(),
+                  citizen.getZ(),
+                  itemUseReturn
+                );
+            }
+            else
+            {
+                InventoryUtils.addItemStackToItemHandler(citizenData.getInventory(), itemUseReturn);
+            }
+        }
+
+        if (foodStack.getItem() instanceof IMinecoloniesFoodItem foodItem && foodItem.getTier() >= 3)
+        {
+            citizen.getCitizenData().getCitizenHappinessHandler().addModifier(new ExpirationBasedHappinessModifier(HADGREATFOOD, 2.0, new StaticHappinessSupplier(2.0), 5));
+        }
+
+        IColony citizenColony = citizen.getCitizenColonyHandler().getColonyOrRegister();
+        if (citizenColony != null)
+        {
+            AdvancementUtils.TriggerAdvancementPlayersForColony(citizenColony, playerMP -> AdvancementTriggers.CITIZEN_EAT_FOOD.get().trigger(playerMP, foodStack));
+        }
+        citizenData.markDirty(60);
+    }
+
+    /**
+     * Given an {@link net.minecraft.world.item.crafting.Ingredient}, tries to produce a reasonable friendly UI name for its contents.
+     * @param ingredient the ingredient to check.
+     * @return the friendly name.
+     */
+    @OnlyIn(Dist.CLIENT)
+    public static Component getTranslatedName(@NotNull final SizedIngredient ingredient)
+    {
+        if (ingredient.ingredient().hasNoItems())
+        {
+            return Component.empty();
+        }
+
+        final ItemStack[] items = ingredient.getItems();
+        final Optional<TagKey<Item>> tag = getTagEquivalent(items);
+
+        return Component.translatable("%sx %s", ingredient.count(), tag.map(t ->
+        {
+            final String standardKey = Tags.getTagTranslationKey(t);
+            final String localKey = "com.minecolonies.coremod.research.tags." + t.location();
+            return I18n.exists(localKey) && !I18n.exists(standardKey)
+                    ? (Component) Component.translatable(localKey)
+                    : Component.translatable("com.minecolonies.coremod.research.tags.other",
+                            Component.translatableWithFallback(Tags.getTagTranslationKey(t), t.location().toString()));
+        }).orElseGet(() ->
+        {
+            if (items.length == 1)
+            {
+                return items[0].getItem().getDescription();
+            }
+            return Component.translatable(String.join("/", Collections.nCopies(items.length, "%s")),
+                    Arrays.stream(items).map(ItemStack::getItem).map(Item::getDescription).toArray());
+        }));
+    }
+
+    /**
+     * Attempts to find a tag that exactly matches the given list of item stacks.
+     * @param stacks a list of item stacks.
+     * @return a tag that seems to match it, if found.
+     */
+    public static Optional<TagKey<Item>> getTagEquivalent(@NotNull final ItemStack[] stacks)
+    {
+        final List<Item> values = Arrays.stream(stacks)
+                .map(ItemStack::getItem)
+                .toList();
+
+        if (values.size() <= 1)
+        {
+            return Optional.empty();
+        }
+
+        return BuiltInRegistries.ITEM.getTags()
+                .filter(e ->
+                {
+                    HolderSet.Named<Item> tag = e.getSecond();
+                    return areEquivalent(tag, values);
+                })
+                .map(Pair::getFirst)
+                .findFirst();
+    }
+
+    private static boolean areEquivalent(@NotNull final HolderSet.Named<Item> tag, @NotNull final List<Item> values)
+    {
+        final int count = tag.size();
+        if (count != values.size())
+        {
+            return false;
+        }
+        for (int i = 0; i < count; i++)
+        {
+            final Item tagValue = tag.get(i).value();
+            final Item value = values.get(i);
+            if (!value.equals(tagValue))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Get an attribute value for a given item stack.
+     *
+     * @param itemStack the input item stack.
+     * @param equipmentSlot the equipment slot the item goes in.
+     * @param attribute the attribute to get the value for.
+     * @return the computed value of the attribute with all modifiers.
+     */
+    public static double getItemStackAttributeValue(final ItemStack itemStack, final EquipmentSlot equipmentSlot, final Holder<Attribute> attribute)
+    {
+        try
+        {
+            final AttributeInstance instance = new AttributeInstance(attribute, (f) -> {});
+            itemStack.getAttributeModifiers().forEach(equipmentSlot, (attr, modifier) -> {
+                if (attr.equals(attribute))
+                {
+                    instance.addTransientModifier(modifier);
+                }
+            });
+            return instance.getValue();
+        }
+        catch (final Exception e)
+        {
+            Log.getLogger().warn("Could not get attribute value for '{}' on item '{}'", attribute.value().getDescriptionId(), itemStack.getDescriptionId(), e);
+            return 0;
+        }
+    }
+}
+

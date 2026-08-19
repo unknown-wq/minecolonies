@@ -1,0 +1,25 @@
+{
+  "branch": "minecolonies:combat",
+  "costs": [
+    {
+      "count": 5,
+      "item": "minecraft:crossbow"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/marksman",
+      "level": 1
+    }
+  ],
+  "icon": "minecraft:crossbow",
+  "parentResearch": "minecolonies:combat/improvedbows",
+  "requirements": [
+    {
+      "type": "minecolonies:building",
+      "building": "minecolonies:archery",
+      "level": 3
+    }
+  ],
+  "researchLevel": 3
+}

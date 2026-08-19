@@ -1,0 +1,43 @@
+# Optional integrations disabled for the 26.2 port -- excluded from compilation.
+# JEI: 7 own recipe categories + 6 recipe-transfer handlers. JourneyMap: colony
+# border polygons, deathpoint waypoints, radar labels. Neither is load-bearing:
+# the mod works without them and IJeiProxy already no-ops when JEI is absent.
+# Delete a line here to bring that file back into the build.
+
+# Simple Planes (aircraft integration) -- com/minecolonies/core/compatibility/simpleplanes/**
+#
+# Deliberately NOT listed below, and it is the one optional integration whose exclusion is decided by
+# build.gradle instead of by this file. The difference is that JEI and JourneyMap are parked by choice
+# and stay parked; the aircraft package compiles whenever the jar named by `simpleplanes_jar` in
+# gradle.properties is present, and is excluded automatically when it is not. Listing it here as well
+# would pin it off permanently and there would be no way to build the feature at all.
+#
+# Everything that names a xyz.przemyk type is inside that one package. The rest of the mod reaches it
+# only through com.minecolonies.api.compatibility.simpleplanes.AircraftCompat, whose default is a
+# complete no-aircraft implementation, and MineColonies#onInitialize installs the real one only behind
+# FabricLoader.isModLoaded("simpleplanes").
+com/minecolonies/core/compatibility/jei/CompostRecipeCategory.java
+com/minecolonies/core/compatibility/jei/CropRecipeCategory.java
+com/minecolonies/core/compatibility/jei/FishermanRecipeCategory.java
+com/minecolonies/core/compatibility/jei/FloristRecipeCategory.java
+com/minecolonies/core/compatibility/jei/GenericRecipeCategory.java
+com/minecolonies/core/compatibility/jei/JEIPlugin.java
+com/minecolonies/core/compatibility/jei/JobBasedRecipeCategory.java
+com/minecolonies/core/compatibility/jei/ModRecipeTypes.java
+com/minecolonies/core/compatibility/jei/RenderHelper.java
+com/minecolonies/core/compatibility/jei/ToolRecipeCategory.java
+com/minecolonies/core/compatibility/jei/package-info.java
+com/minecolonies/core/compatibility/jei/transfer/AbstractTeachingGuiHandler.java
+com/minecolonies/core/compatibility/jei/transfer/BrewingCraftingGuiHandler.java
+com/minecolonies/core/compatibility/jei/transfer/CraftingGuiHandler.java
+com/minecolonies/core/compatibility/jei/transfer/FurnaceCraftingGuiHandler.java
+com/minecolonies/core/compatibility/jei/transfer/PrivateBrewingTeachingTransferHandler.java
+com/minecolonies/core/compatibility/jei/transfer/PrivateCraftingTeachingTransferHandler.java
+com/minecolonies/core/compatibility/jei/transfer/PrivateSmeltingTeachingTransferHandler.java
+com/minecolonies/core/compatibility/journeymap/ColonyBorderMapping.java
+com/minecolonies/core/compatibility/journeymap/ColonyDeathpoints.java
+com/minecolonies/core/compatibility/journeymap/EventListener.java
+com/minecolonies/core/compatibility/journeymap/Journeymap.java
+com/minecolonies/core/compatibility/journeymap/JourneymapOptions.java
+com/minecolonies/core/compatibility/journeymap/JourneymapPlugin.java
+com/minecolonies/core/compatibility/journeymap/package-info.java

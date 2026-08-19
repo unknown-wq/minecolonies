@@ -1,0 +1,15 @@
+{
+  "type": "recipe",
+  "crafter": "crusher_custom",
+  "inputs": [
+    {
+      "id": "minecraft:gravel"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/gravel",
+  "research-id": "minecolonies:effects/crushing11unlock",
+  "result": {
+    "id": "minecraft:sand"
+  }
+}

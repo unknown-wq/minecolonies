@@ -1,0 +1,14 @@
+{
+  "type": "recipe",
+  "crafter": "mechanic_crafting",
+  "inputs": [
+    {
+      "id": "minecraft:oxidized_copper"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "result": {
+    "id": "minecraft:weathered_copper"
+  },
+  "tool": "minecolonies:axe"
+}

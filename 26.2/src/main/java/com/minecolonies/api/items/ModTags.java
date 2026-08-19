@@ -1,0 +1,166 @@
+package com.minecolonies.api.items;
+
+import com.minecolonies.api.util.constant.TagConstants;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.minecolonies.api.util.constant.Constants.MOD_ID;
+
+public class ModTags
+{
+    /**
+     * Flag to check if tags are already loaded.
+     */
+    public static boolean tagsLoaded = false;
+
+    public static final TagKey<Block> decorationItems = TagKey.create(Registries.BLOCK, TagConstants.DECORATION_ITEMS);
+    public static final TagKey<Block> pathingBlocks   = TagKey.create(Registries.BLOCK, TagConstants.PATHING_BLOCKS);
+    public static final TagKey<Block> dangerousBlocks = TagKey.create(Registries.BLOCK, TagConstants.DANGEROUS_BLOCKS);
+    public static final TagKey<Block> freeClimbBlocks = TagKey.create(Registries.BLOCK, TagConstants.FREE_CLIMB_BLOCKS);
+    public static final TagKey<Block> tier1blocks     = TagKey.create(Registries.BLOCK, TagConstants.TIER1_BLOCKS);
+    public static final TagKey<Block> tier2blocks     = TagKey.create(Registries.BLOCK, TagConstants.TIER2_BLOCKS);
+    public static final TagKey<Block> tier3blocks     = TagKey.create(Registries.BLOCK, TagConstants.TIER3_BLOCKS);
+    public static final TagKey<Block> tier4blocks     = TagKey.create(Registries.BLOCK, TagConstants.TIER4_BLOCKS);
+    public static final TagKey<Block> tier5blocks     = TagKey.create(Registries.BLOCK, TagConstants.TIER5_BLOCKS);
+    public static final TagKey<Block> tier6blocks     = TagKey.create(Registries.BLOCK, TagConstants.TIER6_BLOCKS);
+    public static final TagKey<Block> mangroveTree    = TagKey.create(Registries.BLOCK, TagConstants.MANGROVE_TREE_BLOCKS);
+    public static final TagKey<Block> extraTree       = TagKey.create(Registries.BLOCK, TagConstants.EXTRA_TREE_BLOCKS);
+    public static final TagKey<Block> tree            = TagKey.create(Registries.BLOCK, TagConstants.TREE_BLOCKS);
+
+    public static final TagKey<Block> concreteBlocks       = TagKey.create(Registries.BLOCK, TagConstants.CONCRETE_BLOCK);
+    public static final TagKey<Item>  concreteItems        = TagKey.create(Registries.ITEM, TagConstants.CONCRETE_BLOCK);
+    public static final TagKey<Block> concretePowderBlocks = TagKey.create(Registries.BLOCK, TagConstants.CONCRETE_POWDER);
+    public static final TagKey<Item>  concretePowderItems  = TagKey.create(Registries.ITEM, TagConstants.CONCRETE_POWDER);
+
+    public static final TagKey<Block> colonyProtectionException = TagKey.create(Registries.BLOCK, TagConstants.COLONYPROTECTIONEXCEPTION);
+    public static final TagKey<Block> indestructible            = TagKey.create(Registries.BLOCK, TagConstants.INDESTRUCTIBLE);
+
+    public static final TagKey<Block> oreChanceBlocks = TagKey.create(Registries.BLOCK, TagConstants.ORECHANCEBLOCKS);
+
+    public static final TagKey<Block> validSpawn = TagKey.create(Registries.BLOCK, TagConstants.VALIDSPAWNBLOCKS);
+
+    public static final TagKey<Block> mushroomBlocks   = TagKey.create(Registries.BLOCK, TagConstants.MUSHROOMS);
+    public static final TagKey<Block> hugeMushroomBlocks   = TagKey.create(Registries.BLOCK, TagConstants.MUSHROOMS_HUGE);
+    public static final TagKey<Block> fungiBlocks      = TagKey.create(Registries.BLOCK, TagConstants.FUNGI);
+    public static final TagKey<Item> fungi             = TagKey.create(Registries.ITEM, TagConstants.FUNGI);
+    public static final TagKey<Item> compostables      = TagKey.create(Registries.ITEM, TagConstants.COMPOSTABLES);
+    public static final TagKey<Item> compostables_poor = TagKey.create(Registries.ITEM, TagConstants.COMPOSTABLES_POOR);
+    public static final TagKey<Item> compostables_rich = TagKey.create(Registries.ITEM, TagConstants.COMPOSTABLES_RICH);
+
+    public static final TagKey<Item> meshes = TagKey.create(Registries.ITEM, TagConstants.MESHES);
+
+    public static final TagKey<Item> floristFlowers = TagKey.create(Registries.ITEM, TagConstants.FLORIST_FLOWERS);
+    public static final TagKey<Item> excludedFood = TagKey.create(Registries.ITEM, TagConstants.EXCLUDED_FOOD);
+
+    public static final TagKey<Item> breakable_ore = TagKey.create(Registries.ITEM, TagConstants.BREAKABLE_ORE);
+    public static final TagKey<Item> raw_ore = TagKey.create(Registries.ITEM, TagConstants.RAW_ORE);
+
+    public static final TagKey<Item> poisonous_food = TagKey.create(Registries.ITEM, TagConstants.POISONOUS_FOOD);
+
+    public static final TagKey<Item> rawMeat       = TagKey.create(Registries.ITEM, TagConstants.RAW_MEAT);
+    public static final TagKey<Item> feed           = TagKey.create(Registries.ITEM, TagConstants.FEED);
+    public static final TagKey<Item> leather        = TagKey.create(Registries.ITEM, TagConstants.LEATHER);
+
+    public static final TagKey<EntityType<?>> hostile = TagKey.create(Registries.ENTITY_TYPE, TagConstants.HOSTILE);
+    public static final TagKey<EntityType<?>> mobAttackBlacklist = TagKey.create(Registries.ENTITY_TYPE, TagConstants.MOB_ATTACK_BLACKLIST);
+
+    public static final TagKey<EntityType<?>> raiders = TagKey.create(Registries.ENTITY_TYPE, TagConstants.RAIDERS);
+
+    public static final TagKey<EntityType<?>> freeToInteractWith = TagKey.create(Registries.ENTITY_TYPE, TagConstants.ALLOW_INTERACT);
+
+    public static final TagKey<Item> ignoreNBT = TagKey.create(Registries.ITEM, TagConstants.IGNORE_NBT);
+
+    public static final TagKey<Biome> coldBiomes = TagKey.create(Registries.BIOME, TagConstants.COLD_BIOMES);
+    public static final TagKey<Biome> temperateBiomes = TagKey.create(Registries.BIOME, TagConstants.TEMPERATE_BIOMES);
+    public static final TagKey<Biome> humidBiomes = TagKey.create(Registries.BIOME, TagConstants.HUMID_BIOMES);
+    public static final TagKey<Biome> dryBiomes = TagKey.create(Registries.BIOME, TagConstants.DRY_BIOMES);
+
+    public static List<TagKey<Biome>> cropBiomeTags = List.of(coldBiomes, temperateBiomes, humidBiomes, dryBiomes);
+
+    public static final Map<String, TagKey<Item>> crafterProduct              = new HashMap<>();
+    public static final Map<String, TagKey<Item>> crafterProductExclusions    = new HashMap<>();
+    public static final Map<String, TagKey<Item>> crafterIngredient           = new HashMap<>();
+    public static final Map<String, TagKey<Item>> crafterIngredientExclusions = new HashMap<>();
+    public static final Map<String, TagKey<Item>> crafterDoIngredient         = new HashMap<>();
+
+
+    /**
+     * Tag specifier for Products to Include
+     */
+    private static final String PRODUCT = "_product";
+
+    /**
+     * Tag specifier for Products to Exclude
+     */
+    private static final String PRODUCT_EXCLUDED = "_product_excluded";
+
+    /**
+     * Tag specifier for Ingredients to include
+     */
+    private static final String INGREDIENT = "_ingredient";
+
+    /**
+     * Tag specifier for Ingredients to exclude
+     */
+    private static final String INGREDIENT_EXCLUDED = "_ingredient_excluded";
+
+    /**
+     * Tag specifier for Ingredients to include
+     */
+    private static final String DO_INGREDIENT = "_do_ingredient";
+
+    public static void init()
+    {
+        initCrafterRules(TagConstants.CRAFTING_BAKER);  // both crafting and smelting
+        initCrafterRules(TagConstants.CRAFTING_BLACKSMITH);
+        initCrafterRules(TagConstants.CRAFTING_COOK);   // both crafting and smelting
+        initCrafterRules(TagConstants.CRAFTING_DYER);
+        initCrafterRules(TagConstants.CRAFTING_DYER_SMELTING);
+        initCrafterRules(TagConstants.CRAFTING_FARMER);
+        initCrafterRules(TagConstants.CRAFTING_FLETCHER);
+        initCrafterRules(TagConstants.CRAFTING_GLASSBLOWER);
+        initCrafterRules(TagConstants.CRAFTING_GLASSBLOWER_SMELTING);
+        initCrafterRules(TagConstants.CRAFTING_MECHANIC);
+        initCrafterRules(TagConstants.CRAFTING_PLANTATION);
+        initCrafterRules(TagConstants.CRAFTING_SAWMILL);
+        initCrafterRules(TagConstants.CRAFTING_STONEMASON);
+        initCrafterRules(TagConstants.CRAFTING_STONE_SMELTERY);
+
+        initCrafterRules(TagConstants.CRAFTING_REDUCEABLE);
+    }
+
+    /**
+     * Initialize the four tags for a particular crafter
+     * @param crafterName the string name of the crafter to initialize
+     */
+    private static void initCrafterRules(@NotNull final String crafterName)
+    {
+        final Identifier products = Identifier.fromNamespaceAndPath(MOD_ID, crafterName.concat(PRODUCT));
+        final Identifier ingredients = Identifier.fromNamespaceAndPath(MOD_ID, crafterName.concat(INGREDIENT));
+        final Identifier productsExcluded = Identifier.fromNamespaceAndPath(MOD_ID, crafterName.concat(PRODUCT_EXCLUDED));
+        final Identifier ingredientsExcluded = Identifier.fromNamespaceAndPath(MOD_ID, crafterName.concat(INGREDIENT_EXCLUDED));
+        final Identifier doIngredients = Identifier.fromNamespaceAndPath(MOD_ID, crafterName.concat(DO_INGREDIENT));
+
+        crafterProduct.put(crafterName, TagKey.create(Registries.ITEM, products));
+        crafterProductExclusions.put(crafterName, TagKey.create(Registries.ITEM, productsExcluded));
+        crafterIngredient.put(crafterName, TagKey.create(Registries.ITEM, ingredients));
+        crafterIngredientExclusions.put(crafterName, TagKey.create(Registries.ITEM, ingredientsExcluded));
+        crafterDoIngredient.put(crafterName, TagKey.create(Registries.ITEM, doIngredients));
+    }
+
+    private ModTags()
+    {
+        throw new IllegalStateException("Can not instantiate an instance of: ModTags. This is a utility class");
+    }
+}

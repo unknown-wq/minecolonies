@@ -1,0 +1,28 @@
+{
+  "type": "recipe",
+  "crafter": "chef_crafting",
+  "inputs": [
+    {
+      "count": 2,
+      "id": "minecolonies:durum"
+    },
+    {
+      "id": "minecolonies:garlic"
+    },
+    {
+      "id": "minecraft:brown_mushroom"
+    },
+    {
+      "id": "minecolonies:onion"
+    },
+    {
+      "id": "minecraft:mutton"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "min-building-level": 4,
+  "result": {
+    "id": "minecolonies:hand_pie"
+  },
+  "show-tooltip": true
+}

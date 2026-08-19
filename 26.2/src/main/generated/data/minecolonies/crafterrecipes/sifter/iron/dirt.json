@@ -1,0 +1,56 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecolonies:sifter_mesh_iron"
+    },
+    {
+      "id": "minecraft:wheat_seeds"
+    },
+    {
+      "id": "minecraft:oak_sapling"
+    },
+    {
+      "id": "minecraft:birch_sapling"
+    },
+    {
+      "id": "minecraft:spruce_sapling"
+    },
+    {
+      "id": "minecraft:jungle_sapling"
+    },
+    {
+      "id": "minecraft:carrot"
+    },
+    {
+      "id": "minecraft:potato"
+    },
+    {
+      "id": "minecraft:pumpkin_seeds"
+    },
+    {
+      "id": "minecraft:melon_seeds"
+    },
+    {
+      "id": "minecraft:beetroot_seeds"
+    },
+    {
+      "id": "minecraft:dark_oak_sapling"
+    },
+    {
+      "id": "minecraft:acacia_sapling"
+    }
+  ],
+  "crafter": "sifter_custom",
+  "inputs": [
+    {
+      "id": "minecraft:dirt"
+    },
+    {
+      "id": "minecolonies:sifter_mesh_iron"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/iron/dirt",
+  "min-building-level": 4
+}

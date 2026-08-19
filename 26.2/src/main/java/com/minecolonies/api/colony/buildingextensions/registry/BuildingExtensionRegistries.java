@@ -1,0 +1,211 @@
+package com.minecolonies.api.colony.buildingextensions.registry;
+
+import com.minecolonies.api.IMinecoloniesAPI;
+import com.minecolonies.api.colony.buildingextensions.IBuildingExtension;
+import com.minecolonies.api.colony.buildingextensions.modules.IBuildingExtensionModule;
+import com.minecolonies.api.util.constant.Constants;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
+
+import org.apache.commons.lang3.Validate;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+/**
+ * Registry implementation for building extension instances.
+ */
+public class BuildingExtensionRegistries
+{
+    public static final Identifier FARM_FIELD_ID                      = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "farmfield");
+    public static final Identifier PLANTATION_SUGAR_CANE_FIELD_ID     = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_sugar_cane");
+    public static final Identifier PLANTATION_CACTUS_FIELD_ID         = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_cactus");
+    public static final Identifier PLANTATION_BAMBOO_FIELD_ID         = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_bamboo");
+    public static final Identifier PLANTATION_COCOA_BEANS_FIELD_ID    = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_cocoa_beans");
+    public static final Identifier PLANTATION_VINES_FIELD_ID          = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_vines");
+    public static final Identifier PLANTATION_KELP_FIELD_ID           = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_kelp");
+    public static final Identifier PLANTATION_SEAGRASS_FIELD_ID       = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_seagrass");
+    public static final Identifier PLANTATION_SEA_PICKLES_FIELD_ID    = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_sea_pickles");
+    public static final Identifier PLANTATION_GLOWBERRIES_FIELD_ID    = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_glowberries");
+    public static final Identifier PLANTATION_WEEPING_VINES_FIELD_ID  = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_weeping_vines");
+    public static final Identifier PLANTATION_TWISTING_VINES_FIELD_ID = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_twisting_vines");
+    public static final Identifier PLANTATION_CRIMSON_PLANTS_FIELD_ID = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_crimson_plants");
+    public static final Identifier PLANTATION_WARPED_PLANTS_FIELD_ID  = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "plantation_warped_plants");
+
+    public static Supplier<BuildingExtensionEntry> farmField;
+    public static Supplier<BuildingExtensionEntry> plantationSugarCaneField;
+    public static Supplier<BuildingExtensionEntry> plantationCactusField;
+    public static Supplier<BuildingExtensionEntry> plantationBambooField;
+    public static Supplier<BuildingExtensionEntry> plantationCocoaBeansField;
+    public static Supplier<BuildingExtensionEntry> plantationVinesField;
+    public static Supplier<BuildingExtensionEntry> plantationKelpField;
+    public static Supplier<BuildingExtensionEntry> plantationSeagrassField;
+    public static Supplier<BuildingExtensionEntry> plantationSeaPicklesField;
+    public static Supplier<BuildingExtensionEntry> plantationGlowberriesField;
+    public static Supplier<BuildingExtensionEntry> plantationWeepingVinesField;
+    public static Supplier<BuildingExtensionEntry> plantationTwistingVinesField;
+    public static Supplier<BuildingExtensionEntry> plantationCrimsonPlantsField;
+    public static Supplier<BuildingExtensionEntry> plantationWarpedPlantsField;
+
+    private BuildingExtensionRegistries()
+    {
+    }
+
+    /**
+     * Get the building extension registry.
+     *
+     * @return the building extension registry.
+     */
+    public static Registry<BuildingExtensionEntry> getBuildingExtensionRegistry()
+    {
+        return IMinecoloniesAPI.getInstance().getBuildingExtensionRegistry();
+    }
+
+
+    /**
+     * Entry for the {@link IBuildingExtension} registry. Makes it possible to create a single registry for a {@link IBuildingExtension}. Used to lookup how to create {@link IBuildingExtension}.
+     */
+    public static class BuildingExtensionEntry
+    {
+        private final Identifier                                                 registryName;
+        private final BiFunction<BuildingExtensionEntry, BlockPos, IBuildingExtension> extensionProducer;
+        private final List<Function<IBuildingExtension, IBuildingExtensionModule>>     extensionModuleProducers;
+
+        /**
+         * Default internal constructor.
+         */
+        private BuildingExtensionEntry(
+          final Identifier registryName,
+          final BiFunction<BuildingExtensionEntry, BlockPos, IBuildingExtension> extensionProducer,
+          final List<Function<IBuildingExtension, IBuildingExtensionModule>> extensionModuleProducers)
+        {
+            this.registryName = registryName;
+            this.extensionProducer = extensionProducer;
+            this.extensionModuleProducers = extensionModuleProducers;
+        }
+
+        /**
+         * Produces a building extension instance based on a colony and block pos.
+         *
+         * @param position the position the building extension is at.
+         * @return the building extension instance.
+         */
+        public IBuildingExtension produceExtension(final BlockPos position)
+        {
+            final IBuildingExtension extension = extensionProducer.apply(this, position);
+            for (final Function<IBuildingExtension, IBuildingExtensionModule> moduleProducer : extensionModuleProducers)
+            {
+                extension.registerModule(moduleProducer.apply(extension));
+            }
+            return extension;
+        }
+
+        /**
+         * Get all building extension module producers.
+         *
+         * @return a list of all the building extension module producers.
+         */
+        public List<Function<IBuildingExtension, IBuildingExtensionModule>> getExtensionModuleProducers()
+        {
+            return Collections.unmodifiableList(extensionModuleProducers);
+        }
+
+        /**
+         * Get the assigned registry name.
+         *
+         * @return the resource location.
+         */
+        public Identifier getRegistryName()
+        {
+            return registryName;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return registryName.hashCode();
+        }
+
+        @Override
+        public boolean equals(final Object o)
+        {
+            if (this == o)
+            {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass())
+            {
+                return false;
+            }
+
+            final BuildingExtensionEntry that = (BuildingExtensionEntry) o;
+
+            return registryName.equals(that.registryName);
+        }
+
+        /**
+         * A builder class for {@link BuildingExtensionEntry}.
+         */
+        public static class Builder
+        {
+            private final List<Function<IBuildingExtension, IBuildingExtensionModule>>     extensionModuleProducers = new ArrayList<>();
+            private       Identifier                                                 registryName;
+            private       BiFunction<BuildingExtensionEntry, BlockPos, IBuildingExtension> extensionProducer;
+
+            /**
+             * Sets the registry name for the new building extension entry.
+             *
+             * @param registryName The name for the registry entry.
+             * @return The builder.
+             */
+            public BuildingExtensionEntry.Builder setRegistryName(final Identifier registryName)
+            {
+                this.registryName = registryName;
+                return this;
+            }
+
+            /**
+             * Sets the callback that is used to create the {@link IBuildingExtension} from its position in the world.
+             *
+             * @param extensionProducer The callback used to create the {@link IBuildingExtension}.
+             * @return The builder.
+             */
+            public BuildingExtensionEntry.Builder setExtensionProducer(final BiFunction<BuildingExtensionEntry, BlockPos, IBuildingExtension> extensionProducer)
+            {
+                this.extensionProducer = extensionProducer;
+                return this;
+            }
+
+            /**
+             * Add a building extension module producer.
+             *
+             * @param moduleProducer the module producer.
+             * @return the builder again.
+             */
+            public BuildingExtensionEntry.Builder addExtensionModuleProducer(final Function<IBuildingExtension, IBuildingExtensionModule> moduleProducer)
+            {
+                extensionModuleProducers.add(moduleProducer);
+                return this;
+            }
+
+            /**
+             * Method used to create the entry.
+             *
+             * @return The entry.
+             */
+            public BuildingExtensionEntry createExtensionEntry()
+            {
+                Validate.notNull(registryName);
+                Validate.notNull(extensionProducer);
+
+                return new BuildingExtensionEntry(registryName, extensionProducer, extensionModuleProducers);
+            }
+        }
+    }
+}

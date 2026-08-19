@@ -1,0 +1,13 @@
+{
+  "type": "recipe",
+  "crafter": "concretemixer_custom",
+  "inputs": [
+    {
+      "id": "minecraft:purple_concrete_powder"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "result": {
+    "id": "minecraft:purple_concrete"
+  }
+}

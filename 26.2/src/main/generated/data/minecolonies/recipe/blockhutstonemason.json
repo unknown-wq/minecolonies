@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": "minecraft:stone_bricks",
+    "T": "structurize:sceptergold",
+    "X": "#minecraft:planks"
+  },
+  "pattern": [
+    "XTX",
+    "BBB",
+    "XXX"
+  ],
+  "result": {
+    "id": "minecolonies:blockhutstonemason"
+  }
+}

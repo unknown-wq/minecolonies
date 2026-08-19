@@ -1,0 +1,105 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecraft:rotten_flesh"
+    },
+    {
+      "id": "minecraft:gold_nugget"
+    },
+    {
+      "id": "minecraft:netherrack"
+    },
+    {
+      "id": "minecraft:nether_quartz_ore"
+    },
+    {
+      "id": "minecraft:soul_sand"
+    },
+    {
+      "id": "minecraft:gravel"
+    },
+    {
+      "id": "minecraft:brown_mushroom"
+    },
+    {
+      "id": "minecraft:red_mushroom"
+    },
+    {
+      "id": "minecraft:soul_soil"
+    },
+    {
+      "id": "minecraft:porkchop"
+    },
+    {
+      "id": "minecraft:glowstone"
+    },
+    {
+      "id": "minecraft:crimson_nylium"
+    },
+    {
+      "id": "minecraft:crimson_fungus"
+    },
+    {
+      "id": "minecraft:crimson_stem"
+    },
+    {
+      "id": "minecraft:basalt"
+    },
+    {
+      "id": "minecraft:warped_nylium"
+    },
+    {
+      "id": "minecraft:warped_fungus"
+    },
+    {
+      "id": "minecraft:warped_stem"
+    },
+    {
+      "id": "minecraft:leather"
+    },
+    {
+      "id": "minecraft:nether_wart"
+    },
+    {
+      "id": "minecraft:gunpowder"
+    },
+    {
+      "id": "minecraft:ochre_froglight"
+    },
+    {
+      "id": "minecraft:ghast_tear"
+    },
+    {
+      "id": "minecraft:ender_pearl"
+    },
+    {
+      "id": "minecraft:pearlescent_froglight"
+    },
+    {
+      "id": "minecraft:verdant_froglight"
+    },
+    {
+      "id": "minecraft:magma_cream"
+    }
+  ],
+  "crafter": "netherworker_custom",
+  "inputs": [
+    {
+      "count": 64,
+      "id": "minecraft:cobblestone"
+    },
+    {
+      "count": 32,
+      "id": "minecraft:torch"
+    },
+    {
+      "count": 16,
+      "id": "minecraft:ladder"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/netherworker/trip3",
+  "max-building-level": 3,
+  "min-building-level": 3
+}

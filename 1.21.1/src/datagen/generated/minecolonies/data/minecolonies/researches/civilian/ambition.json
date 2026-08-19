@@ -1,0 +1,18 @@
+{
+  "branch": "minecolonies:civilian",
+  "costs": [
+    {
+      "count": 1,
+      "item": "minecraft:diamond"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/blockhutmysticalsite",
+      "level": 1
+    }
+  ],
+  "icon": "minecolonies:blockhutmysticalsite",
+  "researchLevel": 1,
+  "sortOrder": 5
+}

@@ -1,0 +1,30 @@
+{
+  "type": "recipe",
+  "crafter": "chef_crafting",
+  "inputs": [
+    {
+      "id": "minecolonies:cooked_rice"
+    },
+    {
+      "id": "minecolonies:bell_pepper"
+    },
+    {
+      "id": "minecolonies:tomato"
+    },
+    {
+      "id": "minecraft:carrot"
+    },
+    {
+      "id": "minecolonies:garlic"
+    },
+    {
+      "id": "minecolonies:eggplant"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "min-building-level": 4,
+  "result": {
+    "id": "minecolonies:stuffed_pepper"
+  },
+  "show-tooltip": true
+}

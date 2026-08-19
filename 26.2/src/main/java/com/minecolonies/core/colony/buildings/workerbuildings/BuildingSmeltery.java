@@ -1,0 +1,268 @@
+package com.minecolonies.core.colony.buildings.workerbuildings;
+
+import com.minecolonies.api.IMinecoloniesAPI;
+import com.minecolonies.api.colony.IColony;
+import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.colony.buildings.modules.settings.ISettingKey;
+import com.minecolonies.api.colony.jobs.registry.JobEntry;
+import com.minecolonies.api.colony.requestsystem.token.IToken;
+import com.minecolonies.api.compatibility.ICompatibilityManager;
+import com.minecolonies.api.crafting.*;
+import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.items.ModTags;
+import com.minecolonies.api.util.ItemStackUtils;
+import com.minecolonies.api.util.Utils;
+import com.minecolonies.core.colony.buildings.AbstractBuilding;
+import com.minecolonies.core.colony.buildings.modules.AbstractCraftingBuildingModule;
+import com.minecolonies.core.colony.buildings.modules.settings.IntSetting;
+import com.minecolonies.core.colony.buildings.modules.settings.SettingKey;
+import com.minecolonies.core.colony.crafting.CustomRecipe;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+
+import net.minecraft.server.level.ServerLevel;
+import com.minecolonies.api.util.Tuple;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.storage.loot.LootTable;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static com.minecolonies.api.util.constant.Suppression.OVERRIDE_EQUALS;
+
+/**
+ * Class of the smeltery building.
+ */
+@SuppressWarnings(OVERRIDE_EQUALS)
+public class BuildingSmeltery extends AbstractBuilding
+{
+    /**
+     * The smelter string.
+     */
+    private static final String SMELTERY_DESC = "smeltery";
+
+    /**
+     * Max building level of the smeltery.
+     */
+    private static final int MAX_BUILDING_LEVEL = 5;
+
+    /**
+     * Amount of swords and armor to keep at the worker.
+     */
+    private static final int STUFF_TO_KEEP = 10;
+
+    /**
+     * Key for min remainder at warehouse.
+     */
+    public static final ISettingKey<IntSetting> MIN = new SettingKey<>(IntSetting.class, Identifier.fromNamespaceAndPath(com.minecolonies.api.util.constant.Constants.MOD_ID, "warehousemin"));
+
+    /**
+     * Instantiates a new smeltery building.
+     *
+     * @param c the colony.
+     * @param l the location
+     */
+    public BuildingSmeltery(final IColony c, final BlockPos l)
+    {
+        super(c, l);
+        keepX.put(IColonyManager.getInstance().getCompatibilityManager()::isOre, new Tuple<>(Integer.MAX_VALUE, true));
+        keepX.put(stack -> !ItemStackUtils.isEmpty(stack)
+                             // PORT(26.2): SwordItem/DiggerItem/ArmorItem no longer exist; the same set is now described by item tags.
+                             && (stack.is(ItemTags.SWORDS) || stack.is(ItemTags.PICKAXES) || stack.is(ItemTags.AXES)
+                                   || stack.is(ItemTags.SHOVELS) || stack.is(ItemTags.HOES)
+                                   || stack.is(ItemTags.HEAD_ARMOR) || stack.is(ItemTags.CHEST_ARMOR)
+                                   || stack.is(ItemTags.LEG_ARMOR) || stack.is(ItemTags.FOOT_ARMOR))
+          , new Tuple<>(STUFF_TO_KEEP, true));
+    }
+
+    @NotNull
+    @Override
+    public String getSchematicName()
+    {
+        return SMELTERY_DESC;
+    }
+
+    @Override
+    public int getMaxBuildingLevel()
+    {
+        return MAX_BUILDING_LEVEL;
+    }
+
+    public static class SmeltingModule extends AbstractCraftingBuildingModule.Smelting
+    {
+        /**
+         * Create a new module.
+         *
+         * @param jobEntry the entry of the job.
+         */
+        public SmeltingModule(final JobEntry jobEntry)
+        {
+            super(jobEntry);
+        }
+
+        @Override
+        public boolean isRecipeCompatible(@NotNull final IGenericRecipe recipe)
+        {
+            // all "recipes" are handled by the AI, and queried via the job
+            return false;
+        }
+
+        @Override
+        public boolean isVisible()
+        {
+            return false;
+        }
+
+        @NotNull
+        @Override
+        public List<IGenericRecipe> getAdditionalRecipesForDisplayPurposesOnly(@NotNull final Level world)
+        {
+            final List<IGenericRecipe> recipes = new ArrayList<>(super.getAdditionalRecipesForDisplayPurposesOnly(world));
+
+            final ICompatibilityManager compatibility = IColonyManager.getInstance().getCompatibilityManager();
+            for (final ItemStack stack : compatibility.getListOfAllItems())
+            {
+                if (ItemStackUtils.IS_SMELTABLE.and(compatibility::isOre).and(s -> !compatibility.isBreakableOre(s)).test(stack))
+                {
+                    final ItemStack output = IColonyManager.getInstance().getCompatibilityManager().getFurnaceRecipes().getSmeltingResult(stack);
+                    recipes.add(createSmeltingRecipe(stack, output, Blocks.FURNACE));
+                }
+            }
+            return recipes;
+        }
+
+        private static IGenericRecipe createSmeltingRecipe(final ItemStack input, final ItemStack output, final Block intermediate)
+        {
+            return GenericRecipe.builder()
+                    .withInputs(List.of(List.of(input)))
+                    .withOutput(output)
+                    .withIntermediate(intermediate)
+                    .build();
+        }
+    }
+
+    public static class OreBreakingModule extends AbstractCraftingBuildingModule.Custom
+    {
+        public OreBreakingModule(JobEntry jobEntry)
+        {
+            super(jobEntry);
+        }
+
+        @NotNull
+        @Override
+        public List<ResourceKey<LootTable>> getAdditionalLootTables()
+        {
+            final List<ResourceKey<LootTable>> lootTables = new ArrayList<>(super.getAdditionalLootTables());
+
+            //noinspection ConstantConditions
+            for (final Holder<Item> input : BuiltInRegistries.ITEM.getTagOrEmpty(ModTags.breakable_ore))
+            {
+                lootTables.add(getLootTable(input.value()));
+            }
+
+            return lootTables;
+        }
+
+        @Override
+        protected boolean isPreTaughtRecipe(final IRecipeStorage storage, final Map<Identifier, CustomRecipe> crafterRecipes)
+        {
+            if (storage.getPrimaryOutput().isEmpty() && storage.getLootTable() != null)
+            {
+                return true;
+            }
+
+            return super.isPreTaughtRecipe(storage, crafterRecipes);
+        }
+
+        @NotNull
+        @Override
+        public List<IGenericRecipe> getAdditionalRecipesForDisplayPurposesOnly(@NotNull final Level world)
+        {
+            final List<IGenericRecipe> recipes = new ArrayList<>(super.getAdditionalRecipesForDisplayPurposesOnly(world));
+            final ICompatibilityManager compat = IMinecoloniesAPI.getInstance().getColonyManager().getCompatibilityManager();
+
+            //noinspection ConstantConditions
+            for (final Holder<Item> input : BuiltInRegistries.ITEM.getTagOrEmpty(ModTags.breakable_ore))
+            {
+                final ItemStack inputStack = input.value().getDefaultInstance();
+                if (compat.isBreakableOre(inputStack))
+                {
+                    recipes.add(GenericRecipe.builder()
+                            .withInputs(List.of(List.of(inputStack)))
+                            .withLootTable(getLootTable(input.value()))
+                            .build());
+                }
+            }
+
+            return recipes;
+        }
+
+        @Override
+        public void checkForWorkerSpecificRecipes()
+        {
+            super.checkForWorkerSpecificRecipes();
+
+            final ICompatibilityManager compat = IMinecoloniesAPI.getInstance().getColonyManager().getCompatibilityManager();
+
+            for (final Holder<Item> input : BuiltInRegistries.ITEM.getTagOrEmpty(ModTags.breakable_ore))
+            {
+                final ItemStack inputStack = input.value().getDefaultInstance();
+                if (!compat.isBreakableOre(inputStack))
+                {
+                    continue;
+                }
+
+                Block b = Block.byItem(input.value());
+                List<ItemStack> drops = Block.getDrops(b.defaultBlockState(), (ServerLevel) building.getColony().getWorld(), building.getID(), null);
+                for (ItemStack drop : drops)
+                {
+                    if (!drop.isEmpty())
+                    {
+                        drop.setCount(1);
+                    }
+                }
+
+                final RecipeStorage tempRecipe = RecipeStorage.builder()
+                        .withInputs(Collections.singletonList(new ItemStorage(inputStack)))
+                        .withSecondaryOutputs(drops)    // this is just a display example
+                        .withLootTable(getLootTable(input.value()))
+                        .build();
+                IToken<?> token = IColonyManager.getInstance().getRecipeManager().checkOrAddRecipe(tempRecipe);
+                this.addRecipeToList(token, false);
+            }
+        }
+
+        @Override
+        public ItemStack getCraftingTool(final AbstractEntityCitizen worker)
+        {
+            ItemStack pick = new ItemStack(Items.DIAMOND_PICKAXE);
+            int fortuneLevel = building.getBuildingLevel() - 1;
+            if (fortuneLevel > 0)
+            {
+                pick.enchant(Utils.getRegistryValue(Enchantments.FORTUNE, worker.level()), fortuneLevel);
+            }
+            return pick;
+        }
+
+        protected ResourceKey<LootTable> getLootTable(Item item)
+        {
+            if (item instanceof BlockItem)
+            {
+                Block itemBlock = Block.byItem(item);
+                return itemBlock.getLootTable().orElse(null);
+            }
+            return null;
+        }
+    }
+}

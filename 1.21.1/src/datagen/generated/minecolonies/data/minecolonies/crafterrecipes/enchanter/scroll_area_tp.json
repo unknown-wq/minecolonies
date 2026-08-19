@@ -1,0 +1,16 @@
+{
+  "type": "recipe",
+  "crafter": "enchanter_custom",
+  "inputs": [
+    {
+      "count": 3,
+      "id": "minecolonies:scroll_tp"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "min-building-level": 2,
+  "result": {
+    "id": "minecolonies:scroll_area_tp"
+  },
+  "show-tooltip": true
+}

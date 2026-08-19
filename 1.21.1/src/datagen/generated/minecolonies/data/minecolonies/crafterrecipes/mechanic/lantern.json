@@ -1,0 +1,21 @@
+{
+  "type": "recipe",
+  "crafter": "mechanic_crafting",
+  "inputs": [
+    {
+      "count": 3,
+      "id": "minecraft:iron_nugget"
+    },
+    {
+      "id": "minecraft:glass_bottle"
+    },
+    {
+      "id": "minecraft:torch"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "min-building-level": 3,
+  "result": {
+    "id": "minecraft:lantern"
+  }
+}

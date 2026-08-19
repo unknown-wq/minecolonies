@@ -1,0 +1,35 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecolonies:sifter_mesh_string"
+    },
+    {
+      "id": "minecraft:wheat_seeds"
+    },
+    {
+      "id": "minecraft:oak_sapling"
+    },
+    {
+      "id": "minecraft:birch_sapling"
+    },
+    {
+      "id": "minecraft:spruce_sapling"
+    },
+    {
+      "id": "minecraft:jungle_sapling"
+    }
+  ],
+  "crafter": "sifter_custom",
+  "inputs": [
+    {
+      "id": "minecraft:dirt"
+    },
+    {
+      "id": "minecolonies:sifter_mesh_string"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/string/dirt",
+  "min-building-level": 1
+}

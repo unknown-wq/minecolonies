@@ -1,0 +1,84 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecraft:rotten_flesh"
+    },
+    {
+      "id": "minecraft:gold_nugget"
+    },
+    {
+      "id": "minecraft:netherrack"
+    },
+    {
+      "id": "minecraft:nether_quartz_ore"
+    },
+    {
+      "id": "minecraft:soul_sand"
+    },
+    {
+      "id": "minecraft:gravel"
+    },
+    {
+      "id": "minecraft:brown_mushroom"
+    },
+    {
+      "id": "minecraft:red_mushroom"
+    },
+    {
+      "id": "minecraft:soul_soil"
+    },
+    {
+      "id": "minecraft:glowstone"
+    },
+    {
+      "id": "minecraft:crimson_nylium"
+    },
+    {
+      "id": "minecraft:crimson_fungus"
+    },
+    {
+      "id": "minecraft:crimson_stem"
+    },
+    {
+      "id": "minecraft:porkchop"
+    },
+    {
+      "id": "minecraft:nether_wart"
+    },
+    {
+      "id": "minecraft:leather"
+    },
+    {
+      "id": "minecraft:gunpowder"
+    },
+    {
+      "id": "minecraft:ghast_tear"
+    },
+    {
+      "id": "minecraft:ender_pearl"
+    },
+    {
+      "id": "minecraft:magma_cream"
+    }
+  ],
+  "crafter": "netherworker_custom",
+  "inputs": [
+    {
+      "count": 64,
+      "id": "minecraft:cobblestone"
+    },
+    {
+      "count": 32,
+      "id": "minecraft:torch"
+    },
+    {
+      "count": 16,
+      "id": "minecraft:ladder"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/netherworker/trip2",
+  "max-building-level": 2,
+  "min-building-level": 2
+}

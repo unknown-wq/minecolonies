@@ -1,0 +1,44 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecolonies:sifter_mesh_iron"
+    },
+    {
+      "id": "minecraft:redstone"
+    },
+    {
+      "id": "minecraft:iron_nugget"
+    },
+    {
+      "id": "minecraft:coal"
+    },
+    {
+      "id": "minecraft:lapis_lazuli"
+    },
+    {
+      "id": "minecraft:iron_ingot"
+    },
+    {
+      "id": "minecraft:gold_ingot"
+    },
+    {
+      "id": "minecraft:emerald"
+    },
+    {
+      "id": "minecraft:diamond"
+    }
+  ],
+  "crafter": "sifter_custom",
+  "inputs": [
+    {
+      "id": "minecraft:gravel"
+    },
+    {
+      "id": "minecolonies:sifter_mesh_iron"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/iron/gravel",
+  "min-building-level": 4
+}

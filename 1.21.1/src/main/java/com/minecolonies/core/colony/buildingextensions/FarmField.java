@@ -1,0 +1,287 @@
+package com.minecolonies.core.colony.buildingextensions;
+
+import com.minecolonies.api.blocks.ModBlocks;
+import com.minecolonies.api.colony.IColony;
+import com.minecolonies.api.colony.buildingextensions.registry.BuildingExtensionRegistries;
+import com.minecolonies.api.colony.buildingextensions.registry.BuildingExtensionRegistries.BuildingExtensionEntry;
+import com.minecolonies.api.util.Utils;
+import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.tileentities.TileEntityScarecrow;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.FenceBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
+import net.minecraft.world.level.block.WallBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Locale;
+
+import static com.minecolonies.api.util.constant.TranslationConstants.FIELD_STATUS;
+
+/**
+ * Field class implementation for the plantation
+ */
+public class FarmField extends AbstractBuildingExtension
+{
+    /**
+     * The max width/length of a field.
+     */
+    public static final int MAX_RANGE = 20;
+    public static final int DEFAULT_RANGE = 5;
+
+    private static final String TAG_SEED      = "seed";
+    public static final  String TAG_RADIUS    = "radius";
+    private static final String TAG_MAX_RANGE = "maxRange";
+    private static final String TAG_STAGE     = "stage";
+
+    /**
+     * The currently selected seed on the field, if any.
+     */
+    private ItemStack seed = ItemStack.EMPTY;
+
+    /**
+     * The size of the field in all four directions
+     * in the same order as {@link Direction}:
+     * S, W, N, E
+     */
+    private int[] radii = {DEFAULT_RANGE, DEFAULT_RANGE, DEFAULT_RANGE, DEFAULT_RANGE};
+
+    /**
+     * Has the field been planted
+     */
+    private Stage fieldStage = Stage.EMPTY;
+
+    /**
+     * Constructor used in NBT deserialization.
+     *
+     * @param fieldType the type of field.
+     * @param position  the position of the field.
+     */
+    public FarmField(final BuildingExtensionEntry fieldType, final BlockPos position)
+    {
+        super(fieldType, position);
+    }
+
+    /**
+     * Constructor to create new instances
+     *
+     * @param position the position it is placed in.
+     * @param worldIn
+     */
+    public static FarmField create(final BlockPos position, final Level worldIn)
+    {
+        final FarmField farmField = (FarmField) BuildingExtensionRegistries.farmField.get().produceExtension(position);
+        if (farmField != null)
+        {
+            final BlockEntity fieldBlock = worldIn.getBlockEntity(position);
+            if (fieldBlock instanceof TileEntityScarecrow scarecrow)
+            {
+                farmField.radii = scarecrow.getFieldSize();
+            }
+        }
+        return farmField;
+    }
+
+    @Override
+    public boolean isValidPlacement(final IColony colony)
+    {
+        BlockState blockState = colony.getWorld().getBlockState(getPosition());
+        return blockState.is(ModBlocks.blockScarecrow);
+    }
+
+    @Override
+    public @NotNull CompoundTag serializeNBT(@NotNull final HolderLookup.Provider provider)
+    {
+        CompoundTag compound = super.serializeNBT(provider);
+        compound.put(TAG_SEED, seed.saveOptional(provider));
+        compound.putIntArray(TAG_RADIUS, radii);
+        compound.putString(TAG_STAGE, fieldStage.name());
+        return compound;
+    }
+
+    @Override
+    public void deserializeNBT(@NotNull final HolderLookup.Provider provider, final @NotNull CompoundTag compound)
+    {
+        super.deserializeNBT(provider, compound);
+        setSeed(ItemStack.parseOptional(provider, compound.getCompound(TAG_SEED)));
+        radii = compound.getIntArray(TAG_RADIUS);
+        fieldStage = Stage.valueOf(compound.getString(TAG_STAGE));
+    }
+
+    @Override
+    public void serialize(final @NotNull RegistryFriendlyByteBuf buf)
+    {
+        super.serialize(buf);
+        Utils.serializeCodecMess(buf, getSeed());
+        buf.writeVarIntArray(radii);
+        buf.writeEnum(fieldStage);
+    }
+
+    @Override
+    public void deserialize(@NotNull final RegistryFriendlyByteBuf buf)
+    {
+        super.deserialize(buf);
+        setSeed(Utils.deserializeCodecMess(buf));
+        radii = buf.readVarIntArray();
+        fieldStage = buf.readEnum(Stage.class);
+    }
+
+    /**
+     * Get the current seed on the field.
+     *
+     * @return the current seed.
+     */
+    @NotNull
+    public ItemStack getSeed()
+    {
+        seed.setCount(1);
+        return seed;
+    }
+
+    /**
+     * Updates the seed in the field.
+     *
+     * @param seed the new seed
+     */
+    public void setSeed(final ItemStack seed)
+    {
+        this.seed = seed.copy();
+        this.seed.setCount(1);
+    }
+
+    /**
+     * Move the field into the new state.
+     */
+    public void nextState()
+    {
+        if (getFieldStage().ordinal() + 1 >= Stage.values().length)
+        {
+            setFieldStage(Stage.values()[0]);
+            return;
+        }
+        setFieldStage(Stage.values()[getFieldStage().ordinal() + 1]);
+    }
+
+    /**
+     * Get the current stage the field is in.
+     *
+     * @return the stage of the field.
+     */
+    public Stage getFieldStage()
+    {
+        return this.fieldStage;
+    }
+
+    /**
+     * Sets the current stage of the field.
+     *
+     * @param fieldStage the stage of the field.
+     */
+    public void setFieldStage(final Stage fieldStage)
+    {
+        this.fieldStage = fieldStage;
+    }
+
+    /**
+     * @param direction the direction to get the range for
+     * @return the radius
+     */
+    public int getRadius(Direction direction)
+    {
+        return radii[direction.get2DDataValue()];
+    }
+
+    /**
+     * @param direction the direction for the radius
+     * @param radius    the number of blocks from the scarecrow that the farmer will work with
+     */
+    public void setRadius(Direction direction, int radius)
+    {
+        this.radii[direction.get2DDataValue()] = Math.min(radius, MAX_RANGE);
+    }
+
+    /**
+     * Checks if a certain position is part of the field. Complies with the definition of field block.
+     *
+     * @param world    the world object.
+     * @param position the position.
+     * @return true if it is.
+     */
+    public boolean isNoPartOfField(@NotNull final Level world, @NotNull final BlockPos position)
+    {
+        return world.isEmptyBlock(position) || isValidDelimiter(world.getBlockState(position.above()).getBlock());
+    }
+
+    /**
+     * Check if a block is a valid delimiter of the field.
+     *
+     * @param block the block to analyze.
+     * @return true if so.
+     */
+    private static boolean isValidDelimiter(final Block block)
+    {
+        return block instanceof FenceBlock || block instanceof FenceGateBlock || block instanceof WallBlock;
+    }
+
+    /**
+     * Describes the stage the field is in. Like if it has been hoed, planted or is empty.
+     */
+    public enum Stage
+    {
+        EMPTY(new ResourceLocation("minecraft", "textures/item/iron_hoe.png")), 
+        HOED(new ResourceLocation("minecraft", "textures/item/wheat_seeds.png")), 
+        PLANTED(new ResourceLocation(Constants.MOD_ID, "textures/item/crops/durum.png"));
+
+        protected final ResourceLocation stageIcon;
+
+        private Stage(ResourceLocation stageIcon)
+        {
+            this.stageIcon = stageIcon;
+        }
+
+        /**
+         * Gets the status icon of the current stage in the farm field's progress.
+         *
+         * @return the status icon of the current stage.
+         */
+        public ResourceLocation getStageIcon()
+        {
+            return stageIcon;
+        }
+
+        /**
+         * Gets the translatable text of the current stage in the farm field's progress.
+         * 
+         * @return the translatable text of the current stage.
+         */
+        public Component getStageText()
+        {
+            return Component.translatable(FIELD_STATUS + "." + name().toLowerCase(Locale.ROOT));
+        }
+
+
+        /**
+         * Get the next stage in the field's progression.
+         *
+         * @return the next Stage, or the first Stage if the current one is the last.
+         */
+        public Stage getNextStage()
+        {
+            if (ordinal() + 1 >= values().length)
+            {
+                return values()[0];
+            }
+            return values()[ordinal() + 1];
+        }
+    }
+}

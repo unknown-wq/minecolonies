@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecolonies:onion",
+    "minecolonies:nether_pepper",
+    "minecraft:stick",
+    "minecraft:mutton"
+  ],
+  "result": {
+    "id": "minecolonies:kebab"
+  }
+}

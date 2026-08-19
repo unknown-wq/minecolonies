@@ -1,0 +1,14 @@
+{
+  "type": "recipe",
+  "crafter": "baker_smelting",
+  "inputs": [
+    {
+      "id": "minecolonies:muffin_dough"
+    }
+  ],
+  "intermediate": "minecraft:furnace",
+  "result": {
+    "id": "minecolonies:muffin"
+  },
+  "show-tooltip": true
+}

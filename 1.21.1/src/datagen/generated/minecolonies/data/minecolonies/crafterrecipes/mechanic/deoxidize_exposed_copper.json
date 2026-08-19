@@ -1,0 +1,14 @@
+{
+  "type": "recipe",
+  "crafter": "mechanic_crafting",
+  "inputs": [
+    {
+      "id": "minecraft:exposed_copper"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "result": {
+    "id": "minecraft:copper_block"
+  },
+  "tool": "minecolonies:axe"
+}

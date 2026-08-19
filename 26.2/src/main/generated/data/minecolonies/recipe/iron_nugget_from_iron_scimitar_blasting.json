@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:blasting",
+  "experience": 0.1,
+  "ingredient": "minecolonies:iron_scimitar",
+  "result": {
+    "id": "minecraft:iron_nugget"
+  }
+}

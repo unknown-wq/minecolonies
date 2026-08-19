@@ -1,0 +1,14 @@
+{
+  "type": "recipe",
+  "crafter": "baker_smelting",
+  "inputs": [
+    {
+      "id": "minecolonies:manchet_dough"
+    }
+  ],
+  "intermediate": "minecraft:furnace",
+  "result": {
+    "id": "minecolonies:manchet_bread"
+  },
+  "show-tooltip": true
+}

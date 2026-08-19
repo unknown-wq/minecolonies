@@ -1,0 +1,25 @@
+{
+  "branch": "minecolonies:civilian",
+  "costs": [
+    {
+      "count": 128,
+      "item": "minecraft:cookie"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/saturationmultiplier",
+      "level": 3
+    }
+  ],
+  "icon": "minecolonies:textures/icons/research/saturation3.png",
+  "parentResearch": "minecolonies:civilian/gorger",
+  "requirements": [
+    {
+      "type": "minecolonies:building",
+      "building": "minecolonies:cook",
+      "level": 4
+    }
+  ],
+  "researchLevel": 4
+}

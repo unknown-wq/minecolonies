@@ -1,0 +1,25 @@
+{
+  "branch": "minecolonies:combat",
+  "costs": [
+    {
+      "count": 1,
+      "item": "minecraft:diamond_axe"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/huscarl",
+      "level": 1
+    }
+  ],
+  "icon": "minecraft:diamond_axe",
+  "parentResearch": "minecolonies:combat/improvedswords",
+  "requirements": [
+    {
+      "type": "minecolonies:building",
+      "building": "minecolonies:combatacademy",
+      "level": 3
+    }
+  ],
+  "researchLevel": 3
+}

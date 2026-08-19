@@ -1,0 +1,19 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecraft:enchanted_book"
+    }
+  ],
+  "crafter": "enchanter_custom",
+  "inputs": [
+    {
+      "id": "minecolonies:ancienttome",
+      "matchType": "ignore"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/enchanter5",
+  "max-building-level": 5,
+  "min-building-level": 5
+}

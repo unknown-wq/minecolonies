@@ -1,0 +1,14 @@
+{
+  "type": "recipe",
+  "crafter": "crusher_custom",
+  "inputs": [
+    {
+      "id": "minecraft:bone_block"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "result": {
+    "count": 9,
+    "id": "minecraft:bone_meal"
+  }
+}

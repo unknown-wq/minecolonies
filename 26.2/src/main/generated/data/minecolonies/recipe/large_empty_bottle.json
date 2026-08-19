@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "G": "minecraft:glass",
+    "P": "minecraft:glass_pane",
+    "S": "#minecraft:wooden_slabs"
+  },
+  "pattern": [
+    "PSP",
+    "P P",
+    "PGP"
+  ],
+  "result": {
+    "count": 4,
+    "id": "minecolonies:large_empty_bottle"
+  }
+}

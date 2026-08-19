@@ -1,0 +1,23 @@
+{
+  "type": "recipe",
+  "crafter": "blacksmith_crafting",
+  "inputs": [
+    {
+      "count": 4,
+      "id": "minecraft:iron_ingot"
+    },
+    {
+      "id": "minecraft:leather"
+    },
+    {
+      "id": "minecraft:coal"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "min-building-level": 4,
+  "research-id": "minecolonies:effects/platearmorunlock",
+  "result": {
+    "id": "minecolonies:plate_armor_helmet"
+  },
+  "show-tooltip": true
+}

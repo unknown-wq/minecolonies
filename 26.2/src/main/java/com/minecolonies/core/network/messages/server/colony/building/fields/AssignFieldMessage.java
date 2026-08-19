@@ -1,0 +1,95 @@
+package com.minecolonies.core.network.messages.server.colony.building.fields;
+
+import com.ldtteam.common.network.PlayMessageType;
+import com.minecolonies.api.colony.IColony;
+import com.minecolonies.api.colony.buildings.IBuilding;
+import com.minecolonies.api.colony.buildings.views.IBuildingView;
+import com.minecolonies.api.colony.buildingextensions.IBuildingExtension;
+import com.minecolonies.api.util.Utils;
+import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.colony.buildings.modules.BuildingExtensionsModule;
+import com.minecolonies.core.colony.buildingextensions.registry.BuildingExtensionDataManager;
+import com.minecolonies.core.network.messages.server.AbstractBuildingServerMessage;
+import io.netty.buffer.Unpooled;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import com.ldtteam.common.network.PlayMessageContext;
+
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Message which handles the assignment of fields to farmers.
+ */
+public class AssignFieldMessage extends AbstractBuildingServerMessage<IBuilding>
+{
+    public static final PlayMessageType<?> TYPE = PlayMessageType.forServer(Constants.MOD_ID, "assign_field", AssignFieldMessage::new);
+
+    /**
+     * The modules ID
+     */
+    private final int       moduleID;
+
+    /**
+     * The field to (un)assign.
+     */
+    private final RegistryFriendlyByteBuf fieldData;
+
+    /**
+     * Whether to assign or un-assign this field.
+     */
+    private final boolean assign;
+
+    /**
+     * Creates the message to assign a field.
+     *
+     * @param assign   assign if true, free if false.
+     * @param field    the field.
+     * @param building the building we're executing on.
+     */
+    public AssignFieldMessage(final IBuildingView building, final IBuildingExtension field, final boolean assign, final int moduleID)
+    {
+        super(TYPE, building);
+        this.assign = assign;
+        this.fieldData = BuildingExtensionDataManager.extensionToBuffer(field, building.getColony().getWorld().registryAccess());
+        this.moduleID = moduleID;
+    }
+
+    @Override
+    protected void toBytes(@NotNull final RegistryFriendlyByteBuf buf)
+    {
+        super.toBytes(buf);
+        fieldData.resetReaderIndex();
+        buf.writeBoolean(assign);
+        buf.writeInt(moduleID);
+        Utils.writeBufferContents(buf, fieldData);
+    }
+
+    protected AssignFieldMessage(final RegistryFriendlyByteBuf buf, final PlayMessageType<?> type)
+    {
+        super(buf, type);
+        assign = buf.readBoolean();
+        moduleID = buf.readInt();
+        fieldData = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buf.readByteArray()), buf.registryAccess());
+    }
+
+    @Override
+    protected void onExecute(final PlayMessageContext ctxIn, final ServerPlayer player, final IColony colony, final IBuilding building)
+    {
+        final IBuildingExtension parsedField = BuildingExtensionDataManager.bufferToExtension(fieldData);
+        colony.getServerBuildingManager().getMatchingBuildingExtension(otherField -> otherField.equals(parsedField)).ifPresent(field -> {
+
+            if (building.getModule(moduleID) instanceof final BuildingExtensionsModule fieldsModule)
+            {
+                if (assign)
+                {
+                    fieldsModule.assignExtension(field);
+                }
+                else
+                {
+                    fieldsModule.freeExtension(field);
+                }
+            }
+        });
+    }
+}
+

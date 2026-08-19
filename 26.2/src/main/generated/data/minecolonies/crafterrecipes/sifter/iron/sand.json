@@ -1,0 +1,32 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecolonies:sifter_mesh_iron"
+    },
+    {
+      "id": "minecraft:cactus"
+    },
+    {
+      "id": "minecraft:sugar_cane"
+    },
+    {
+      "id": "minecraft:gold_nugget"
+    },
+    {
+      "id": "minecraft:cocoa_beans"
+    }
+  ],
+  "crafter": "sifter_custom",
+  "inputs": [
+    {
+      "id": "minecraft:sand"
+    },
+    {
+      "id": "minecolonies:sifter_mesh_iron"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/iron/sand",
+  "min-building-level": 4
+}

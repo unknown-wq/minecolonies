@@ -1,0 +1,188 @@
+package com.minecolonies.core.colony.buildings.workerbuildings;
+
+import com.google.common.collect.ImmutableList;
+import com.minecolonies.api.blocks.ModBlocks;
+import com.minecolonies.api.colony.IColony;
+import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.crafting.ItemStorage;
+import com.minecolonies.api.equipment.ModEquipmentTypes;
+import com.minecolonies.api.items.ModItems;
+import com.minecolonies.api.util.ItemStackUtils;
+import com.minecolonies.api.util.MathUtils;
+import com.minecolonies.api.util.NBTUtils;
+import com.minecolonies.core.colony.buildings.AbstractBuilding;
+import com.minecolonies.core.colony.buildings.modules.ItemListModule;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.minecolonies.api.util.constant.BuildingConstants.BUILDING_FLOWER_LIST;
+import static com.minecolonies.api.util.constant.Constants.STACKSIZE;
+import static com.minecolonies.api.util.constant.EquipmentLevelConstants.TOOL_LEVEL_WOOD_OR_GOLD;
+import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_PLANTGROUND;
+import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_POS;
+
+/**
+ * The florist building.
+ */
+public class BuildingFlorist extends AbstractBuilding
+{
+    /**
+     * Florist.
+     */
+    private static final String FLORIST = "florist";
+
+    /**
+     * Maximum building level
+     */
+    private static final int MAX_BUILDING_LEVEL = 5;
+
+    /**
+     * List of registered barrels.
+     */
+    private final List<BlockPos> plantGround = new ArrayList<>();
+
+    /**
+     * The constructor of the building.
+     *
+     * @param c the colony
+     * @param l the position
+     */
+    public BuildingFlorist(@NotNull final IColony c, final BlockPos l)
+    {
+        super(c, l);
+        keepX.put((stack) -> stack.getItem() == ModItems.compost, new Tuple<>(STACKSIZE, true));
+        keepX.put(itemStack -> ItemStackUtils.hasEquipmentLevel(itemStack, ModEquipmentTypes.shears.get(), TOOL_LEVEL_WOOD_OR_GOLD, getMaxEquipmentLevel()), new Tuple<>(1, true));
+    }
+
+    /**
+     * Return a list of barrels assigned to this hut.
+     *
+     * @return copy of the list
+     */
+    public List<BlockPos> getPlantGround()
+    {
+        return ImmutableList.copyOf(plantGround);
+    }
+
+    @NotNull
+    @Override
+    public String getSchematicName()
+    {
+        return FLORIST;
+    }
+
+    @Override
+    public int getMaxBuildingLevel()
+    {
+        return MAX_BUILDING_LEVEL;
+    }
+
+    @Override
+    public void registerBlockPosition(@NotNull final Block block, @NotNull final BlockPos pos, @NotNull final Level world)
+    {
+        super.registerBlockPosition(block, pos, world);
+        if (block == ModBlocks.blockCompostedDirt && !plantGround.contains(pos))
+        {
+            plantGround.add(pos);
+        }
+    }
+
+    @Override
+    public void deserializeNBT(@NotNull final HolderLookup.Provider provider, final CompoundTag compound)
+    {
+        super.deserializeNBT(provider, compound);
+        final ListTag compostBinTagList = compound.getList(TAG_PLANTGROUND, Tag.TAG_INT_ARRAY);
+        for (int i = 0; i < compostBinTagList.size(); ++i)
+        {
+            plantGround.add(NBTUtils.readBlockPos(compostBinTagList.get(i)));
+        }
+    }
+
+    @Override
+    public CompoundTag serializeNBT(@NotNull final HolderLookup.Provider provider)
+    {
+        final CompoundTag compound = super.serializeNBT(provider);
+        @NotNull final ListTag compostBinTagList = new ListTag();
+        for (@NotNull final BlockPos entry : plantGround)
+        {
+            compostBinTagList.add(NBTUtils.writeBlockPos(entry));
+        }
+        compound.put(TAG_PLANTGROUND, compostBinTagList);
+
+        return compound;
+    }
+
+    /**
+     * Remove a piece of plantable ground because invalid.
+     *
+     * @param pos the pos to remove it at.
+     */
+    public void removePlantableGround(final BlockPos pos)
+    {
+        this.plantGround.remove(pos);
+    }
+
+    /**
+     * Get a random flower to grow at the moment.
+     *
+     * @return the flower to grow.
+     */
+    @Nullable
+    public ItemStack getFlowerToGrow()
+    {
+        final List<ItemStorage> stacks = getPlantablesForBuildingLevel(getBuildingLevel()).stream()
+          .filter(stack -> !getModuleMatching(ItemListModule.class, m -> m.getId().equals(BUILDING_FLOWER_LIST)).isItemInList(stack)).toList();
+
+        if (stacks.isEmpty())
+        {
+            return null;
+        }
+
+        return stacks.get(MathUtils.RANDOM.nextInt(stacks.size())).getItemStack();
+    }
+
+    /**
+     * Get the plantables from the compatibility manager the florist can build at the current level.
+     *
+     * @param level the building level.
+     * @return the restricted list.
+     */
+    public static Set<ItemStorage> getPlantablesForBuildingLevel(final int level)
+    {
+        switch (level)
+        {
+            case 0:
+            case 1:
+                return IColonyManager.getInstance().getCompatibilityManager().getCopyOfPlantables().stream()
+                         .filter(storage -> storage.getItem() == Items.POPPY || storage.getItem() == Items.DANDELION)
+                         .collect(Collectors.toSet());
+            case 2:
+                return IColonyManager.getInstance().getCompatibilityManager().getCopyOfPlantables().stream()
+                         .filter(itemStorage -> itemStorage.getItemStack().is(ItemTags.SMALL_FLOWERS))
+                         .collect(Collectors.toSet());
+            case 3:
+            case 4:
+            case 5:
+            default:
+                return IColonyManager.getInstance().getCompatibilityManager().getCopyOfPlantables();
+        }
+    }
+}

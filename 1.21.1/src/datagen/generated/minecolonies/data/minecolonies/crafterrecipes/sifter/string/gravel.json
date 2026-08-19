@@ -1,0 +1,29 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecolonies:sifter_mesh_string"
+    },
+    {
+      "id": "minecraft:iron_nugget"
+    },
+    {
+      "id": "minecraft:flint"
+    },
+    {
+      "id": "minecraft:coal"
+    }
+  ],
+  "crafter": "sifter_custom",
+  "inputs": [
+    {
+      "id": "minecraft:gravel"
+    },
+    {
+      "id": "minecolonies:sifter_mesh_string"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/string/gravel",
+  "min-building-level": 1
+}

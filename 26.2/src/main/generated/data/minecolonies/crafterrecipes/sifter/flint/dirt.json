@@ -1,0 +1,41 @@
+{
+  "type": "recipe",
+  "additional-output": [
+    {
+      "id": "minecolonies:sifter_mesh_flint"
+    },
+    {
+      "id": "minecraft:wheat_seeds"
+    },
+    {
+      "id": "minecraft:oak_sapling"
+    },
+    {
+      "id": "minecraft:birch_sapling"
+    },
+    {
+      "id": "minecraft:spruce_sapling"
+    },
+    {
+      "id": "minecraft:jungle_sapling"
+    },
+    {
+      "id": "minecraft:carrot"
+    },
+    {
+      "id": "minecraft:potato"
+    }
+  ],
+  "crafter": "sifter_custom",
+  "inputs": [
+    {
+      "id": "minecraft:dirt"
+    },
+    {
+      "id": "minecolonies:sifter_mesh_flint"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "loot-table": "minecolonies:recipes/flint/dirt",
+  "min-building-level": 3
+}

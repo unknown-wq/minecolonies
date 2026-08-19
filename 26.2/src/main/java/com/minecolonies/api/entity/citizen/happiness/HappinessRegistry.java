@@ -1,0 +1,162 @@
+package com.minecolonies.api.entity.citizen.happiness;
+
+import com.minecolonies.api.IMinecoloniesAPI;
+import com.minecolonies.api.colony.ICitizenData;
+import com.minecolonies.api.util.Log;
+import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.api.util.constant.NbtTagConstants;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+/**
+ * Happiness forge registry to facilitate loading and saving to nbt.
+ */
+public class HappinessRegistry
+{
+    /**
+     * Get the reward registry.
+     *
+     * @return the reward registry.
+     */
+    static Registry<HappinessFactorTypeEntry> getHappinessTypeRegistry()
+    {
+        return IMinecoloniesAPI.getInstance().getHappinessTypeRegistry();
+    }
+
+    /**
+     * Get the reward registry.
+     *
+     * @return the reward registry.
+     */
+    static Registry<HappinessFunctionEntry> getHappinessFunctionRegistry()
+    {
+        return IMinecoloniesAPI.getInstance().getHappinessFunctionRegistry();
+    }
+
+    /**
+     * Happiness Factor type.
+     */
+    public static class HappinessFactorTypeEntry
+    {
+        private final Supplier<IHappinessModifier> supplier;
+
+        public HappinessFactorTypeEntry(final Supplier<IHappinessModifier> productionFunction)
+        {
+            this.supplier = productionFunction;
+        }
+
+        /**
+         * Get the modifier.
+         *
+         * @return the modifier.
+         */
+        public IHappinessModifier create()
+        {
+            return supplier.get();
+        }
+    }
+
+    /**
+     * Static getter to load a happiness modifier from a compound.
+     *
+     * @param compound the compound to load it from.
+     * @param persist  whether we're reading from persisted data or from networking.
+     * @return the modifier instance.
+     */
+    public static IHappinessModifier loadFrom(@NotNull final HolderLookup.Provider provider, @NotNull final CompoundTag compound, final boolean persist)
+    {
+        final Identifier modifierType = compound.contains(NbtTagConstants.TAG_MODIFIER_TYPE)
+                                                ? Identifier.parse(compound.getStringOr(NbtTagConstants.TAG_MODIFIER_TYPE, ""))
+                                                : Identifier.fromNamespaceAndPath(Constants.MOD_ID, "null");
+        final IHappinessModifier modifier = getHappinessTypeRegistry().getValue(modifierType).create();
+
+        if (modifier != null)
+        {
+            try
+            {
+                modifier.read(provider, compound, persist);
+            }
+            catch (final RuntimeException ex)
+            {
+                Log.getLogger()
+                  .error(String.format("A Happiness Modifier %s has thrown an exception during loading, its state cannot be restored. Report this to the mod author",
+                    modifierType), ex);
+                return null;
+            }
+        }
+        else
+        {
+            Log.getLogger().warn(String.format("Unknown Happiness Modifier type '%s' or missing constructor of proper format.", modifierType));
+        }
+
+        return modifier;
+    }
+
+    /**
+     * Happiness Factor type.
+     */
+    public static class HappinessFunctionEntry
+    {
+        private final Function<ICitizenData, Double> doubleSupplier;
+
+        /**
+         * Create a new entry type.
+         *
+         * @param doubleSupplier th
+         */
+        public HappinessFunctionEntry(final Function<ICitizenData, Double> doubleSupplier)
+        {
+            this.doubleSupplier = doubleSupplier;
+        }
+
+        /**
+         * Get the double supplier.
+         *
+         * @return the function.
+         */
+        public Function<ICitizenData, Double> getDoubleSupplier()
+        {
+            return doubleSupplier;
+        }
+    }
+
+    public static Identifier STATIC_MODIFIER      = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "static");
+    public static Identifier EXPIRATION_MODIFIER  = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "expiration");
+    public static Identifier TIME_PERIOD_MODIFIER = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "time");
+
+    public static Identifier SCHOOL_FUNCTION        = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "school");
+    public static Identifier SECURITY_FUNCTION      = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "security");
+    public static Identifier SOCIAL_FUNCTION        = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "social");
+    public static Identifier MYSTICAL_SITE_FUNCTION = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "mystical");
+
+    public static Identifier HOUSING_FUNCTION      = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "housing");
+    public static Identifier UNEMPLOYMENT_FUNCTION = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "unemployment");
+    public static Identifier HEALTH_FUNCTION       = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "health");
+    public static Identifier IDLEATJOB_FUNCTION    = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "idleatjob");
+    public static Identifier SLEPTTONIGHT_FUNCTION = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "slepttonight");
+    public static Identifier FOOD_FUNCTION         = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "food");
+
+    public static Supplier<HappinessFactorTypeEntry> staticHappinessModifier;
+    public static Supplier<HappinessFactorTypeEntry> expirationBasedHappinessModifier;
+    public static Supplier<HappinessFactorTypeEntry> timeBasedHappinessModifier;
+
+    public static Supplier<HappinessFunctionEntry> schoolFunction;
+    public static Supplier<HappinessFunctionEntry> securityFunction;
+    public static Supplier<HappinessFunctionEntry> socialFunction;
+    public static Supplier<HappinessFunctionEntry> mysticalSiteFunction;
+
+    public static Supplier<HappinessFunctionEntry> housingFunction;
+    public static Supplier<HappinessFunctionEntry> unemploymentFunction;
+    public static Supplier<HappinessFunctionEntry> healthFunction;
+    public static Supplier<HappinessFunctionEntry> idleatjobFunction;
+    public static Supplier<HappinessFunctionEntry> sleptTonightFunction;
+    public static Supplier<HappinessFunctionEntry> foodFunction;
+    public static Supplier<HappinessFunctionEntry> greatFoodFunction;
+}

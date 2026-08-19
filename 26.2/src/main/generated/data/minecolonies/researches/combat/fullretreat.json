@@ -1,0 +1,18 @@
+{
+  "branch": "minecolonies:combat",
+  "costs": [
+    {
+      "count": 64,
+      "item": "minecraft:emerald"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/fleeingdamagemultiplier",
+      "level": 4
+    }
+  ],
+  "icon": "minecraft:diamond_boots",
+  "parentResearch": "minecolonies:combat/retreat",
+  "researchLevel": 6
+}

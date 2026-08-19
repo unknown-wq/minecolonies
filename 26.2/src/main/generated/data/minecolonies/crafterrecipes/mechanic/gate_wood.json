@@ -1,0 +1,15 @@
+{
+  "type": "recipe",
+  "crafter": "mechanic_crafting",
+  "inputs": [
+    {
+      "count": 5,
+      "id": "minecraft:oak_log"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "result": {
+    "id": "minecolonies:gate_wood"
+  },
+  "show-tooltip": true
+}

@@ -1,0 +1,25 @@
+{
+  "branch": "minecolonies:combat",
+  "costs": [
+    {
+      "count": 16,
+      "item": "minecraft:iron_ingot"
+    }
+  ],
+  "effects": [
+    {
+      "id": "minecolonies:effects/meleearmormultiplier",
+      "level": 1
+    }
+  ],
+  "icon": "minecraft:leather_chestplate",
+  "parentResearch": "minecolonies:combat/avoidance",
+  "requirements": [
+    {
+      "type": "minecolonies:building",
+      "building": "minecolonies:smeltery",
+      "level": 1
+    }
+  ],
+  "researchLevel": 2
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": "minecraft:bow",
+    "T": "structurize:sceptergold",
+    "X": "#minecraft:planks"
+  },
+  "pattern": [
+    "XTX",
+    "BBB",
+    "XXX"
+  ],
+  "result": {
+    "id": "minecolonies:blockhutarchery"
+  }
+}

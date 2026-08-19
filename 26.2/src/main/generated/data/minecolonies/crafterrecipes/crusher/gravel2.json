@@ -1,0 +1,14 @@
+{
+  "type": "recipe",
+  "crafter": "crusher_custom",
+  "inputs": [
+    {
+      "id": "minecraft:cobblestone"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "research-id": "minecolonies:effects/crushing11unlock",
+  "result": {
+    "id": "minecraft:gravel"
+  }
+}

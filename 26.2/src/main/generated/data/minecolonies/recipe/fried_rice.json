@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecolonies:onion",
+    "minecolonies:garlic",
+    "minecolonies:eggplant",
+    "minecraft:carrot",
+    "minecolonies:cooked_rice",
+    "minecraft:egg",
+    "#minecolonies:rawmeat"
+  ],
+  "result": {
+    "id": "minecolonies:fried_rice"
+  }
+}

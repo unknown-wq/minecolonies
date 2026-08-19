@@ -1,0 +1,45 @@
+# build output
+/build
+/*/build
+/.gradle
+/*/.gradle
+/out
+/*/out
+/classes
+
+# gradle/loom run dirs
+/run
+/*/run
+/runs
+/*/runs
+/runClient
+/runServer
+/runData
+
+# decompiled sources and scratch files produced during the port
+/mc-src
+/tmp
+*.log
+logs/
+*.hprof
+
+# IDE
+/.idea
+/*.iml
+/.vscode
+/.settings
+/.classpath
+/.project
+
+# OS
+**/.DS_Store
+**/Thumbs.db
+
+# Agent worktrees. The harness checks agent worktrees out inside the repo, so
+# without this an in-flight agent's whole tree shows up as untracked files.
+/.claude/
+
+# Test harness leftovers. Server stands and background measurement loops drop
+# their process ids next to wherever they were started from, which is sometimes
+# a checkout rather than the stand's own directory.
+*.pid

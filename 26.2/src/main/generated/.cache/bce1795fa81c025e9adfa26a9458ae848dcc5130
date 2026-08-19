@@ -1,0 +1,12 @@
+// 26.2	-999999999-01-01T00:00:00	MineColonies Fabric 26.2 (Unofficial)/NetherWorkerLootProvider
+2a3e407fa6b1ad9dc3e9b99bae27cd1e609a4093 data/minecolonies/crafterrecipes/netherworker/lava.json
+c4a314d10fe962073abfb65d967ae61d93fdc95e data/minecolonies/crafterrecipes/netherworker/trip1.json
+e97f5562938e188db2efb74505303063b50a9038 data/minecolonies/crafterrecipes/netherworker/trip2.json
+b8df5418a16742870872698bca3ed29f8950be0d data/minecolonies/crafterrecipes/netherworker/trip3.json
+d0e2f4f1ec891b6e4d7aa1763b0965c3cc3de20d data/minecolonies/crafterrecipes/netherworker/trip4.json
+4a59df41ba6599fdb0a2be47ef5df765bb2b3908 data/minecolonies/crafterrecipes/netherworker/trip5.json
+62ebd68d374353da4e97ffc51698b4e1f217b868 data/minecolonies/loot_table/recipes/netherworker/trip1.json
+d1b4378159b2bcffac1f148d45b469f0637e81fd data/minecolonies/loot_table/recipes/netherworker/trip2.json
+67c8c27757ab4f368b8ed964e651099458cb1722 data/minecolonies/loot_table/recipes/netherworker/trip3.json
+225524d5dfda2693810a5dfd93cfecbd9c1d3a1f data/minecolonies/loot_table/recipes/netherworker/trip4.json
+9c1845aa48f22be8551a3eed98adb9f91d8f5645 data/minecolonies/loot_table/recipes/netherworker/trip5.json

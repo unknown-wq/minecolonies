@@ -1,0 +1,13 @@
+{
+  "type": "recipe",
+  "crafter": "netherworker_custom",
+  "inputs": [
+    {
+      "id": "minecraft:bucket"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "result": {
+    "id": "minecraft:lava_bucket"
+  }
+}

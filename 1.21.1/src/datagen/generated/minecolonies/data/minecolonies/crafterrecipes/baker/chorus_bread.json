@@ -1,0 +1,20 @@
+{
+  "type": "recipe",
+  "crafter": "baker_crafting",
+  "inputs": [
+    {
+      "count": 8,
+      "id": "minecolonies:durum"
+    },
+    {
+      "id": "minecraft:chorus_fruit"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "research-id": "minecolonies:effects/knowledgeoftheendunlock",
+  "result": {
+    "count": 4,
+    "id": "minecolonies:chorus_bread"
+  },
+  "show-tooltip": true
+}

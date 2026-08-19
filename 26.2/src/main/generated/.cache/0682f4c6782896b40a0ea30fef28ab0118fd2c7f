@@ -1,0 +1,5 @@
+// 26.2	-999999999-01-01T00:00:00	MineColonies Fabric 26.2 (Unofficial)/MineColonies Biome Tags
+4f3b84cdafaf43ffe759306f9af8e6741ec9cdf3 data/minecolonies/tags/worldgen/biome/coldbiomes.json
+cd9621aa0c4cfab61c162ef40bfbe82cf8d56cba data/minecolonies/tags/worldgen/biome/drybiomes.json
+504541dce09ba445c83f70e7e82deaeb1e0dd623 data/minecolonies/tags/worldgen/biome/humidbiomes.json
+c3818cb44f340f171bfafbec0f31677c72878b4e data/minecolonies/tags/worldgen/biome/temperatebiomes.json

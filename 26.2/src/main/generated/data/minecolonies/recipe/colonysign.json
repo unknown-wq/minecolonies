@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "T": "structurize:sceptergold",
+    "X": "#minecraft:planks"
+  },
+  "pattern": [
+    "XXX",
+    "XXX",
+    " T "
+  ],
+  "result": {
+    "count": 6,
+    "id": "minecolonies:colonysign"
+  }
+}

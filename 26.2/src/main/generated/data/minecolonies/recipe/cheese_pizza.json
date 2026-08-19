@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecolonies:durum",
+    "minecolonies:durum",
+    "minecolonies:durum",
+    "minecolonies:tomato",
+    "minecolonies:tomato",
+    "minecolonies:garlic",
+    "minecolonies:cheddar_cheese"
+  ],
+  "result": {
+    "count": 2,
+    "id": "minecolonies:cheese_pizza"
+  }
+}
