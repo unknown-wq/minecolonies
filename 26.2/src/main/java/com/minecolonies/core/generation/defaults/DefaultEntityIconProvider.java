@@ -31,7 +31,16 @@ import static com.minecolonies.api.util.constant.Constants.MOD_ID;
 import static net.minecraft.client.gui.components.PlayerFaceExtractor.*;
 
 /**
- * Datagen for entity_icon
+ * Datagen for entity_icon.
+ *
+ * <p><b>Deliberately not registered</b> in {@link com.minecolonies.core.generation.MineColoniesDataGenerator}. It
+ * walked {@code assets/minecolonies/textures/entity/{citizen,raiders}/**} and cut a 16x16 face out of every skin,
+ * 3481 icons in all. Those icons are a crop of upstream's all-rights-reserved skin textures, so they are exactly as
+ * derivative as the skins; this repository carries neither. The runtime asset fetch downloads the upstream jar,
+ * which already contains all 3481 of them, and injects it as a resource pack
+ * (see {@code docs/assetfetch/BRIEF.md}). With the skins absent {@link #run} would simply find no root to walk and
+ * write nothing, so leaving it registered would be harmless but misleading — it is the class, not the run, that is
+ * retired. The code is kept because it is the only record of how the icons are derived.</p>
  *
  * <p>Port notes (26.2 / Fabric):</p>
  * <ul>

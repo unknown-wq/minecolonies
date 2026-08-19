@@ -24,6 +24,23 @@ import java.util.concurrent.CompletableFuture;
 import static com.minecolonies.api.sounds.ModSoundEvents.CITIZEN_SOUND_EVENT_PREFIX;
 import static com.minecolonies.core.generation.SoundsJson.createSoundJson;
 
+/**
+ * Datagen for {@code assets/minecolonies/sounds.json}.
+ *
+ * <p><b>Deliberately not registered</b> in {@link com.minecolonies.core.generation.MineColoniesDataGenerator}, and
+ * this one matters more than the other two retired asset providers, because it would not have failed quietly.</p>
+ *
+ * <p>The runtime asset fetch injects the downloaded upstream pack at {@code Position.BOTTOM}, i.e. <em>below</em>
+ * the mod jar: for every resource except lang files, a file in our jar wins over the fetched copy. Upstream's real
+ * {@code sounds.json} is in the fetched pack. Meanwhile {@link #citizenSoundFolder()} falls back to a path that
+ * cannot exist ({@code __no_citizen_sounds__}) when the sound folder is absent — which it always is at build time
+ * now — and {@link #run} carries on regardless and writes a {@code sounds.json} with every citizen event missing.
+ * Shipping that file would mask the real one permanently and silently. Shipping no {@code sounds.json} at all is
+ * what lets the fetched one through; before the download has happened, the absent file degrades to a warning and
+ * silence.</p>
+ *
+ * <p>The class is kept as the record of how the citizen/raider sound events are laid out.</p>
+ */
 public class DefaultSoundProvider implements DataProvider
 {
     private final FabricPackOutput packOutput;

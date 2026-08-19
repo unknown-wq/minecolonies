@@ -1,0 +1,18 @@
+--- a/gui/windowfield.xml
++++ b/gui/windowfield.xml
+@@ -13 +13 @@
+-    <button id="select-seed" size="86 17" pos="13 72" color="black"
++    <button id="select-seed" size="86 17" pos="13 70" color="black"
+@@ -16 +16,11 @@
+-    <itemicon id="current-seed" size="16 16" pos="13 92"/>
++    <!-- One icon per seed the field carries. The first keeps the id it always had; the rest fill in to the right,
++         and stay empty on an ordinary single crop field. Five of them because that is FarmField.MAX_SEEDS, and the
++         row has to stop short of x=105 where the resize buttons begin. -->
++    <itemicon id="current-seed" size="16 16" pos="13 89"/>
++    <itemicon id="current-seed-2" size="16 16" pos="31 89"/>
++    <itemicon id="current-seed-3" size="16 16" pos="49 89"/>
++    <itemicon id="current-seed-4" size="16 16" pos="67 89"/>
++    <itemicon id="current-seed-5" size="16 16" pos="85 89"/>
++    <button id="mix-seed" size="86 17" pos="13 108" color="black"
++                 source="minecolonies:textures/gui/builderhut/builder_button_medium.png"
++                 label="$(com.minecolonies.coremod.gui.field.mixseed)"/>

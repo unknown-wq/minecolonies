@@ -3,6 +3,7 @@ package com.minecolonies.core.network.messages.client;
 import com.ldtteam.common.network.AbstractClientPlayMessage;
 import com.ldtteam.common.network.PlayMessageType;
 import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.townhall.WindowTownHallColonyReactivate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -45,7 +46,8 @@ public class OpenReactivateColonyMessage extends AbstractClientPlayMessage
     @Override
     protected void onExecute(final PlayMessageContext ctxIn, final Player player)
     {
-        new WindowTownHallColonyReactivate(townHallPos, closestName, closestDistance).open();
+        // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+        AssetFetchGate.openOrOffer(() -> new WindowTownHallColonyReactivate(townHallPos, closestName, closestDistance));
     }
 
     @Override

@@ -1,0 +1,27 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/6",
+    "value": "minecolonies:block/item/carrot"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/7",
+    "value": "minecolonies:block/item/beetroot"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/8",
+    "value": "minecolonies:block/item/rotten_flesh"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/9",
+    "value": "minecolonies:block/item/bread"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/10",
+    "value": "minecolonies:block/entity/chest/normal"
+  }
+]

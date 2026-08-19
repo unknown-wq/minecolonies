@@ -13,6 +13,7 @@ import com.minecolonies.api.items.component.RallyData;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.constant.TranslationConstants;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowBannerRallyGuards;
 import com.minecolonies.core.colony.buildings.AbstractBuildingGuards;
 import com.minecolonies.core.colony.requestsystem.locations.EntityLocation;
@@ -190,7 +191,8 @@ public class ItemBannerRallyGuards extends AbstractItemMinecolonies
             }
             else
             {
-                new WindowBannerRallyGuards(banner).open();
+                // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+                AssetFetchGate.openOrOffer(() -> new WindowBannerRallyGuards(banner));
             }
         }
     }

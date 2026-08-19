@@ -1,0 +1,42 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/9",
+    "value": "minecolonies:block/rack/slot0"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/10",
+    "value": "minecolonies:block/rack/slot1"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/11",
+    "value": "minecolonies:block/rack/slot2"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/12",
+    "value": "minecolonies:block/rack/slot3"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/sur9",
+    "value": "minecolonies:block/rack/surface0"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/sur10",
+    "value": "minecolonies:block/rack/surface1"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/sur11",
+    "value": "minecolonies:block/rack/surface2"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/sur12",
+    "value": "minecolonies:block/rack/surface3"
+  }
+]

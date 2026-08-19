@@ -38,6 +38,7 @@ import com.minecolonies.api.util.constant.HappinessConstants;
 import com.minecolonies.api.util.constant.TranslationConstants;
 import com.minecolonies.api.util.constant.TypeConstants;
 import com.minecolonies.core.MineColonies;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowInteraction;
 import com.minecolonies.core.colony.Colony;
 import com.minecolonies.core.colony.buildings.AbstractBuildingGuards;
@@ -388,7 +389,8 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
                 final ICitizenDataView citizenDataView = getCitizenDataView();
                 if (citizenDataView != null && !isInvisible())
                 {
-                    new WindowInteraction(citizenDataView).open();
+                    // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+                    AssetFetchGate.openOrOffer(() -> new WindowInteraction(citizenDataView));
                 }
             }
         }

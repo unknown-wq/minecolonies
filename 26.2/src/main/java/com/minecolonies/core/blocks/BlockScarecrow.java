@@ -8,6 +8,7 @@ import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.buildingextensions.registry.BuildingExtensionRegistries;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.containers.WindowField;
 import com.minecolonies.core.colony.buildingextensions.FarmField;
 import com.minecolonies.core.tileentities.TileEntityScarecrow;
@@ -116,7 +117,8 @@ public class BlockScarecrow extends AbstractBlockMinecoloniesDefault<BlockScarec
 
             if (entity instanceof TileEntityScarecrow scarecrow)
             {
-                new WindowField(scarecrow).open();
+            // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+                AssetFetchGate.openOrOffer(() -> new WindowField(scarecrow));
                 return InteractionResult.SUCCESS;
             }
             else

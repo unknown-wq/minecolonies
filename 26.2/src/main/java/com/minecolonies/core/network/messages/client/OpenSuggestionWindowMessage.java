@@ -4,6 +4,7 @@ import com.ldtteam.common.network.AbstractClientPlayMessage;
 import com.ldtteam.common.network.PlayMessageType;
 import com.minecolonies.api.util.Utils;
 import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowSuggestBuildTool;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -71,6 +72,7 @@ public class OpenSuggestionWindowMessage extends AbstractClientPlayMessage
     @Override
     protected void onExecute(final PlayMessageContext ctxIn, final Player player)
     {
-        new WindowSuggestBuildTool(pos, state, stack).open();
+        // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+        AssetFetchGate.openOrOffer(() -> new WindowSuggestBuildTool(pos, state, stack));
     }
 }

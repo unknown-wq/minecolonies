@@ -1,0 +1,17 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/11",
+    "value": "entity/equipment/humanoid/leather"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/transp",
+    "value": "minecolonies:block/transparent"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/15",
+    "value": "minecolonies:block/item/string"
+  }
+]

@@ -17,6 +17,7 @@ import com.minecolonies.api.items.component.SupplyData;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.core.MineColonies;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowSupplies;
 import com.minecolonies.core.client.gui.WindowSupplyStory;
 import com.minecolonies.core.entity.pathfinding.PathfindingUtils;
@@ -134,19 +135,14 @@ public class ItemSupplyChestDeployer extends AbstractItemMinecolonies implements
                               : SUPPLY_SHIP_STRUCTURE_NAME;
 
         final SupplyData currentComponent = SupplyData.readFromItemStack(itemInHand);
+        // Asset gate (D2): building either window loads its BlockUI XML, which is not in this jar.
         if (!currentComponent.sawStory())
         {
-            new WindowSupplyStory(pos, name, itemInHand, hand).open();
+            AssetFetchGate.openOrOffer(() -> new WindowSupplyStory(pos, name, itemInHand, hand));
             return;
         }
 
-        if (pos == null)
-        {
-            new WindowSupplies(pos, name).open();
-            return;
-        }
-
-        new WindowSupplies(pos, name).open();
+        AssetFetchGate.openOrOffer(() -> new WindowSupplies(pos, name));
     }
 
     /**

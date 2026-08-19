@@ -1,0 +1,19 @@
+--- a/gui/windowbuildbuilding.xml
++++ b/gui/windowbuildbuilding.xml
+@@ -36,0 +37,16 @@
++    <!-- Free mode only: the level to build to. WindowBuildBuilding hides this unless the colony has free mode on;
++         it is not hidden here, because a dropdown built from params with visible="false" hides its own button too. -->
++    <dropdown id="buildlevel"
++              size="43 17"
++              pos="356 0"
++              maxContentHeight="75"
++              dropDownSize="43 75"
++              source="minecolonies:textures/gui/builderhut/builder_button_medium_large.png"
++              color="black">
++        <view size="100% 15">
++            <text id="id" size="100% 100%" label="" pos="0 0"/>
++            <button id="button" size="43 17" pos="0 0"
++                         source="minecolonies:textures/gui/builderhut/builder_button_medium_large.png" color="black"/>
++        </view>
++    </dropdown>
++

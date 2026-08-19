@@ -3,6 +3,7 @@ package com.minecolonies.core.items;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.IColonyView;
 import com.minecolonies.api.items.component.ColonyId;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.tileentities.TileEntityColonyBuilding;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.constant.TranslationConstants;
@@ -102,7 +103,8 @@ public class ItemQuestLog extends AbstractItemMinecolonies
         final IColonyView colonyView = ColonyId.readColonyViewFromItemStack(stack);
         if (colonyView != null)
         {
-            new WindowQuestLog(colonyView).open();
+            // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+            AssetFetchGate.openOrOffer(() -> new WindowQuestLog(colonyView));
         }
         else
         {

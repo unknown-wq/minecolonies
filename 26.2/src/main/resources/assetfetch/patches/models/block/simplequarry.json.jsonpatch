@@ -1,0 +1,7 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/0",
+    "value": "minecolonies:block/item/iron_pickaxe"
+  }
+]

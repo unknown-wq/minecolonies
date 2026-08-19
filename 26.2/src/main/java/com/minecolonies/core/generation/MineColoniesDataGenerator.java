@@ -40,6 +40,10 @@ import java.util.concurrent.CompletableFuture;
  *   <li>Two former providers are gone because they generated NeoForge-only data — see
  *       {@link DefaultLootModifiersProvider} and {@link DefaultDataMapsProvider}, which now only carry the data
  *       they used to write so a Fabric runtime hook can pick it up.</li>
+ *   <li>Three asset providers are unregistered for a different reason: everything they produced is derived from
+ *       the upstream asset tree, which this repository does not carry, and the runtime asset fetch supplies it
+ *       instead. See {@link DefaultSoundProvider}, {@link DefaultEntityIconProvider} and
+ *       {@link DefaultLanguageProvider}, and the comments at their former registration sites below.</li>
  * </ul>
  */
 public class MineColoniesDataGenerator implements DataGeneratorEntrypoint
@@ -85,9 +89,25 @@ public class MineColoniesDataGenerator implements DataGeneratorEntrypoint
         pack.addProvider(EnchantmentRegistryProvider::new);
 
         // assets/
-        pack.addProvider((FabricPackOutput output, CompletableFuture<HolderLookup.Provider> r) -> new DefaultSoundProvider(output));
+        //
+        // Two asset providers are deliberately NOT registered any more -- the same treatment
+        // DefaultLootModifiersProvider and DefaultDataMapsProvider got above, i.e. the class stays, the
+        // registration goes. Both of them only ever produced content that is derived from the upstream
+        // MineColonies asset tree, which this repository does not carry and never will; the runtime asset
+        // fetch downloads the upstream jar and injects it as a resource pack instead
+        // (docs/assetfetch/BRIEF.md, phases 2-4).
+        //
+        //  - DefaultSoundProvider wrote assets/minecolonies/sounds.json. The fetched pack carries upstream's
+        //    real sounds.json, and the fetched pack is injected at Position.BOTTOM -- jar files WIN over
+        //    fetched files. A sounds.json in our jar would therefore permanently mask the real one, and with
+        //    the sound folder absent at build time this provider writes a crippled one (no citizen events at
+        //    all: see its citizenSoundFolder() fallback). Shipping nothing is what lets the fetched file
+        //    through.
+        //  - DefaultEntityIconProvider wrote the 3481 citizen/raider face icons under
+        //    assets/minecolonies/textures/entity_icon/. They are cut straight out of the upstream skin
+        //    textures, so they are as derivative as the skins are; the fetched jar already contains all 3481
+        //    of them.
         pack.addProvider(DefaultItemModelProvider::new);
-        pack.addProvider(DefaultEntityIconProvider::new);
         pack.addProvider((FabricPackOutput output, CompletableFuture<HolderLookup.Provider> r) -> new DefaultStoriesProvider(output));
         pack.addProvider((FabricPackOutput output, CompletableFuture<HolderLookup.Provider> r) -> new QuestTranslationProvider(output));
 
@@ -130,11 +150,11 @@ public class MineColoniesDataGenerator implements DataGeneratorEntrypoint
 
         pack.addProvider((FabricPackOutput output, CompletableFuture<HolderLookup.Provider> r) -> new ItemNbtCalculator(output, registries));
 
-        // MUST stay last: DefaultLanguageProvider merges the lang files the providers above wrote (default.json from
-        // AbstractResearchProvider, quests.json from QuestTranslationProvider, tag.item.json from
-        // DefaultItemTagsProvider) with the authored manual_en_us.json into the en_us.json the game loads. Providers
-        // run in registration order, one at a time, so its inputs only exist once everything above has finished.
-        pack.addProvider((FabricPackOutput output, CompletableFuture<HolderLookup.Provider> r) -> new DefaultLanguageProvider(output));
+        // DefaultLanguageProvider is not registered either, and for a different reason than the two above -- see
+        // that class for the full account. In short: en_us.json is no longer assembled here at all. The 357-key
+        // port-owned overlay ships verbatim from src/main/resources, upstream's own 3898-key en_us.json arrives
+        // with the fetched pack, and the game merges every lang/en_us.json it can see (Language loads the whole
+        // resource stack, unlike every other asset), so the two layer instead of masking each other.
 
         SchemFixerUtil.fixSchematics(registries);
     }

@@ -29,6 +29,7 @@ import com.minecolonies.api.util.ColonyUtils;
 import com.minecolonies.api.util.DamageSourceKeys;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.core.MineColonies;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowReactivateBuilding;
 import com.minecolonies.core.colony.requestsystem.management.manager.StandardRecipeManager;
 import com.minecolonies.core.network.messages.client.colony.ColonyViewRemoveMessage;
@@ -436,7 +437,8 @@ public final class ColonyManager implements IColonyManager
     @Override
     public void openReactivationWindow(final BlockPos pos)
     {
-        new WindowReactivateBuilding(pos).open();
+        // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+        AssetFetchGate.openOrOffer(() -> new WindowReactivateBuilding(pos));
     }
 
     @Override

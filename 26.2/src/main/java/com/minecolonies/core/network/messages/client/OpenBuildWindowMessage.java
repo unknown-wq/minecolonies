@@ -8,6 +8,7 @@ import com.ldtteam.common.network.AbstractClientPlayMessage;
 import com.ldtteam.common.network.AbstractServerPlayMessage;
 import com.ldtteam.common.network.PlayMessageType;
 import com.ldtteam.structurize.api.RotationMirror;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowBuildDecoration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -76,7 +77,8 @@ public abstract class OpenBuildWindowMessage extends AbstractClientPlayMessage
     @Override
     public final void onExecute(final PlayMessageContext context, final Player player)
     {
-        new WindowBuildDecoration(this.pos, this.packName, this.path, this.rotationMirror, this::createWorkOrderMessage).open();
+        // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+        AssetFetchGate.openOrOffer(() -> new WindowBuildDecoration(this.pos, this.packName, this.path, this.rotationMirror, this::createWorkOrderMessage));
     }
 
     protected abstract AbstractServerPlayMessage createWorkOrderMessage(BlockPos builder);

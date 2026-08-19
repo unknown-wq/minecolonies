@@ -4,6 +4,7 @@ import com.ldtteam.common.network.AbstractClientPlayMessage;
 import com.ldtteam.common.network.PlayMessageType;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.apiimp.initializer.ModParticleTypesInitializer;
+import com.minecolonies.core.client.assetfetch.AssetFetch;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import com.ldtteam.common.network.PlayMessageContext;
@@ -50,6 +51,19 @@ public class SleepingParticleMessage extends AbstractClientPlayMessage
     
     protected void onExecute(final PlayMessageContext ctxIn, final Player player)
     {
+        // Crash guard D3: SLEEPING is a sprite-set particle, and its sprite set is bound from
+        // assets/minecolonies/particles/particle/sleeping.json -- which lives in the fetched pack, not in this jar.
+        // With the pack absent the set is never rebound and MutableSpriteSet.get throws a
+        // NullPointerException the first time the particle spawns, which is the first time a citizen sleeps
+        // in a loaded chunk. Nothing here degrades: a particle that does not spawn is simply not seen.
+        //
+        // Deliberately NOT solved by shipping a placeholder sleeping.json: the fetched pack sits at
+        // Position.BOTTOM, so a file in this jar would permanently mask the real one.
+        if (!AssetFetch.isReady())
+        {
+            return;
+        }
+
         player.level().addParticle(ModParticleTypesInitializer.SLEEPINGPARTICLE_TYPE,
           x,
           y,

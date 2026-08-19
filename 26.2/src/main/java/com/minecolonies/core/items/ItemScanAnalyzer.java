@@ -13,6 +13,7 @@ import com.ldtteam.structurize.storage.rendering.RenderingCache;
 import com.ldtteam.structurize.storage.rendering.types.BoxPreviewData;
 import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.items.component.Timestamp;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowSchematicAnalyzer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -121,7 +122,8 @@ public class ItemScanAnalyzer extends AbstractItemWithPosSelector
                 blueprint = saveStructure(worldIn, playerIn, AABB.encapsulatingFullBlocks(data.startPos().orElse(null), data.endPos().orElse(null)));
             }
 
-            new WindowSchematicAnalyzer().open();
+            // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+            AssetFetchGate.openOrOffer(WindowSchematicAnalyzer::new);
         }
         return InteractionResult.SUCCESS;
     }

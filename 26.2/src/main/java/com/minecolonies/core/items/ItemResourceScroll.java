@@ -7,6 +7,7 @@ import com.minecolonies.api.items.component.WarehouseSnapshot;
 import com.minecolonies.api.tileentities.AbstractTileEntityColonyBuilding;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.constant.TranslationConstants;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowResourceList;
 import com.minecolonies.core.colony.buildings.moduleviews.BuildingResourcesModuleView;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingBuilder;
@@ -87,7 +88,9 @@ public class ItemResourceScroll extends AbstractItemMinecolonies
             }
         }
 
-        new WindowResourceList(builderBuildingView, warehouseSnapshot).open();
+        // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+        final Map<String, Integer> snapshot = warehouseSnapshot;
+        AssetFetchGate.openOrOffer(() -> new WindowResourceList(builderBuildingView, snapshot));
     }
 
     /**

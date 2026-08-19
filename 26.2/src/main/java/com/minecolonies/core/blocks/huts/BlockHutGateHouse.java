@@ -7,6 +7,7 @@ import com.minecolonies.api.colony.buildings.ModBuildings;
 import com.minecolonies.api.colony.buildings.registry.BuildingEntry;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.api.colony.permissions.Action;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.modules.building.ConnectionModuleWindow;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -76,7 +77,8 @@ public class BlockHutGateHouse extends AbstractBlockHut<BlockHutGateHouse>
             @Nullable final IBuildingView building = IColonyManager.getInstance().getBuildingView(worldIn.dimension(), pos);
             if (building != null && !building.getColony().getPermissions().hasPermission(player, Action.ACCESS_HUTS))
             {
-                new ConnectionModuleWindow(building, true).open();
+            // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+                AssetFetchGate.openOrOffer(() -> new ConnectionModuleWindow(building, true));
                 return InteractionResult.FAIL;
             }
 

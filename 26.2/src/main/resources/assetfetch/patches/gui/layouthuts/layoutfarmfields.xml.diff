@@ -1,0 +1,5 @@
+--- a/gui/layouthuts/layoutfarmfields.xml
++++ b/gui/layouthuts/layoutfarmfields.xml
+@@ -20 +20 @@
+-            <image id="nextstageicon" color="black" pos="60 13" size="16 16"/>
++            <image id="nextstageicon" color="black" pos="60 13" size="16 16" source="minecraft:missingno"/>

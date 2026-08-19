@@ -2,14 +2,21 @@
 
 Compiled build of the Fabric / Minecraft 26.2 port (source in `../26.2/`).
 
-Built 2026-08-15 from the branch carrying the upstream catch-up, citizen boating, free-mode fields,
-free-mode building levels, the farmer tilling fix, the field claim work, the enclave work, the
-`/mc pathstats` command and the fixes below down to 0.0.15. Booted in a real Fabric dedicated server
-before being placed here: `Done (1.186s)`, **no `/ERROR]` and no `/FATAL]` line at all**, and ten
-warnings matching the recorded baseline line for line — the same ten `PORT-STATUS.md` lists, five of
-them vanilla's own offline-mode banner. (Some boots also show one `Yggdrasil Key Fetcher/ERROR` —
-vanilla failing to reach Mojang's key server because this build environment has no outbound network.
-It is not from the mod and it comes and goes with the network, not with the build.)
+Built 2026-08-19 from `claude/assetfetch` (PR #2). Booted in a real Fabric dedicated server before
+being placed here: `Done (1.269s)`, no `/ERROR]` and no `/FATAL]` line, 23 warnings matching the
+recorded baseline line for line. Also client-tested under Xvfb: the downloaded asset pack is selected
+(`Reloading ResourceManager: minecolonies:fetched_assets`) and the GUI atlas stitches fully.
+
+**0.0.52 ships no MineColonies assets and downloads them on first start.** The All-Rights-Reserved
+`assets/minecolonies` tree is gone from the jar and the repository; on first client start a consent
+screen (English/Russian) offers to download LDTTeam's own build (~74.5 MB) from LDTTeam's own Maven,
+verify all 8474 files against a SHA-256 manifest, and inject the result as a required resource pack —
+no manual pack install, no restart. Fallbacks: their 1368 release jar, an owner-enabled HTTP slot
+(shipped off), or a MineColonies 1.21.1 jar the player supplies (e.g. from CurseForge). Declining is
+remembered; `/minecolonies-client fetchassets` re-offers, and every MineColonies window politely
+offers the download instead of crashing while assets are absent. The port's own strings (stables,
+boats, free mode, the consent UI itself) are now also fully translated into Russian, and the 272
+huscarl/marksman voice events missing from upstream's `sounds.json` are shipped and merge in.
 
 **0.0.51 makes the warehouse storage upgrade work, and stops a full warehouse deadlocking couriers.**
 Buying the upgrade grew the racks but never recomputed how many slots were free, so a warehouse with

@@ -11,6 +11,7 @@ import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.api.tileentities.AbstractTileEntityColonyBuilding;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.Log;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowBuildingBrowser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -101,6 +102,7 @@ public class BuildingDataManager implements IBuildingDataManager
     @Override
     public void openBuildingBrowser(@NotNull final Block block)
     {
-        new WindowBuildingBrowser(block).open();
+        // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+        AssetFetchGate.openOrOffer(() -> new WindowBuildingBrowser(block));
     }
 }

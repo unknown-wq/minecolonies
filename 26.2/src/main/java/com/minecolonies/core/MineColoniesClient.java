@@ -10,6 +10,7 @@ import com.minecolonies.core.blocks.BlockPlantationField;
 import com.minecolonies.core.blocks.huts.BlockHutGateHouse;
 import com.minecolonies.core.blocks.huts.BlockHutMiner;
 import com.minecolonies.core.blocks.huts.BlockHutSchool;
+import com.minecolonies.core.client.assetfetch.AssetFetchClient;
 import com.minecolonies.core.event.ClientEventHandler;
 import com.minecolonies.core.event.ClientRegistryHandler;
 import com.minecolonies.core.event.ColonyStoryListener;
@@ -62,6 +63,10 @@ public class MineColoniesClient implements ClientModInitializer
         FMLEventHandler.Client.register();
         DataPackSyncEventHandler.ClientEvents.register();
         EventHandler.registerClientHolidayFeatures();
+
+        // The runtime asset fetch: the title-screen consent prompt and the /minecolonies-client command.
+        // It has to be registered whatever the install state is -- the prompt decides for itself whether to show.
+        AssetFetchClient.register();
 
         TextureReloadListener.register();
         ColonyStoryListener.register();

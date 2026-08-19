@@ -2,6 +2,7 @@ package com.minecolonies.core.items;
 
 import com.minecolonies.api.colony.IColonyView;
 import com.minecolonies.api.items.component.ColonyId;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowClipBoard;
 import com.minecolonies.core.tileentities.TileEntityColonyBuilding;
 import com.minecolonies.api.util.MessageUtils;
@@ -119,7 +120,9 @@ public class ItemClipboard extends AbstractItemMinecolonies
                 hide = compound.getBooleanOr(TAG_HIDEUNIMPORTANT, false);
             }
 
-            new WindowClipBoard(colonyView, hide).open();
+            // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+            final boolean hideUnimportant = hide;
+            AssetFetchGate.openOrOffer(() -> new WindowClipBoard(colonyView, hideUnimportant));
         }
         else
         {

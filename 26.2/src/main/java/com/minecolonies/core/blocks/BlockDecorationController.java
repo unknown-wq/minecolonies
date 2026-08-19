@@ -12,6 +12,7 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.entity.ai.workers.util.IBuilderUndestroyable;
 import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowDecorationController;
 import com.minecolonies.core.tileentities.TileEntityDecorationController;
 import com.mojang.serialization.MapCodec;
@@ -190,7 +191,8 @@ public class BlockDecorationController extends AbstractBlockMinecoloniesDirectio
             final BlockEntity tileEntity = worldIn.getBlockEntity(pos);
             if (tileEntity instanceof TileEntityDecorationController)
             {
-                new WindowDecorationController(pos).open();
+            // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+                AssetFetchGate.openOrOffer(() -> new WindowDecorationController(pos));
             }
         }
         return InteractionResult.SUCCESS;

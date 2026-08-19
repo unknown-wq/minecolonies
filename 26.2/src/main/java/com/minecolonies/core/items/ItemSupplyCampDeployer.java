@@ -18,6 +18,7 @@ import com.minecolonies.api.items.component.SupplyData;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.core.MineColonies;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowSupplies;
 import com.minecolonies.core.client.gui.WindowSupplyStory;
 import net.minecraft.world.entity.player.Player;
@@ -107,19 +108,14 @@ public class ItemSupplyCampDeployer extends AbstractItemMinecolonies implements 
     private void placeSupplyCamp(@Nullable final BlockPos pos, @NotNull final Direction direction, final ItemStack itemInHand, final InteractionHand hand)
     {
         final SupplyData currentComponent = SupplyData.readFromItemStack(itemInHand);
+        // Asset gate (D2): building either window loads its BlockUI XML, which is not in this jar.
         if (!currentComponent.sawStory())
         {
-            new WindowSupplyStory(pos, "supplycamp", itemInHand, hand).open();
+            AssetFetchGate.openOrOffer(() -> new WindowSupplyStory(pos, "supplycamp", itemInHand, hand));
             return;
         }
 
-        if (pos == null)
-        {
-            new WindowSupplies(pos, "supplycamp").open();
-            return;
-        }
-
-        new WindowSupplies(pos, "supplycamp").open();
+        AssetFetchGate.openOrOffer(() -> new WindowSupplies(pos, "supplycamp"));
     }
 
     /**

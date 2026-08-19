@@ -1,0 +1,7 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/particle",
+    "value": "block/iron_block"
+  }
+]

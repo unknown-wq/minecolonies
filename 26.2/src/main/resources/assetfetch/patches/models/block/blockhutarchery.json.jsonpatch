@@ -1,0 +1,17 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/0",
+    "value": "entity/armorstand/armorstand"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/7",
+    "value": "minecolonies:block/item/string"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/8",
+    "value": "minecolonies:block/item/arrow"
+  }
+]

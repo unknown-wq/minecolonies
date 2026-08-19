@@ -1,0 +1,15 @@
+[
+  {
+    "op": "replace",
+    "path": "/parent",
+    "value": "minecraft:item/generated"
+  },
+  {
+    "op": "add",
+    "path": "/textures",
+    "value": {
+      "layer0": "minecolonies:item/spawn_egg",
+      "layer1": "minecolonies:item/spawn_egg_overlay"
+    }
+  }
+]

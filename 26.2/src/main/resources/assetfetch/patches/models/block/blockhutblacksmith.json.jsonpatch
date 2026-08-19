@@ -1,0 +1,7 @@
+[
+  {
+    "op": "replace",
+    "path": "/parent",
+    "value": "minecraft:block/block"
+  }
+]

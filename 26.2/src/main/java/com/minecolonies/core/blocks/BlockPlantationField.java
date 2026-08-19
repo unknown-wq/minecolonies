@@ -14,6 +14,7 @@ import com.minecolonies.api.colony.buildingextensions.registry.BuildingExtension
 import com.minecolonies.api.entity.ai.workers.util.IBuilderUndestroyable;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowPlantationField;
 import com.minecolonies.core.colony.buildingextensions.PlantationField;
 import com.minecolonies.core.tileentities.TileEntityPlantationField;
@@ -147,7 +148,8 @@ public class BlockPlantationField extends AbstractBlockMinecoloniesHorizontal<Bl
             final BlockEntity tileEntity = worldIn.getBlockEntity(pos);
             if (tileEntity instanceof TileEntityPlantationField plantationField)
             {
-                new WindowPlantationField(plantationField).open();
+            // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+                AssetFetchGate.openOrOffer(() -> new WindowPlantationField(plantationField));
                 return InteractionResult.SUCCESS;
             }
 

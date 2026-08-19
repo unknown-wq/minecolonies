@@ -22,6 +22,7 @@ import com.minecolonies.api.colony.requestsystem.request.IRequest;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.constant.TypeConstants;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowHutMinPlaceholder;
 import com.minecolonies.core.client.gui.huts.WindowHutWorkerModulePlaceholder;
 import com.minecolonies.core.colony.buildings.moduleviews.WorkerBuildingModuleView;
@@ -351,15 +352,16 @@ public abstract class AbstractBuildingView implements IBuildingView
     {
         if (shouldOpenInv)
         {
+            // The inventory is a vanilla AbstractContainerScreen, opened by the server. It carries no BlockUI
+            // XML, so it needs no asset gate -- see AssetFetchGate.
             new OpenInventoryMessage(this).sendToServer();
         }
         else
         {
-            @Nullable final BOWindow window = getWindow();
-            if (window != null)
-            {
-                window.open();
-            }
+            // Asset gate (D2): getWindow() is what loads the window's XML, so the check has to wrap the call
+            // itself. This is the central hut-block path -- every AbstractColonyBlock right-click and every
+            // OpenBuildingUIMessage lands here.
+            AssetFetchGate.openOrOffer(this::getWindow);
         }
     }
 
