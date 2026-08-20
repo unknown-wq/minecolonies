@@ -129,6 +129,25 @@ public class ItemNbtCalculator implements DataProvider
             typesToRemove.add(DataComponents.MAX_STACK_SIZE);
             typesToRemove.add(DataComponents.RARITY);
             typesToRemove.add(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
+
+            // 26.2 grew six components that every single item carries: four joined
+            // DataComponents#COMMON_ITEM_COMPONENTS (break_sound, swing_animation, tooltip_display, use_effects)
+            // and two are set per item by Item's constructor from the item's own id (item_name, item_model)
+            // -- /opt/mc-src/net/minecraft/core/component/DataComponents.java:417 and Item.java:136.
+            // None of them existed in 1.21.1, so upstream's list has none of them, and none of them says anything
+            // about what an item *is*: they describe how it is presented.  Left in, they appear in the checked-key
+            // set of all 1766 items and make matching stricter than upstream everywhere -- two stacks of the same
+            // item that differ only in, say, item_model stop counting as the same resource.  That is not
+            // hypothetical: a Domum Ornamentum timber frame taken from a blueprint used to carry the *source*
+            // frame's item_name and item_model, so the builder's request could never be filled by the block the
+            // player crafts (issue #3).
+            typesToRemove.add(DataComponents.ITEM_NAME);
+            typesToRemove.add(DataComponents.ITEM_MODEL);
+            typesToRemove.add(DataComponents.BREAK_SOUND);
+            typesToRemove.add(DataComponents.SWING_ANIMATION);
+            typesToRemove.add(DataComponents.TOOLTIP_DISPLAY);
+            typesToRemove.add(DataComponents.USE_EFFECTS);
+
             // 26.2/Fabric: neither ModDataComponents any longer keeps a DeferredRegister of its own entries
             // (`REGISTRY` is gone on both sides), so the mods' components are picked out of the vanilla registry
             // by namespace instead.  Same set, one less indirection.

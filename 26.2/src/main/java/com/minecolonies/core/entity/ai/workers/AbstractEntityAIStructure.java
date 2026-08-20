@@ -33,6 +33,7 @@ import com.minecolonies.core.colony.buildings.modules.BuildingResourcesModule;
 import com.minecolonies.core.colony.buildings.utils.BuilderBucket;
 import com.minecolonies.core.colony.buildings.utils.BuildingBuilderResource;
 import com.minecolonies.core.colony.jobs.AbstractJobStructure;
+import com.minecolonies.core.entity.ai.workers.util.BuildWatch;
 import com.minecolonies.core.entity.ai.workers.util.BuildingProgressStage;
 import com.minecolonies.core.entity.ai.workers.util.BuildingStructureHandler;
 import com.minecolonies.core.tileentities.TileEntityDecorationController;
@@ -268,11 +269,40 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
      */
     protected IAIState completeBuild()
     {
+        // Paired on purpose: a "completion begin" with no "completion done" after it is a completion that threw or
+        // never returned, and that is precisely the shape of a builder that freezes the moment a building finishes.
+        BuildWatch.mark(watchName(), "completion begin");
         incrementActionsDoneAndDecSaturation();
         executeSpecificCompleteActions();
         worker.getCitizenExperienceHandler().addExperience(XP_EACH_BUILDING);
         resetCurrentStructure();
+        BuildWatch.mark(watchName(), "completion done");
         return IDLE;
+    }
+
+    @Override
+    protected boolean isWatched()
+    {
+        return true;
+    }
+
+    @Override
+    protected String watchDetails()
+    {
+        final StringBuilder details = new StringBuilder(super.watchDetails());
+        details.append(" stage=").append(structurePlacer == null ? "(no placer)" : String.valueOf(structurePlacer.getB().getStage()));
+        details.append(" progress=").append(getProgressPos() == null ? "(none)" : getProgressPos().getA().toShortString());
+        details.append(" blockToMine=").append(blockToMine == null ? "(none)" : blockToMine.toShortString());
+        details.append(" workFrom=").append(workFrom == null ? "(none)" : workFrom.toShortString());
+        details.append(" gotoPos=").append(gotoPos == null ? "(none)" : gotoPos.toShortString());
+        details.append(" workOrder=").append(building == null || building.getWorkOrder() == null ? "(none)" : String.valueOf(building.getWorkOrder().getID()));
+        return details.toString();
+    }
+
+    @Override
+    protected void watchExtra()
+    {
+        getWatch().stage(watchName(), structurePlacer == null ? null : structurePlacer.getB().getStage());
     }
 
     /**
@@ -445,6 +475,7 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
             building.nextStage();
             if (!goToNextStage(result))
             {
+                BuildWatch.mark(watchName(), "last stage " + currentStage + " finished, handing over to COMPLETE_BUILD");
                 building.setProgressPos(null, null);
                 worker.getCitizenData().setStatusPosition(null);
                 return COMPLETE_BUILD;

@@ -2,10 +2,21 @@
 
 Compiled build of the Fabric / Minecraft 26.2 port (source in `../26.2/`).
 
-Built 2026-08-19 from `claude/assetfetch` (PR #2). Booted in a real Fabric dedicated server before
-being placed here: `Done (1.269s)`, no `/ERROR]` and no `/FATAL]` line, 23 warnings matching the
-recorded baseline line for line. Also client-tested under Xvfb: the downloaded asset pack is selected
-(`Reloading ResourceManager: minecolonies:fetched_assets`) and the GUI atlas stitches fully.
+Built 2026-08-20 from `main` after merging PR #4 and PR #5. Booted in a real Fabric dedicated
+server before being placed here: `Done (0.287s)`, no `/ERROR]` and no `/FATAL]` line, 18 warnings
+within the recorded baseline.
+
+**0.0.54 lets framed blocks be built with again, and stops builders freezing silently.** Every
+Domum Ornamentum framed block was requested as a bare "Framed" — or looked identical to the request
+and was still refused — because the canonical request stack inherited the source shape's
+`item_name`/`item_model` components and because six cosmetic components 26.2 adds to every item were
+treated as match-relevant. Both fixed; only `texture_data` decides for framed blocks now. A builder
+whose work order vanished (hut broken, build cancelled) froze mid-swing forever with nothing in the
+log — the AI stopped being ticked while it still thought it was building; it now drops the leftover
+state and goes idle, NPE guards cover the vanished-order window, and swallowed AI exceptions are
+logged with full stack traces. New `[BuilderDebug]` lines log AI state and build stage changes and
+warn when a state holds 600+ ticks — if a builder ever stalls again, grep `latest.log` for
+`[BuilderDebug]`.
 
 **0.0.53 gives the download a face and eleven languages.** The install screen got a real progress
 bar (bytes while downloading, files while unpacking and verifying); the texts dropped raw URLs and

@@ -9,6 +9,63 @@ Versions below are this port's own numbering, newest first.
 
 ---
 
+## 0.0.54
+
+Framed blocks can be built with again, and a builder whose build disappears goes idle instead of
+freezing forever.
+
+**Every Domum Ornamentum framed block was requested as a bare "Framed" and nothing you handed over
+was accepted** (issues #1 and #3). Two defects, either one fatal on its own. The builder canonicalises
+the ten timber-frame shapes into one requestable item, and while doing so copied the blueprint
+stack's *resolved* component map onto the canonical stack — in 26.2 that drags along each item's own
+`item_name`/`item_model`, so a request derived from a `double_crossed` frame carried
+`double_crossed` cosmetics on a `framed` item. Name and tooltip are drawn from the texture data
+(which was correct), so the request and the crafted block read character-for-character identical and
+still compared unequal. It now copies only the component *patch*. Independently, the generated
+item-matching table listed six components 26.2 adds to every single item (`item_name`, `item_model`,
+`break_sound`, `swing_animation`, `tooltip_display`, `use_effects`) as match-relevant, making stack
+comparison stricter than upstream for all 1766 items; they are now excluded, leaving
+`domum_ornamentum:texture_data` as the only key that matters for framed blocks. Verified on the real
+path — blueprint NBT from a shipped mineshaft → request stack → comparison — failing before, passing
+after.
+
+**A builder whose work order vanished froze mid-swing, forever.** `CitizenAI` stops ticking a worker
+the moment `canGoIdle()` says so, and for the builder that was simply "no work order" — so when the
+hut was broken or the build cancelled, the AI's last tick was one where it still thought it was
+building: stuck in `MINE_BLOCK`, pickaxe out, progress cursor kept and inherited by the *next* build.
+No guard could fire because the AI was never ticked again; only recalling the worker helped, exactly
+as reported. Going idle now drops the leftover build state cleanly. Three unguarded
+`getWorkOrder().getLocation()` reads in `walkToConstructionSite` — an NPE reachable in precisely that
+window — are now guarded, and AI exceptions are logged with a full stack trace, state and citizen
+name instead of a bare `[STDERR]: java.lang.NullPointerException`.
+
+**New `[BuilderDebug]` instrumentation** logs every AI state change and structure stage change, marks
+the build-completion path, and warns when a state holds for 600+ ticks (with stage, progress cursor,
+block, work order, position and request counts) — so a silent freeze can no longer hide. If a builder
+stalls, grep `latest.log` for `[BuilderDebug]`.
+
+## 0.0.53
+
+The asset download got a face and eleven languages. The install screen has a real progress bar
+(bytes while downloading, files while unpacking and verifying); the texts dropped raw URLs and
+mixed-language debris; the success screen no longer claims more than was verified. "Not now" now
+means *this session* — the game asks again on the next launch until the assets are installed. The
+whole fetch UI is translated into Russian, German, French, Spanish, Italian, Polish, Brazilian
+Portuguese, Ukrainian, Chinese, Japanese and Korean, with locale-aware number formatting.
+Screenshots and a headless-client guide live in `docs/`.
+
+## 0.0.52
+
+The jar ships no MineColonies assets and downloads them on first start. The All-Rights-Reserved
+`assets/minecolonies` tree is gone from the jar and the repository; on first client start a consent
+screen offers to download LDTTeam's own build (~74.5 MB) from LDTTeam's own Maven, verify all 8474
+files against a SHA-256 manifest, and inject the result as a required resource pack — no manual pack
+install, no restart. Fallbacks: their 1368 release jar, an owner-enabled HTTP slot (shipped off), or
+a MineColonies 1.21.1 jar the player supplies. `/minecolonies-client fetchassets` re-offers, and
+every MineColonies window politely offers the download instead of crashing while assets are absent.
+The port's own strings are fully translated into Russian, and the 272 huscarl/marksman voice events
+missing from upstream's `sounds.json` are shipped and merge in.
+
 ## 0.0.51
 
 The warehouse storage upgrade actually works, and a full warehouse no longer stops the colony.

@@ -19,6 +19,7 @@ import com.minecolonies.core.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.core.colony.jobs.JobBuilder;
 import com.minecolonies.core.colony.workorders.WorkOrderBuilding;
 import com.minecolonies.core.entity.ai.workers.AbstractEntityAIStructureWithWorkOrder;
+import com.minecolonies.core.entity.ai.workers.util.BuildWatch;
 import com.minecolonies.core.entity.ai.workers.util.BuildingProgressStage;
 import com.minecolonies.core.entity.ai.workers.util.BuildingStructureHandler;
 import com.minecolonies.core.entity.pathfinding.navigation.MinecoloniesAdvancedPathNavigate;
@@ -211,6 +212,16 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
     @Override
     public boolean walkToConstructionSite(final BlockPos currentBlock)
     {
+        // The work order can vanish under a builder that is already walking or already in MINE_BLOCK - the target hut
+        // broken by a creeper or by the player, the build cancelled from the hut window - and every read of it below
+        // is unguarded. That is a NullPointerException raised from inside MINE_BLOCK, which is the state issue #1 was
+        // reported in. Report it as "cannot get there" instead: checkIfCanceled sees the missing work order on its
+        // next pass and ends the build properly.
+        if (building.getWorkOrder() == null)
+        {
+            return false;
+        }
+
         if (workFrom != null && workFrom.getX() == currentBlock.getX() && workFrom.getZ() == currentBlock.getZ() && workFrom.getY() >= currentBlock.getY())
         {
             // Reset working position when standing ontop
@@ -340,6 +351,39 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
     @Override
     public boolean canGoIdle()
     {
-        return !building.hasWorkOrder();
+        if (building.hasWorkOrder())
+        {
+            return false;
+        }
+
+        // Saying yes here is the last tick this AI gets. CitizenAI stops ticking a worker that can go idle
+        // (CitizenAI#calculateNextState), and it only resets the AI again on the way back into WORK - so whatever the
+        // build state looks like at this moment is what it looks like for ever, and no guard inside the AI, not even
+        // checkIfCanceled at tick rate 1, will run to tidy it.
+        //
+        // That is the whole of issue #1's second half. Break the hut a builder is working on, or cancel the build, and
+        // the work order goes away while the AI is in MINE_BLOCK: the state stays MINE_BLOCK, the render metadata
+        // stays "working" (AbstractEntityAIBasic#updateRenderMetaData only runs from inside the AI), the citizen's
+        // status position keeps pointing at the abandoned site and the hut keeps the progress cursor of a building
+        // that is not there any more. To the player that is a builder who "keeps mining but removes nothing" and who
+        // is only fixed by recalling him - a recall goes through resetAI, which is exactly the cleanup this does.
+        // Reproduced on a dedicated server: builder in MINE_BLOCK, target hut block removed, 4000 ticks later still
+        // MINE_BLOCK, 34 blocks from the site, work order gone, progress still recorded on the hut.
+        //
+        // Everything below is idempotent, so the ordinary case - a builder that simply has nothing to build - pays
+        // one null check per CitizenAI pass.
+        if (structurePlacer != null || building.getProgress() != null)
+        {
+            BuildWatch.warn(watchName(), "going idle with no work order; dropping the leftover build state (progress="
+                                           + (building.getProgress() == null ? "(none)" : building.getProgress().getA().toShortString())
+                                           + ", placer=" + (structurePlacer != null) + ")");
+            resetCurrentStructure();
+            blockToMine = null;
+            prevBlockPosition = null;
+            gotoPos = null;
+            worker.setRenderMetadata("");
+            getStateAI().reset();
+        }
+        return true;
     }
 }

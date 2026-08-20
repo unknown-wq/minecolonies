@@ -35,6 +35,7 @@ import com.minecolonies.core.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.core.colony.interactionhandling.PosBasedInteraction;
 import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.core.colony.jobs.AbstractJob;
+import com.minecolonies.core.entity.ai.workers.util.BuildWatch;
 import com.minecolonies.core.entity.ai.workers.util.StuckRescue;
 import com.minecolonies.core.colony.jobs.JobDeliveryman;
 import com.minecolonies.core.colony.requestsystem.resolvers.StationRequestResolver;
@@ -175,6 +176,11 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
     private final StuckRescue stuckRescue = new StuckRescue();
 
     /**
+     * The running commentary this worker writes about itself. See {@link BuildWatch}.
+     */
+    private final BuildWatch watch = new BuildWatch();
+
+    /**
      * Already kept items during the dumping cycle.
      */
     private final List<ItemStorage> alreadyKept = new ArrayList<>();
@@ -212,6 +218,16 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
         building = (B) worker.getCitizenData().getWorkBuilding();
 
         super.registerTargets(
+          /*
+            Write down what this worker is doing, and complain when it stops doing anything at all.
+
+            First on purpose. Every other blocking target below can return a non-null state, and
+            BasicStateMachine#transitionToNext counts that as a handled transition and ends the tick -- even when the
+            state it returns is the one the worker is already in. A worker pinned by one of those, which is exactly
+            the silent freeze this exists to make visible, would never reach a watch registered after them. Returns
+            null, so it only ever observes.
+           */
+          new AIEventTarget<>(AIBlockingEventType.AI_BLOCKING, this::watchTick, 20),
           /*
             Init safety checks and transition to IDLE
            */
@@ -377,6 +393,17 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
     @Override
     protected void onException(final RuntimeException e)
     {
+        // First, and outside the try below, so the throwable cannot be lost whatever the rest of this method does.
+        // The original reported through e.printStackTrace(), which writes to System.err rather than to the logger:
+        // under the log4j STDERR capture that produces exactly the bare "[STDERR]: java.lang.NullPointerException"
+        // line issue #1 was reported with - no stack trace, no frame, no way to place the throw. Everything below is
+        // left as it was; this line is what makes a worker's crash readable.
+        Log.getLogger().error("{} AI exception in state {} for citizen {}",
+          BuildWatch.PREFIX,
+          getState(),
+          worker == null || worker.getCitizenData() == null ? "(unknown)" : worker.getCitizenData().getName(),
+          e);
+
         worker.getCitizenData().triggerInteraction(new StandardInteraction(Component.translatableEscape(WORKER_AI_EXCEPTION), ChatPriority.BLOCKING));
 
         try
@@ -460,6 +487,73 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
     protected boolean wantInventoryDumped()
     {
         return false;
+    }
+
+    /**
+     * @return this worker's commentary, for subclasses that want to add to it.
+     */
+    protected BuildWatch getWatch()
+    {
+        return watch;
+    }
+
+    /**
+     * Whether this worker's states are worth writing down. Off for everybody by default: with every colonist logging
+     * every state change the log would be unreadable and the lines that matter would be lost in it. Structure workers
+     * turn it on, because a builder that stops is the failure nobody could see.
+     *
+     * @return true to log this worker's state changes.
+     */
+    protected boolean isWatched()
+    {
+        return false;
+    }
+
+    /**
+     * What to call this worker in the log.
+     *
+     * @return the worker's name, or something usable if it has none.
+     */
+    protected String watchName()
+    {
+        return worker == null || worker.getCitizenData() == null ? "(unknown worker)" : worker.getCitizenData().getName();
+    }
+
+    /**
+     * What the worker was doing, printed with the "stuck" warning only.
+     *
+     * @return a one-line description.
+     */
+    protected String watchDetails()
+    {
+        return "at=" + worker.blockPosition().toShortString()
+                 + " requests=" + (building == null ? "(no hut)" : building.getOpenRequests(worker.getCitizenData().getId()).size()
+                                                                     + "/" + building.getCompletedRequestsOfCitizenOrBuilding(worker.getCitizenData()).size() + " open/done");
+    }
+
+    /**
+     * Anything else the worker wants written down each pass. Called only when {@link #isWatched()}.
+     */
+    protected void watchExtra()
+    {
+    }
+
+    /**
+     * Write down what this worker is doing.
+     *
+     * @return null always; this changes no state.
+     */
+    @Nullable
+    private IAIState watchTick()
+    {
+        if (!isWatched() || worker == null || worker.getCitizenData() == null)
+        {
+            return null;
+        }
+
+        watch.state(watchName(), getState(), world.getGameTime(), watchDetails());
+        watchExtra();
+        return null;
     }
 
     /**

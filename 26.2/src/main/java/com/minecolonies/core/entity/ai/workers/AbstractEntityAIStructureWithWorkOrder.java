@@ -33,6 +33,7 @@ import com.minecolonies.core.colony.eventhooks.buildingEvents.BuildingUpgradedEv
 import com.minecolonies.core.colony.jobs.AbstractJobStructure;
 import com.minecolonies.core.colony.workorders.WorkOrderBuilding;
 import com.minecolonies.core.colony.workorders.WorkOrderMiner;
+import com.minecolonies.core.entity.ai.workers.util.BuildWatch;
 import com.minecolonies.core.entity.ai.workers.util.BuildingProgressStage;
 import com.minecolonies.core.entity.ai.workers.util.WorkerLoadOnlyStructureHandler;
 import net.minecraft.core.BlockPos;
@@ -392,6 +393,18 @@ public abstract class AbstractEntityAIStructureWithWorkOrder<J extends AbstractJ
 
     @Override
     public void executeSpecificCompleteActions()
+    {
+        BuildWatch.mark(watchName(), "work order completion begin, order="
+                                       + (building.getWorkOrder() == null ? "(none)" : String.valueOf(building.getWorkOrder().getID())));
+        executeSpecificCompleteActionsInner();
+        BuildWatch.mark(watchName(), "work order completion end");
+    }
+
+    /**
+     * The completion itself, wrapped by {@link #executeSpecificCompleteActions} so the log carries a begin and an
+     * end around it and a completion that dies halfway shows up as a begin with no end.
+     */
+    private void executeSpecificCompleteActionsInner()
     {
         if (building.getWorkOrder().getBlueprint() == null && building.hasWorkOrder())
         {

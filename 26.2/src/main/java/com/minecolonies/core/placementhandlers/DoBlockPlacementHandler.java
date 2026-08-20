@@ -223,7 +223,17 @@ public class DoBlockPlacementHandler implements IPlacementHandler
                 return item;
             }
             final ItemStack tempItem = new ItemStack(com.ldtteam.domumornamentum.block.ModBlocks.getInstance().getTimberFrames().get(2));
-            tempItem.applyComponents(item.getComponents());
+            // Copy the *patch* -- what this particular stack carries on top of its item's defaults -- and not the
+            // resolved component map.  The resolved map contains the source item's prototype too, and in 26.2 that
+            // prototype is no longer interchangeable between two items: every item now carries its own item_name
+            // and item_model (Item's constructor sets both from the item's own id, /opt/mc-src Item.java:136).
+            // Copying the whole map therefore stamped, say, a double_crossed timber frame's name and model onto the
+            // generic framed one, so the resulting stack was no longer equal to a framed frame the player crafts --
+            // both are checked by ItemStackUtils#compareItemStacksIgnoreStackSize.  The patch holds exactly the
+            // texture data (and nothing else, for a stack that came out of a block entity), which is the whole
+            // point of the conversion.  In 1.21.1 the two maps were interchangeable, which is why upstream copies
+            // the resolved one.
+            tempItem.applyComponents(item.getComponentsPatch());
             return tempItem;
         }
         return item;
