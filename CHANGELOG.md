@@ -9,6 +9,23 @@ Versions below are this port's own numbering, newest first.
 
 ---
 
+## 0.0.55
+
+Autopilots respect enemy airspace, and item frames in blueprints ask for the right materials.
+
+**Simple Planes autopilots now route around enemy colonies — with common sense.** When a player is
+aboard an autopilot flight, the route bends around the territory of every colony where that player
+is marked hostile (and around the ownerless hostile territories that draw their own border colour).
+Three deliberate exceptions keep flying possible: an empty aircraft flies straight; the territory
+the flight takes off from is ignored; and the territory holding the destination is ignored, so you
+can always land at your own airfield behind enemy lines. A territory too wide to route around is
+crossed rather than bricking the autopilot. Needs Simple Planes 5.3.10+; either mod still loads and
+runs fine without the other.
+
+**Filled item frames in blueprints requested their contents twice and the frame never** — a
+Structurize port defect (`getPickResult()` on a filled frame returns the framed item, not the
+frame). Fixed in the bundled Structurize: the builder now asks for the frame plus what goes in it.
+
 ## 0.0.54
 
 Framed blocks can be built with again, and a builder whose build disappears goes idle instead of

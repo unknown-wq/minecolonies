@@ -2,9 +2,16 @@
 
 Compiled build of the Fabric / Minecraft 26.2 port (source in `../26.2/`).
 
-Built 2026-08-20 from `main` after merging PR #4 and PR #5. Booted in a real Fabric dedicated
-server before being placed here: `Done (0.287s)`, no `/ERROR]` and no `/FATAL]` line, 18 warnings
-within the recorded baseline.
+Built 2026-08-20 from `main` after merging PR #6. Booted in a real Fabric dedicated server before
+being placed here: `Done (0.250s)`, no `/ERROR]` and no `/FATAL]` line, 18 warnings within the
+recorded baseline.
+
+**0.0.55 keeps autopilots out of enemy airspace, and item frames buildable.** With Simple Planes
+5.3.10+ installed, an autopilot flight carrying a player routes around every colony where that
+player is hostile — but an empty aircraft flies straight, the take-off territory is ignored, and so
+is the territory holding the destination, so landing at an airfield behind enemy lines just works.
+Either mod loads fine without the other. The bundled Structurize also stops filled item frames in
+blueprints requesting their contents twice and the frame never.
 
 **0.0.54 lets framed blocks be built with again, and stops builders freezing silently.** Every
 Domum Ornamentum framed block was requested as a bare "Framed" — or looked identical to the request
