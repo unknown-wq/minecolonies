@@ -26,8 +26,8 @@ the patch bundle, pack injection, consent UX, crash guards, escalation — stand
   dir: `26.2/`. There is also a `1.21.1/` upstream snapshot dir; you will normally not
   touch it.
 - **Licensing split:** all Java code is GPLv3 and ships. Everything that lived under
-  `26.2/src/main/resources/assets/minecolonies/` was All Rights Reserved (LDTTeam has
-  withdrawn permission) and has **already been removed** from this repository and its
+  `26.2/src/main/resources/assets/minecolonies/` is All Rights Reserved (it belongs to
+  LDTTeam) and has **already been removed** from this repository and its
   history, along with `26.2/src/main/generated/assets/`, the same tree in `1.21.1/`,
   and built jars. The removal is done; do not re-do it, and **never re-add upstream
   content from `assets/minecolonies/` to the repo or the jar** — that is the ARR tree.

@@ -551,7 +551,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### What is not in this repository
 
-LDTTeam have withdrawn permission for this port to use MineColonies' artwork, so **no MineColonies
+MineColonies' artwork is All Rights Reserved and belongs to LDTTeam, so **no MineColonies
 asset is stored here**. One tree is absent from every commit:
 
 | Absent | What it was | Why |
