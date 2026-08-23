@@ -2,9 +2,40 @@
 
 Compiled build of the Fabric / Minecraft 26.2 port (source in `../26.2/`).
 
-Built 2026-08-20 from `main` after merging PR #6. Booted in a real Fabric dedicated server before
-being placed here: `Done (0.250s)`, no `/ERROR]` and no `/FATAL]` line, 18 warnings within the
-recorded baseline.
+Built 2026-08-23 from the branch of PR #14. Booted in a real Fabric dedicated server before being
+placed here: `Done (0.862s)`, no `/FATAL]` line, one `/ERROR]` — vanilla worldgen's `No key layers in
+MapLike[{}]`, which a stock server prints too. That boot deliberately carried a foreign mod shipping a
+`data/<ns>/compatibility/*.json` of the wrong shape, and the server still read all 1766 nbt-matching
+entries; the same boot against 0.0.55 read none at all.
+
+**0.0.58 stops the restaurant ordering food nobody asked for.** Taking a dish off the menu left its
+delivery order standing for ever, because the cancellation looked it up under the wrong requestable
+type and nothing else ever revisits it. Rain plus a restaurant whose only tagged seats are outdoors
+threw inside the eating AI, and the citizen never sat down. The menu window's customer list never
+cleared on sync, and a restaurant nobody had eaten at yet printed `NaN` into its tooltip. The
+food-happiness cache was rebuilt on every call because its dirty flag was never lowered. The
+restaurant itself works: the audit behind these fixes watched a cook feed three starving citizens to
+full saturation on a live server.
+
+**0.0.57 stops one foreign file wiping the mod's item-matching rules.** `ItemNbtListener` reads
+`data/<any namespace>/compatibility/*.json`, deliberately, because that is how another mod ships
+matching rules for its own items — but some mods keep something else under that generic folder name.
+One file of the wrong shape threw, the throw escaped the loop, and since the listener clears the table
+before filling it, every rule was lost until the next successful reload. That table decides which
+components matter when the mod compares two items, so losing it silently changes which items count as
+the same. Found in a crash log sent in from outside.
+
+**0.0.56 lets the builder recognise the framed block you are holding.** Third time this symptom has
+been chased and the first time at the layer that decides. 0.0.54 made the *comparison* lenient, and
+that part works — the requirement and the block in your chest do compare equal. But the builder's
+bookkeeping never asks that comparison: every needed-resource map is keyed by the stack's component
+patch, so one stray component drops the two into different buckets and the builder refuses to keep,
+count or report a block it considers equal. The strays came from the blueprint — a dynamic timber
+frame carries a full copy of its tile entity, and blueprints saved against an older Domum Ornamentum
+keep texture skins for components since removed, which left the shipped shingle slabs unsatisfiable
+outright. Requirements are now reduced to the shape a player can actually hold. Driving the real
+placement handlers over all 9514 shipped blueprints gave 2074 mismatches before and 0 after; the
+Miner's hut at levels 3–5 was among the blueprints affected.
 
 **0.0.55 keeps autopilots out of enemy airspace, and item frames buildable.** With Simple Planes
 5.3.10+ installed, an autopilot flight carrying a player routes around every colony where that

@@ -6,6 +6,7 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.network.messages.server.AbstractBuildingServerMessage;
@@ -64,6 +65,11 @@ public class RecallSingleCitizenMessage extends AbstractBuildingServerMessage<IB
     protected void onExecute(final PlayMessageContext ctxIn, final ServerPlayer player, final IColony colony, final IBuilding building)
     {
         final ICitizenData citizenData = colony.getCitizenManager().getCivilian(citizenId);
+        if (citizenData == null)
+        {
+            Log.getLogger().warn("RecallSingleCitizenMessage: no citizen {} in colony {}", citizenId, colony.getID());
+            return;
+        }
         citizenData.setLastPosition(building.getPosition());
         Optional<AbstractEntityCitizen> optionalEntityCitizen = citizenData.getEntity();
         if (!optionalEntityCitizen.isPresent())

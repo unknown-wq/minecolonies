@@ -266,6 +266,13 @@ public class MinerLevelManagementModule extends AbstractBuildingModule implement
      */
     public void repairLevel(final int level)
     {
+        if (level < 0 || level >= levels.size())
+        {
+            // The index comes straight off a GUI packet and names a level that may already be gone; ignore it rather
+            // than letting an IndexOutOfBoundsException out of the packet handler.
+            return;
+        }
+
         if (building instanceof BuildingMiner)
         {
             final BlockPos ladderPos = ((BuildingMiner) building).getLadderLocation();

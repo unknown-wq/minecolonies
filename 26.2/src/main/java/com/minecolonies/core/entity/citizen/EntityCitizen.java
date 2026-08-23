@@ -224,8 +224,18 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
 
     /**
      * The citizen AI
+     * <p>
+     * The exception handler used to be {@code e -> {}}, which is the same silent-freeze shape issue #1 was reported
+     * with: everything this machine drives -- the state decision, the eat/sleep/sick/mourn/wander tasks, and anything
+     * that escapes the job AI's own machine (including a throw inside {@code AbstractEntityAIBasic#onException}
+     * itself) -- vanished without a single line in the log. It is logged with the same detail
+     * {@code entityStateController} already uses; nothing else about the behaviour changes, the citizen still carries
+     * on ticking.
      */
-    private ITickRateStateMachine<IState> citizenAI = new TickRateStateMachine<>(CitizenAIState.IDLE, e -> {}, ENTITY_AI_TICKRATE);
+    private ITickRateStateMachine<IState> citizenAI = new TickRateStateMachine<>(CitizenAIState.IDLE,
+      e -> Log.getLogger()
+        .error("Citizen " + getDisplayName().getString() + " id:" + (getCitizenData() != null ? getCitizenData().getId() : -1) + " from colony: "
+                 + getCitizenColonyHandler().getColonyId() + " citizen AI exception", e), ENTITY_AI_TICKRATE);
 
     /**
      * Maximum air supply

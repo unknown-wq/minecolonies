@@ -120,6 +120,9 @@ public class CitizenFoodHandler implements ICitizenFoodHandler
                 uniqueFoods.add(foodItem);
             }
             foodStatCache = new CitizenFoodStats(Math.max(1, uniqueFoods.size()), qualityFoodCounter);
+            // The flag was set but never cleared, so the cache next to it was dead: every call rebuilt the set.
+            // Both writers of lastEatenFoods (addLastEaten and read) raise it again, so clearing it here is safe.
+            dirty = false;
         }
         return foodStatCache;
     }
@@ -142,6 +145,7 @@ public class CitizenFoodHandler implements ICitizenFoodHandler
                 lastEatenFoods.add(lastFood);
             }
         }
+        dirty = true;
     }
 
     @Override

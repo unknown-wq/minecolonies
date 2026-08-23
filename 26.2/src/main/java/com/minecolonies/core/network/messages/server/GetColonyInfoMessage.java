@@ -33,6 +33,14 @@ public class GetColonyInfoMessage extends AbstractServerPlayMessage
     public static final PlayMessageType<?> TYPE = PlayMessageType.forServer(Constants.MOD_ID, "get_colony_info", GetColonyInfoMessage::new);
 
     /**
+     * How far from the block the sender is still believed. Every sender of this message is a window that was opened
+     * by right clicking that very block, so any legitimate one is within arm's reach; this only stops a hand written
+     * packet naming a position on the other side of the world, which the block lookups below would otherwise load
+     * and generate a chunk for, on the server thread.
+     */
+    private static final int MAX_INTERACTION_DISTANCE = 64;
+
+    /**
      * Position the player wants to found the colony at.
      */
     BlockPos pos;
@@ -62,6 +70,12 @@ public class GetColonyInfoMessage extends AbstractServerPlayMessage
         {
             return;
         }
+
+        if (!sender.level().isLoaded(pos) || sender.blockPosition().distSqr(pos) > MAX_INTERACTION_DISTANCE * MAX_INTERACTION_DISTANCE)
+        {
+            return;
+        }
+
         final Level world = sender.level();
 
         if (IColonyManager.getInstance().getColonyByPosFromWorld(world, pos) instanceof Colony)

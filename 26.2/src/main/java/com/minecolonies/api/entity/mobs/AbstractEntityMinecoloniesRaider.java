@@ -360,7 +360,13 @@ public abstract class AbstractEntityMinecoloniesRaider extends AbstractEntityMin
         if (owningColonyId != NO_COLONY_ID && colony.getID() != owningColonyId)
         {
             final IColony tempColony = IColonyManager.getInstance().getColonyByWorld(owningColonyId, level());
-            tempColony.getRaiderManager().setPassThroughRaid();
+            if (tempColony != null)
+            {
+                // A deleted colony leaves its claim on the chunk behind until somebody reclaims it, so the id can
+                // still name a colony that is gone. Walking through such a chunk used to throw out of aiStep, which
+                // the entity tick turns into a server crash report.
+                tempColony.getRaiderManager().setPassThroughRaid();
+            }
         }
     }
 

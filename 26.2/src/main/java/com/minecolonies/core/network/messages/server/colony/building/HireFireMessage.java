@@ -6,6 +6,7 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.modules.IAssignsJob;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
+import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -84,6 +85,13 @@ public class HireFireMessage extends AbstractBuildingServerMessage<IBuilding>
         if (building.getModule(moduleId) instanceof final IAssignsJob module)
         {
             final ICitizenData citizen = colony.getCitizenManager().getCivilian(citizenID);
+            if (citizen == null)
+            {
+                // The list the button was drawn from is a client view; the citizen behind it can be dead by the time
+                // the button is pressed. Ignore the click rather than throwing out of the packet handler.
+                Log.getLogger().warn("HireFireMessage: no citizen {} in colony {}", citizenID, colony.getID());
+                return;
+            }
             citizen.setPaused(false);
             if (hire)
             {

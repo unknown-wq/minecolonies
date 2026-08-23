@@ -6,6 +6,7 @@ import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.api.colony.jobs.registry.JobEntry;
+import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.colony.buildings.DefaultBuildingInstance;
 import com.minecolonies.core.colony.buildings.modules.AbstractAssignedCitizenModule;
@@ -91,6 +92,14 @@ public class AssignUnassignMessage extends AbstractBuildingServerMessage<Default
     protected void onExecute(final PlayMessageContext ctxIn, final ServerPlayer player, final IColony colony, final DefaultBuildingInstance building)
     {
         final ICitizenData citizen = colony.getCitizenManager().getCivilian(citizenID);
+        if (citizen == null)
+        {
+            // The list the button was drawn from is a client view; the citizen behind it can be dead by the time the
+            // button is pressed. Ignore the click rather than throwing out of the packet handler.
+            Log.getLogger().warn("AssignUnassignMessage: no citizen {} in colony {}", citizenID, colony.getID());
+            return;
+        }
+
         final AbstractAssignedCitizenModule module;
         if (jobEntry == null)
         {

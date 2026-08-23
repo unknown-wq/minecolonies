@@ -11,6 +11,7 @@ import com.ldtteam.structurize.storage.StructurePacks;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.colonyEvents.IColonyRaidEvent;
 import com.minecolonies.api.util.BlockPosUtil;
+import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.core.MineColonies;
 import com.minecolonies.core.entity.pathfinding.PathfindingUtils;
@@ -139,6 +140,13 @@ public final class ShipBasedRaiderUtils
         final String shipSize = ShipSize.getShipForRaiderAmount(raidLevel).schematicPrefix + shipName;
 
         final Blueprint blueprint = StructurePacks.getBlueprint(STORAGE_STYLE, "decorations" + SHIP_FOLDER + shipSize + ".blueprint", colony.getWorld().registryAccess());
+        if (blueprint == null)
+        {
+            // The pack is missing, still loading, or the file will not read. Answering "no ship fits here" leaves the
+            // raid manager a land raid to fall back on; throwing out of here takes the whole raid with it.
+            Log.getLogger().warn("Could not load the ship blueprint " + shipSize + " from " + STORAGE_STYLE + "; no ship raid at " + spawnPoint.toShortString());
+            return false;
+        }
         blueprint.setRotationMirror(rotMir, world);
 
         return canPlaceShipAt(spawnPoint, blueprint, world, neededDepth) || canPlaceShipAt(spawnPoint.below(), blueprint, world, neededDepth);

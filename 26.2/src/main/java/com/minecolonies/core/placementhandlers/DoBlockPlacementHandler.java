@@ -4,12 +4,15 @@ package com.minecolonies.core.placementhandlers;
 // PORT-NOTE(structurize): ported against the real Structurize 26.2 API (built 2026-07-31). Kept as a
 // grep marker for files that touch Structurize, not as an open TODO.
 
+import com.ldtteam.domumornamentum.IDomumOrnamentumApi;
 import com.ldtteam.domumornamentum.block.AbstractPostBlock;
 import com.ldtteam.domumornamentum.block.IMateriallyTexturedBlock;
+import com.ldtteam.domumornamentum.block.IMateriallyTexturedBlockComponent;
 import com.ldtteam.domumornamentum.block.decorative.*;
 import com.ldtteam.domumornamentum.block.types.FancyTrapdoorType;
 import com.ldtteam.domumornamentum.block.types.PostType;
 import com.ldtteam.domumornamentum.block.types.TrapdoorType;
+import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.block.vanilla.DoorBlock;
 import com.ldtteam.domumornamentum.block.vanilla.TrapdoorBlock;
 import com.ldtteam.domumornamentum.util.BlockUtils;
@@ -26,14 +29,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
 // 26.2: IPlacementHandler#doesWorldStateMatchBlueprintState takes Structurize's own Tuple now --
 // net.minecraft.util.Tuple is gone and each mod grew its own replacement.
 import com.ldtteam.structurize.api.Tuple;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.FenceGateBlock;
 import net.minecraft.world.level.block.IronBarsBlock;
@@ -48,7 +54,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.ldtteam.structurize.placement.handlers.placement.DoBlockPlacementHandler.compareBEData;
 import static com.ldtteam.structurize.placement.handlers.placement.PlacementHandlers.handleTileEntityPlacement;
@@ -168,10 +176,85 @@ public class DoBlockPlacementHandler implements IPlacementHandler
             {
                 property = null;
             }
-            itemList.add(getCorrectDOItem(property == null ? BlockUtils.getMaterializedItemStack(tileEntity, world.registryAccess()) : BlockUtils.getMaterializedItemStack(tileEntity, world.registryAccess(), property), blockState, !placementContext.fancyPlacement()));
+            itemList.add(asObtainableItem(getCorrectDOItem(property == null ? BlockUtils.getMaterializedItemStack(tileEntity, world.registryAccess()) : BlockUtils.getMaterializedItemStack(tileEntity, world.registryAccess(), property), blockState, !placementContext.fancyPlacement())));
         }
         itemList.removeIf(ItemStackUtils::isEmpty);
         return itemList;
+    }
+
+    /**
+     * Reduce a materialised Domum Ornamentum stack to the shape a player can actually hold, so that the
+     * requirement the builder records is component-for-component the item that will be handed to it.
+     * <p>
+     * This matters beyond {@link ItemStackUtils#compareItemStacksIgnoreStackSize}, which only looks at the
+     * keys {@code data/minecolonies/compatibility/itemnbtmatching.json} lists for the item (for a DO block:
+     * {@code domum_ornamentum:texture_data} and, where the shape is a block state, {@code minecraft:block_state}).
+     * The builder's own bookkeeping does <em>not</em> go through that comparison: every needed-resource map in
+     * the mod is keyed by the literal string {@code item.getDescriptionId() + "-" + stack.getComponentsPatch().hashCode()}
+     * -- see BuildingResourcesModule#addNeededResource, AbstractBuildingStructureBuilder#hasResourceInBucket and
+     * #buildingRequiresCertainAmountOfItem, and ItemResourceScroll#getWarehouseSnapshot. Any component on the
+     * requirement that the player's copy cannot have puts the two stacks in different buckets, and the builder
+     * then refuses to keep, count or report a block that it happily compares equal to.
+     * <p>
+     * Two such components are produced by the blueprint path:
+     * <ol>
+     * <li>{@code minecraft:block_entity_data}. Domum Ornamentum's {@code DynamicTimberFrameBlockEntity#saveToItem}
+     *     calls {@code BlockItem.setBlockEntityData} on top of the components (the other DO block entities do
+     *     not), so every stack materialised from a {@code domum_ornamentum:dynamic_timberframe} in a blueprint
+     *     carries a copy of the tile entity. {@link #getCorrectDOItem} then converts it to the canonical
+     *     {@code domum_ornamentum:framed} and copies the patch across, tag and all. Nothing an architect's
+     *     cutter, a loot drop or a delivery ever produces has that component.</li>
+     * <li>Texture components the target block does not declare. The tile entity loads its texture data
+     *     verbatim ({@code MateriallyTexturedBlockEntity#loadAdditional}, no {@code retainComponentsFromBlock}),
+     *     so a blueprint saved against an older Domum Ornamentum keeps skins for components that have since
+     *     been dropped -- shipped shingle slabs still carry the third {@code minecraft:block/acacia_planks} skin
+     *     that {@code ShingleSlabBlock} no longer has. That one is fatal even to the lenient comparison, because
+     *     texture data is compared as a whole map.</li>
+     * </ol>
+     *
+     * @param stack the materialised stack, modified in place.
+     * @return the same stack.
+     */
+    public static ItemStack asObtainableItem(final ItemStack stack)
+    {
+        if (ItemStackUtils.isEmpty(stack))
+        {
+            return stack;
+        }
+
+        stack.remove(DataComponents.BLOCK_ENTITY_DATA);
+
+        if (stack.getItem() instanceof final BlockItem blockItem
+              && blockItem.getBlock() instanceof final IMateriallyTexturedBlock texturedBlock)
+        {
+            final MaterialTextureData data = MaterialTextureData.readFromItemStack(stack);
+            if (!data.isEmpty())
+            {
+                final Map<Identifier, Block> known = new LinkedHashMap<>();
+                for (final IMateriallyTexturedBlockComponent component : texturedBlock.getComponents())
+                {
+                    final Block skin = data.getTexturedComponents().get(component.getId());
+                    if (skin != null)
+                    {
+                        known.put(component.getId(), skin);
+                    }
+                }
+
+                if (known.size() != data.getTexturedComponents().size())
+                {
+                    if (known.isEmpty())
+                    {
+                        stack.remove(IDomumOrnamentumApi.getInstance().getMaterialTextureComponentType());
+                    }
+                    else
+                    {
+                        new MaterialTextureData(known).writeToItemStack(stack);
+                    }
+                }
+            }
+        }
+
+        return stack;
     }
 
     @Override

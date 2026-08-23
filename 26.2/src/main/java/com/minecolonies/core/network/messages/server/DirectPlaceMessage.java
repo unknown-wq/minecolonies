@@ -131,7 +131,14 @@ public class DirectPlaceMessage extends AbstractServerPlayMessage
                     final HutBlockData hutComponent = HutBlockData.readFromItemStack(stack);
                     if (hutComponent != null)
                     {
-                        final IBuilding building = colony.getServerBuildingManager().getBuilding(pos);
+                        // The captured colony was read before the block was placed, and is null for the one case this
+                        // branch is reached with it: a picked-up town hall put down on unclaimed ground, whose colony
+                        // the setPlacedBy above has only just created. Reading it again here is what keeps that from
+                        // being an NPE inside ServerFutureProcessor's level-tick consumer -- which is not packet
+                        // handling, so it is not suppressed: it comes out of ServerLevel#tick as "Exception ticking
+                        // world" and stops the server.
+                        final IColony placedIn = colony == null ? IColonyManager.getInstance().getColonyByPosFromWorld(world, pos) : colony;
+                        final IBuilding building = placedIn == null ? null : placedIn.getServerBuildingManager().getBuilding(pos);
                         if (building != null)
                         {
                             building.setBuildingLevel(hutComponent.level());

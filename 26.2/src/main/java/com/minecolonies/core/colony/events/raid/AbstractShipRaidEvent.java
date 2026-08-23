@@ -187,6 +187,15 @@ public abstract class AbstractShipRaidEvent implements IColonyRaidEvent, IColony
 
         ServerFutureProcessor.queueBlueprint(new ServerFutureProcessor.BlueprintProcessingData(StructurePacks.getBlueprintFuture(STORAGE_STYLE,
           "decorations" + ShipBasedRaiderUtils.SHIP_FOLDER + shipSize.schematicPrefix + this.getShipDesc() + ".blueprint", colony.getWorld().registryAccess()), colony.getWorld(), (blueprint -> {
+            if (blueprint == null)
+            {
+                // Structurize hands the consumer a null when the pack is missing or the file will not read, and this
+                // consumer runs on the level tick rather than inside the colony's own error handling -- dereferencing
+                // it here takes the server down. Cancel the raid instead; the manager tries again another night.
+                Log.getLogger().warn("Ship raid for colony " + colony.getName() + " could not load its blueprint; cancelling the raid.");
+                status = EventStatus.CANCELED;
+                return;
+            }
             blueprint.setRotationMirror(shipRotationMirror, colony.getWorld());
 
             if (spawnPathResult != null && spawnPathResult.isDone())

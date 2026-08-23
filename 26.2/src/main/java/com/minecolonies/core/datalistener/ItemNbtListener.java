@@ -39,8 +39,21 @@ public class ItemNbtListener extends SimpleJsonResourceReloadListener<JsonElemen
         ItemStackUtils.CHECKED_NBT_KEYS.clear();
         for (final Map.Entry<Identifier, JsonElement> entry : jsonElementMap.entrySet())
         {
-            tryParse(DataListenerUtils.registryLookup(), entry);
+            // One unreadable file must not cost us the other files' rules. The table was cleared a line ago, so an
+            // exception escaping this loop leaves it empty or half-filled -- and it is the table
+            // ItemStackUtils#compareItemStacksIgnoreStackSize consults, so losing it silently changes which items
+            // the whole mod considers equal. Reported from outside: a modpack where this aborted on the very first
+            // file. Whatever goes wrong in one entry, the rest still load.
+            try
+            {
+                tryParse(DataListenerUtils.registryLookup(), entry);
+            }
+            catch (final Exception e)
+            {
+                Log.getLogger().warn("Skipping unreadable compatibility file " + entry.getKey(), e);
+            }
         }
+        Log.getLogger().info("Read " + ItemStackUtils.CHECKED_NBT_KEYS.size() + " items with their nbt keys for compatibility.");
     }
 
     /**
@@ -50,6 +63,18 @@ public class ItemNbtListener extends SimpleJsonResourceReloadListener<JsonElemen
      */
     private void tryParse(@NotNull final HolderLookup.Provider provider, final Map.Entry<Identifier, JsonElement> entry)
     {
+        // "compatibility" is a generic folder name and this listener reads it from every namespace, not just ours --
+        // deliberately, because that is how another mod ships nbt rules for its own items. The cost is that we also
+        // get handed files that merely happen to live at data/<their mod>/compatibility/*.json and mean something
+        // else entirely. One such file, an object rather than our array, used to take the whole listener down here.
+        // Ours is always an array, so anything else is somebody else's file and is not ours to complain about
+        // loudly.
+        if (!entry.getValue().isJsonArray())
+        {
+            Log.getLogger().debug("Ignoring " + entry.getKey() + ": not a MineColonies nbt-matching file (expected an array).");
+            return;
+        }
+
         for (final JsonElement element : entry.getValue().getAsJsonArray())
         {
             try
@@ -77,6 +102,5 @@ public class ItemNbtListener extends SimpleJsonResourceReloadListener<JsonElemen
                 Log.getLogger().warn("Could not nbt comparator for:" + entry.getKey(), e);
             }
         }
-        Log.getLogger().warn("Read " + ItemStackUtils.CHECKED_NBT_KEYS.size() + " items with their nbt keys for compatibility.");
     }
 }

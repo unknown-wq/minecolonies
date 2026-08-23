@@ -130,15 +130,42 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
      */
     public void removeMenuItem(final ItemStack itemStack)
     {
-        menu.remove(new ItemStorage(itemStack));
+        final ItemStorage removed = new ItemStorage(itemStack);
+        menu.remove(removed);
 
-        final Collection<IToken<?>> list = building.getOpenRequestsByRequestableType().getOrDefault(TypeToken.of(Stack.class), new ArrayList<>());
-        final IToken<?> token = getMatchingRequest(itemStack, list);
+        // The orders this module files in onColonyTick are MinimumStack, and AbstractBuilding#addRequestToMaps
+        // indexes an open request under its own concrete class, so a lookup under Stack.class matched nothing at
+        // all: taking a dish off the menu left its delivery order standing for ever, because onColonyTick only ever
+        // revisits items that are still on the menu. Measured on a dedicated server: the restaurant's open request
+        // count was 3 before removeMenuItem and 3 after, and the type keys present were MinimumStack and StackList,
+        // never Stack.
+        final Collection<IToken<?>> list =
+          new ArrayList<>(building.getOpenRequestsByRequestableType().getOrDefault(TypeToken.of(MinimumStack.class), new ArrayList<>()));
+        cancelOrderFor(itemStack, list);
+
+        // onColonyTick asks for the dish or for the raw input of its smelting recipe, whichever it happened to draw
+        // that tick, so both have to go.
+        if (canCook && MinecoloniesAPIProxy.getInstance().getFurnaceRecipes().getFirstSmeltingRecipeByResult(removed) instanceof RecipeStorage recipeStorage
+              && !recipeStorage.getInput().isEmpty())
+        {
+            cancelOrderFor(recipeStorage.getInput().get(0).getItemStack(), list);
+        }
+        markDirty();
+    }
+
+    /**
+     * Cancel the standing order for one stack, if there is one.
+     *
+     * @param stack the stack that is no longer wanted.
+     * @param list  the tokens to search, a copy rather than the live collection because cancelling mutates it.
+     */
+    private void cancelOrderFor(final ItemStack stack, final Collection<IToken<?>> list)
+    {
+        final IToken<?> token = getMatchingRequest(stack, list);
         if (token != null)
         {
             building.getColony().getRequestManager().updateRequestState(token, RequestState.CANCELLED);
         }
-        markDirty();
     }
 
     @Override

@@ -597,11 +597,19 @@ public class RaidManager implements IRaiderManager
      * Creates and starts the path job towards this spawn point
      *
      * @param targetSpawnPoint the intended spawn point for the raid.
-     * @return the path result.
+     * @return the path result, or null when there is nothing to path to.
      */
     private PathResult<?> createSpawnPath(final BlockPos targetSpawnPoint, final boolean underwater)
     {
         final BlockPos closestBuildingPos = colony.getServerBuildingManager().getBestBuilding(targetSpawnPoint, IBuilding.class);
+        if (closestBuildingPos == null)
+        {
+            // getBestBuilding only answers with a built building standing in a loaded chunk, so a colony that has
+            // nothing built yet -- or whose buildings are not loaded -- gets null here. The path job takes its start
+            // position as @NotNull and dies on it. The raid does not need the path: every event checks its spawn path
+            // for null and simply goes without waypoints.
+            return null;
+        }
         final PathJobRaiderPathing job =
             new PathJobRaiderPathing(new ArrayList<>(colony.getServerBuildingManager().getBuildings().values()), colony.getWorld(), closestBuildingPos, targetSpawnPoint);
         job.getPathingOptions().withWalkUnderWater(underwater);
@@ -1015,7 +1023,8 @@ public class RaidManager implements IRaiderManager
     public BlockPos getRandomBuilding()
     {
         buildingPosUsage++;
-        if (buildingPosUsage > Math.max(6, getLastRaid().raiderAmount / 3) || lastBuilding == null)
+        final RaidHistory lastRaid = getLastRaid();
+        if (buildingPosUsage > Math.max(6, lastRaid == null ? 0 : lastRaid.raiderAmount / 3) || lastBuilding == null)
         {
             buildingPosUsage = 0;
             final Collection<IBuilding> buildingList = colony.getServerBuildingManager().getBuildings().values();
@@ -1190,7 +1199,15 @@ public class RaidManager implements IRaiderManager
             }
         }
 
-        if (((double) raidHistories.get(0).lostCitizens / colony.getCitizenManager().getMaxCitizens()) > 0.5)
+        // The raid that just ended, not the colony's first ever one: raidHistories keeps every raid the colony has
+        // ever had, so reading index zero told the second and every later raid how the first one went.
+        final RaidHistory lastRaid = getLastRaid();
+        if (lastRaid == null)
+        {
+            return;
+        }
+
+        if (((double) lastRaid.lostCitizens / colony.getCitizenManager().getMaxCitizens()) > 0.5)
         {
             MessageUtils.format(RAID_END_MERCY, colony.getName()).sendTo(colony).forManagers();
             extraDaysToNextRaid = MineColonies.getConfig().getServer().averageNumberOfNightsBetweenRaids.get() * 2;
@@ -1207,7 +1224,7 @@ public class RaidManager implements IRaiderManager
             MessageUtils.format(msgID, colony.getName()).sendTo(colony).forManagers();
         }
 
-        PlayAudioMessage audio = new PlayAudioMessage(raidHistories.get(0).raiderAmount <= SMALL_HORDE_SIZE ? RaidSounds.VICTORY_EARLY : RaidSounds.VICTORY, SoundSource.HOSTILE);
+        PlayAudioMessage audio = new PlayAudioMessage(lastRaid.raiderAmount <= SMALL_HORDE_SIZE ? RaidSounds.VICTORY_EARLY : RaidSounds.VICTORY, SoundSource.HOSTILE);
         PlayAudioMessage.sendToAll(colony, false, true, audio);
 
         if (colony.getRaiderManager().getLostCitizen() == 0)

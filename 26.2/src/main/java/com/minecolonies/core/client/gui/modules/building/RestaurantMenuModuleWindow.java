@@ -145,8 +145,10 @@ public class RestaurantMenuModuleWindow extends AbstractModuleWindow<RestaurantM
                     sum += computeSaturationConsumptionFactor(buildingLevel);
                 }
             }
-            this.avgCustomerConsumption = sum/buildingCookView.getCustomers().size();
+            // A restaurant nobody has eaten at yet has no customers, and sum/0 on doubles is NaN rather than a
+            // crash - it just printed "NaN" into the per ingredient consumption tooltip.
             this.numerOfCustomers = buildingCookView.getCustomers().size();
+            this.avgCustomerConsumption = this.numerOfCustomers == 0 ? 0 : sum / this.numerOfCustomers;
         }
 
     }
@@ -325,7 +327,7 @@ public class RestaurantMenuModuleWindow extends AbstractModuleWindow<RestaurantM
             final FoodProperties foodProperty = dish.getItemStack().get(DataComponents.FOOD);
             saturationSum += FoodUtils.getFoodValue(dish.getItemStack(), foodProperty, researchBonus);
         }
-        final double consumption = (avgCustomerConsumption * 10 * numerOfCustomers) / saturationSum;
+        final double consumption = saturationSum == 0 ? 0 : (avgCustomerConsumption * 10 * numerOfCustomers) / saturationSum;
 
         final ArrayList<Object2DoubleMap.Entry<ItemStorage>> ingredientList = new ArrayList<>(ingredients.object2DoubleEntrySet());
         ingredientList.sort(Comparator.comparingDouble(i -> -i.getValue()));

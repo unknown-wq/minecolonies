@@ -110,7 +110,10 @@ public class DoDoorBlockPlacementHandler implements IPlacementHandler
             {
                 property = null;
             }
-            itemList.add(property == null ? BlockUtils.getMaterializedItemStack(tileEntity, world.registryAccess()) : BlockUtils.getMaterializedItemStack(tileEntity, world.registryAccess(), property));
+            // Same normalisation as DoBlockPlacementHandler#getRequiredItems: the requirement has to be
+            // component-for-component the item a player can hand over, because the builder's needed-resource
+            // maps are keyed by the stack's component patch, not by the lenient stack comparison.
+            itemList.add(DoBlockPlacementHandler.asObtainableItem(property == null ? BlockUtils.getMaterializedItemStack(tileEntity, world.registryAccess()) : BlockUtils.getMaterializedItemStack(tileEntity, world.registryAccess(), property)));
         }
         return itemList;
     }

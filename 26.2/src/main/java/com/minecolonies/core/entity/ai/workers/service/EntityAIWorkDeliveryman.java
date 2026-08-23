@@ -520,10 +520,33 @@ public class EntityAIWorkDeliveryman extends AbstractEntityAIInteract<JobDeliver
                     }
                 }
 
-                //Insert the result back into the inventory so we do not lose it.
-                workerInventory.insertItem(i, insertionResultStack, false);
+                // Insert the result back into the pack so we do not lose it. It can no longer be assumed to fit in the
+                // slot it came out of: a stop takes only what it is owed out of a slot, so that slot may still hold
+                // items -- of another kind, when what comes back is the stack the target chest displaced -- and
+                // insertItem then hands the whole thing straight back. Upstream emptied the slot outright, so that
+                // return value could never be anything but empty and was ignored; here it is what would go missing.
+                ItemStack leftOver = workerInventory.insertItem(i, insertionResultStack, false);
+                if (!ItemStackUtils.isEmpty(leftOver))
+                {
+                    leftOver = InventoryUtils.addItemStackToItemHandlerWithResult(workerInventory, leftOver);
+                }
+                if (!ItemStackUtils.isEmpty(leftOver))
+                {
+                    // Nowhere in the pack either. Dropping it is what the rest of the mod does with goods that have no
+                    // home left, and it is the only option here that does not simply delete somebody's items.
+                    InventoryUtils.spawnItemStack(world, worker.getX(), worker.getY(), worker.getZ(), leftOver);
+                }
             }
-            final int handedOver = count - insertionResultStack.getCount();
+            // What the building actually took. forceItemStackToItemHandler answers with one of three things: nothing,
+            // meaning all of it went in; the remainder of this very stack, meaning a partial insert; or -- when it had
+            // to make room -- the stack it displaced, which is a different item entirely and says nothing about how
+            // much of ours went in. Subtracting a displaced stack's count is how `count - result.getCount()` used to
+            // read, and against a displaced stack larger than the one delivered it goes negative, which *grows* what
+            // this stop is owed and lets it take the next stop's goods -- the cross-contamination the counting is here
+            // to prevent, arriving by a third door.
+            final int handedOver = ItemStackUtils.compareItemStacksIgnoreStackSize(insertionResultStack, stack)
+                                     ? Math.max(0, count - insertionResultStack.getCount())
+                                     : count;
             // Only what the building actually took counts against what it is owed; what came back is still ours to
             // give, here or at the next attempt.
             owed.put(storage, owedHere - handedOver);
@@ -616,6 +639,14 @@ public class EntityAIWorkDeliveryman extends AbstractEntityAIInteract<JobDeliver
             }
             else
             {
+                // The goods for this stop are in the pack, so the pack and the loaded set have to agree about it.
+                // They can disagree: decide() sends a courier with a non-empty pack straight here while the warehouse
+                // is refusing dumps, and dump() forgets the whole loaded set even when the warehouse only took part of
+                // the pack. In either case this loop finds the items and gathers nothing, so nothing ever marked them
+                // loaded -- and deliver() builds what a stop is owed out of the loaded set alone, so it handed over
+                // nothing and failed a request whose goods the courier was visibly carrying. The set is a set, so
+                // marking what is already marked costs nothing on the ordinary path.
+                job.addConcurrentDelivery(task.getId());
                 alreadyInInv.add(task.getRequest().getStack());
             }
         }

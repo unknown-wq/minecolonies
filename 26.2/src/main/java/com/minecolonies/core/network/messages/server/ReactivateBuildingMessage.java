@@ -25,6 +25,14 @@ public class ReactivateBuildingMessage extends AbstractServerPlayMessage
     public static final PlayMessageType<?> TYPE = PlayMessageType.forServer(Constants.MOD_ID, "reactivate_building", ReactivateBuildingMessage::new);
 
     /**
+     * How far from the block the sender is still believed. The window that sends this is opened by right clicking
+     * that very block, so any legitimate sender is within arm's reach; this only stops a hand written packet naming a
+     * position on the other side of the world, which the block lookups below would otherwise load and generate a
+     * chunk for, on the server thread.
+     */
+    private static final int MAX_INTERACTION_DISTANCE = 64;
+
+    /**
      * The position to reactivate it.
      */
     private final BlockPos pos;
@@ -65,6 +73,11 @@ public class ReactivateBuildingMessage extends AbstractServerPlayMessage
     @Override
     protected void onExecute(final PlayMessageContext ctxIn, final ServerPlayer player)
     {
+        if (!player.level().isLoaded(pos) || player.blockPosition().distSqr(pos) > MAX_INTERACTION_DISTANCE * MAX_INTERACTION_DISTANCE)
+        {
+            return;
+        }
+
         final Level world = player.level();
         final IColony colony = IColonyManager.getInstance().getColonyByPosFromWorld(world, pos);
         if (colony != null && colony.getPermissions().hasPermission(player, Action.MANAGE_HUTS))

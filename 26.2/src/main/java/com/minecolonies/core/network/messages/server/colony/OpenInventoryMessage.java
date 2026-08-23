@@ -26,7 +26,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import com.ldtteam.common.network.PlayMessageContext;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Message sent to open an inventory.
@@ -136,8 +135,11 @@ public class OpenInventoryMessage extends AbstractColonyServerMessage
 
     private void doCitizenInventory(final ServerPlayer player)
     {
-        @Nullable final AbstractEntityCitizen citizen = (AbstractEntityCitizen) CompatibilityUtils.getWorldFromEntity(player).getEntity(entityID);
-        if (citizen != null)
+        // The id comes off the wire and names an entity that may be gone by the time the button is pressed -- a
+        // citizen killed in a raid while its window was open, and the network id handed on to whatever spawned next.
+        // The cast was unchecked, so that turned into a ClassCastException out of the packet handler instead of the
+        // window simply not opening.
+        if (CompatibilityUtils.getWorldFromEntity(player).getEntity(entityID) instanceof final AbstractEntityCitizen citizen)
         {
             if (!StringUtil.isNullOrEmpty(name))
             {

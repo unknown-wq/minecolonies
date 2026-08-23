@@ -3,6 +3,7 @@ package com.minecolonies.core.network.messages.server.colony.citizen;
 import com.ldtteam.common.network.PlayMessageType;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.IColony;
+import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.colony.buildings.views.AbstractBuildingView;
@@ -68,6 +69,11 @@ public class RestartCitizenMessage extends AbstractColonyServerMessage
     protected void onExecute(final PlayMessageContext ctxIn, final ServerPlayer player, final IColony colony)
     {
         final ICitizenData citizen = colony.getCitizenManager().getCivilian(citizenID);
+        if (citizen == null)
+        {
+            Log.getLogger().warn("RestartCitizenMessage: no citizen {} in colony {}", citizenID, colony.getID());
+            return;
+        }
 
         // Restart also worker building and AI
         citizen.scheduleRestart(player);

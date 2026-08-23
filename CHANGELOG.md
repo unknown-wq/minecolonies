@@ -9,6 +9,90 @@ Versions below are this port's own numbering, newest first.
 
 ---
 
+## 0.0.58
+
+The restaurant stops ordering food nobody asked for.
+
+The restaurant itself works — on a dedicated server the cook loaded a furnace, pulled cooked beef
+out and fed three starving citizens to full saturation, two served by hand and one self-served from
+the racks. What came out of auditing it are four small defects.
+
+**A dish taken off the menu kept being ordered for ever.** Removing it looked the standing request up
+under the wrong requestable type, so the lookup matched nothing and the order stayed. Nothing else
+revisits it, because the restaurant's tick only iterates dishes still on the menu. Measured: open
+requests went 3 → 3 across a removal before, 3 → 1 after — both the dish and the raw input of its
+smelting recipe are cancelled now, since the tick asks for whichever it happened to draw.
+
+**Rain plus a restaurant whose only tagged seats are outdoors threw inside the eating AI.** The
+citizen's state machine swallowed the exception into the log and the citizen simply never sat down.
+No blueprint shipped with the mod is affected — all thirty restaurant blueprints tag their seats
+`sit` — so this needed a style pack that uses `sit_out`.
+
+**The menu window's customer list never cleared on sync**, so a citizen who moved to another
+restaurant stayed on this one's list until you reconnected, and a restaurant nobody had eaten at yet
+printed `NaN` into the ingredient-consumption tooltip.
+
+**The food-happiness cache was dead.** Its dirty flag was raised and never lowered, so the set behind
+it was rebuilt on every call, several times a second per hungry citizen.
+
+Two things found while auditing are deliberately left alone and written up instead: a restaurant with
+no seat tags at all starves its guests in silence, and the cook walks off to unload after each batch.
+Both are in `26.2/audit/RESTAURANT-AUDIT.md`, along with two hypotheses that measurement disproved —
+stews do not in fact eat their bowls, and the food scorer does not in fact prefer vanilla food.
+
+## 0.0.57
+
+One foreign file no longer wipes the mod's item-matching rules.
+
+**In a large modpack, MineColonies could lose its entire nbt-matching table without saying anything
+you would notice.** `ItemNbtListener` reads `data/<any namespace>/compatibility/*.json` — from every
+namespace on purpose, because that is how another mod ships matching rules for its own items. But
+"compatibility" is a generic folder name, and some mods keep something else entirely there. Warlockery
+does: a JSON object describing tag classifications, where we expect an array.
+
+Parsing that file threw, and the throw escaped the loop over all the files. The listener's very first
+action is to clear the table, so what survived was **nothing**: every rule, ours included, gone until
+the next successful reload. `ItemStackUtils.compareItemStacksIgnoreStackSize` consults that table to
+decide which components matter for a given item, so with it empty the mod silently changes its mind
+about which items count as the same — framed blocks among them.
+
+Found in a crash log sent in from outside, where the reporter's game had no "Read N items" line at
+all. Reproduced here with a purpose-built mod that ships one such file, against the shipped 0.0.55
+jar: the parse failed and the table stayed empty. With this release and the same file present, the
+server reads all 1766 items.
+
+A file that is not an array is now skipped as somebody else's, and any other failure is caught per
+file so one bad entry costs only itself. The "read N items" line moved out of the per-file loop, where
+it printed once per file at warning level with a running count, to one line at the end at info level.
+
+## 0.0.56
+
+The builder finally recognises the framed block you are holding.
+
+**"I have the exact kind of framed block needed for my builder to build the mine, but it won't
+recognize it in the inventory."** Third time this symptom has been chased, and the first time at the
+layer that actually decides. 0.0.54 made the *comparison* lenient — only `texture_data` decides for
+framed blocks now — and that part works: the requirement and the block in your chest do compare
+equal. But the builder's bookkeeping never asks that comparison. Every needed-resource map is keyed
+by the literal string `item.getDescriptionId() + "-" + stack.getComponentsPatch().hashCode()`, so one
+stray component drops the two into different buckets and the builder refuses to keep, count or report
+a block it considers equal. Lenient where it compares, exact where it counts.
+
+The stray components come from the blueprint. A dynamic timber frame carries a full copy of its tile
+entity, because Domum Ornamentum's `DynamicTimberFrameBlockEntity` is the only block entity in that
+mod that stamps `block_entity_data` onto the item — nothing an Architect's Cutter, a loot drop or a
+delivery ever produces has it. And blueprints saved against an older Domum Ornamentum keep texture
+skins for components since removed: the shipped shingle slabs still carry a third `acacia_planks`
+skin that `ShingleSlabBlock` no longer declares, which defeats even the lenient comparison and left
+those slabs simply unsatisfiable. The recorded requirement is now reduced to the shape a player can
+actually hold, at the single point where it is born.
+
+Measured, not argued. Driving the real placement handlers over all 9514 shipped blueprints — 23399
+block-state × tile-entity combinations — and comparing each result against what the real Architect's
+Cutter produces from the same skins gave **2074 mismatches before and 0 after** (1341 timber frames,
+733 shingle slabs). The Miner's hut at levels 3–5 is among the blueprints affected, which is exactly
+where the report came from.
+
 ## 0.0.55
 
 Autopilots respect enemy airspace, and item frames in blueprints ask for the right materials.

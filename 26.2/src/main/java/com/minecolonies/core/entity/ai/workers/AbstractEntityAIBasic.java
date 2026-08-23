@@ -404,7 +404,12 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
           worker == null || worker.getCitizenData() == null ? "(unknown)" : worker.getCitizenData().getName(),
           e);
 
-        worker.getCitizenData().triggerInteraction(new StandardInteraction(Component.translatableEscape(WORKER_AI_EXCEPTION), ChatPriority.BLOCKING));
+        // Guarded for the same reason the line above is: a worker whose data has already gone is exactly the state an
+        // AI exception is most likely to be thrown from, and an NPE raised here would replace the report with itself.
+        if (worker != null && worker.getCitizenData() != null)
+        {
+            worker.getCitizenData().triggerInteraction(new StandardInteraction(Component.translatableEscape(WORKER_AI_EXCEPTION), ChatPriority.BLOCKING));
+        }
 
         try
         {
@@ -420,7 +425,8 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
                 final IJob<?> colonyJob = worker.getCitizenJobHandler().getColonyJob();
                 final String jobName = colonyJob == null ? "null" : colonyJob.getJobRegistryEntry().getTranslationKey();
                 Log.getLogger()
-                  .error("Pausing Citizen " + name + " (" + jobName + ") in colony:" + worker.getCitizenData().getColony().getID() + " at " + workerPosition + " for " + timeout
+                  .error("Pausing Citizen " + name + " (" + jobName + ") in colony:"
+                           + (worker.getCitizenData() == null ? "(unknown)" : worker.getCitizenData().getColony().getID()) + " at " + workerPosition + " for " + timeout
                            + " Seconds because of error:");
             }
             else

@@ -3,6 +3,7 @@ package com.minecolonies.core.network.messages.server.colony.citizen;
 import com.ldtteam.common.network.PlayMessageType;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.IColony;
+import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.colony.buildings.views.AbstractBuildingView;
 import com.minecolonies.core.network.messages.server.AbstractColonyServerMessage;
@@ -65,6 +66,11 @@ public class PauseCitizenMessage extends AbstractColonyServerMessage
     protected void onExecute(final PlayMessageContext ctxIn, final ServerPlayer player, final IColony colony)
     {
         final ICitizenData citizen = colony.getCitizenManager().getCivilian(citizenID);
+        if (citizen == null)
+        {
+            Log.getLogger().warn("PauseCitizenMessage: no citizen {} in colony {}", citizenID, colony.getID());
+            return;
+        }
         citizen.setPaused(!citizen.isPaused());
     }
 }
