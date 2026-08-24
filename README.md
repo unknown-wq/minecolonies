@@ -97,8 +97,7 @@ integrated server ticking well inside its 50 ms budget.
 **The built mod jar lives in [`dist/`](dist/).** One file, nothing else to assemble.
 
 ```
-dist/minecolonies-26.2-0.0.51.jar          72 MB
-dist/minecolonies-26.2-0.0.51.jar.sha256   sha256sum -c to verify
+dist/minecolonies-26.2-0.0.58.jar          44 MB
 ```
 
 The jar carries its three dependencies inside it through Fabric's Jar-in-Jar, and the loader brings
@@ -344,7 +343,7 @@ Domum Ornamentum ──────────────┘
 ```
 mods/
 ├── fabric-api-0.154.2+26.2.jar
-└── minecolonies-26.2-0.0.51.jar
+└── minecolonies-26.2-0.0.58.jar
 ```
 
 3. Launch. In the loaded-mod list, `blockui`, `domum_ornamentum` and `structurize` must appear
@@ -372,39 +371,6 @@ their own repositories first, or point those properties at the jars in their `di
 
 Useful tasks: `runClient`, `runServer`, `runDatagen`, `validateAccessWidener`. Minecraft 26.1+ ships
 unobfuscated, so the build carries **no mappings line**.
-
----
-
-## 🧭 How the port was done
-
-The largest of the four ports by a wide margin: **2051 source files, ~306k lines**, three mod
-dependencies that had to be ported first, and both axes to cross at once — Minecraft 1.21.1 → 26.2
-*and* NeoForge → Fabric. The base is upstream's `version/1.21` branch (NeoForge 21.1.80, Java 21).
-
-- **Nine agents over three waves**, split strictly by file rather than by package, starting from
-  9650 compile errors. The brief every one of them read first is
-  [`26.2/AGENT-BRIEF.md`](26.2/AGENT-BRIEF.md).
-- **Datagen verified against the previous version's output as an oracle** — 5039 files compared one
-  by one, including 3481 generated textures compared by pixel.
-- **The production artefact was tested, not the dev classpath.** The built jar was installed into a
-  real Fabric server (`fabric-installer`, loader 0.19.3, only Fabric API alongside) and booted:
-  `Done (4.421s)!`, zero `/ERROR]` lines, dependencies loading as nested mods.
-- **Then it was played.** Roughly three person-days of hands-on testing on a live client and a
-  dedicated server — colonies founded and grown, huts placed and built, the hut GUIs and module tabs
-  driven by hand, workers followed around, raids called in, and every feature in
-  [*What this port adds*](#-what-this-port-adds) exercised in game. That is where the player-reported
-  bugs in the section after it came from.
-- **Datapacks load for real**: 161 recipes across 16 crafters, 208 researches in 4 branches, 103
-  effects, quests, 1761 items with NBT keys.
-- **The AI subsystem was audited separately** afterwards — `core/entity/ai`, `pathfinding`,
-  `api/entity/ai` — and the audit caught something worth knowing: three "this API has no counterpart
-  on Fabric" comments were **false**, and each had quietly disabled working game logic behind a green
-  build. See [`26.2/AI-AUDIT.md`](26.2/audit/AI-AUDIT.md) and [`26.2/AI-FIXES.md`](26.2/audit/AI-FIXES.md).
-
-The full record is in [`26.2/PORT-STATUS.md`](26.2/PORT-STATUS.md), and the API delta measured against
-this specific codebase — every breaking rename with its real hit count — in
-[`API-CHECKLIST-26.2.md`](API-CHECKLIST-26.2.md). Everything under
-[*What this port adds*](#-what-this-port-adds) came afterwards, once the port itself was green.
 
 ---
 
@@ -468,7 +434,7 @@ Start with [`PORTING-BUNDLE-26.2.md`](https://github.com/unknown-wq/port-kit/blo
 
 ```
 .
-├── dist/                  # release notes; the built jar is published separately
+├── dist/                  # the built jar and its release notes
 ├── 26.2/                  # the Fabric 26.2 port — sources, build, and every document below
 │   ├── PORT-STATUS.md         # what was ported, what was cut, what came back
 │   ├── audit/                 # every audit, and what each one changed
@@ -486,7 +452,6 @@ Start with [`PORTING-BUNDLE-26.2.md`](https://github.com/unknown-wq/port-kit/blo
 │   ├── FARMER-TERRAFORM.md
 │   ├── FIELD-ASSIGNMENT.md
 │   ├── FREEMODE.md
-│   └── plans/                 # five designs awaiting a decision, none implemented
 ├── 1.21.1/                # read-only snapshot of upstream version/1.21 (NeoForge 21.1.80) — the base
 ├── testworlds/            # the 1000-citizen colony and the boat arenas, as server worlds
 ├── docs/screenshots/      # the frames shown above
