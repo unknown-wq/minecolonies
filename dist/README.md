@@ -881,7 +881,7 @@ moves the ones already housed a thousand blocks away. See
 The farmer also **prepares its own ground** now, clearing stone and gravel and laying dirt, never
 touching water. On by default, `farmerpreparesground` turns it off.
 
-`minecolonies-26.2-0.0.51.jar` is a **single installable file**. All three dependencies sit inside
+`minecolonies-26.2-0.0.55.jar` is a **single installable file**. All three dependencies sit inside
 it in `META-INF/jars/`, and the loader brings them up as ordinary mods:
 
 | Nested mod | Version |
@@ -890,15 +890,14 @@ it in `META-INF/jars/`, and the loader brings them up as ordinary mods:
 | `domum_ornamentum` | 26.2-1.0.0 |
 | `structurize` | 26.2-1.0.0 |
 
-| File | `minecolonies-26.2-0.0.51.jar` |
+| File | `minecolonies-26.2-0.0.55.jar` |
 |---|---|
-| Size | 72 MB |
+| Size | 44 MB |
 | Minecraft | 26.2 |
 | Loader | Fabric, loader ≥ 0.19.3 |
 | Java | 25 |
 | Requires | Fabric API 0.154.2+26.2 or newer — nothing else |
 | Environment | client **and** dedicated server |
-| Checksum | `sha256sum -c minecolonies-26.2-0.0.51.jar.sha256` |
 
 ## Installation
 
@@ -907,7 +906,7 @@ Exactly two files go into `mods/`:
 ```
 mods/
 ├── fabric-api-0.154.2+26.2.jar
-└── minecolonies-26.2-0.0.51.jar
+└── minecolonies-26.2-0.0.55.jar
 ```
 
 ### Do not add the three dependencies separately
