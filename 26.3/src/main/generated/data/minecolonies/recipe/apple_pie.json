@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecolonies:durum",
+    "minecolonies:durum",
+    "minecolonies:durum",
+    "minecraft:apple",
+    "minecraft:apple",
+    "minecraft:sugar"
+  ],
+  "result": {
+    "id": "minecolonies:apple_pie"
+  }
+}

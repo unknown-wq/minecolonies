@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": "minecraft:bow",
+    "C": "minecraft:iron_sword",
+    "T": "structurize:sceptergold",
+    "X": "#minecraft:planks"
+  },
+  "pattern": [
+    "XTX",
+    "CXB",
+    "XXX"
+  ],
+  "result": {
+    "id": "minecolonies:blockhutgatehouse"
+  }
+}

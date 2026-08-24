@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": "#minecraft:boats"
+  },
+  "pattern": [
+    "   ",
+    "B B",
+    "BBB"
+  ],
+  "result": {
+    "id": "minecolonies:supplychestdeployer"
+  }
+}

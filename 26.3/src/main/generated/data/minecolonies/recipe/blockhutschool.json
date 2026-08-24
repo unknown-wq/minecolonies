@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": "minecraft:feather",
+    "T": "structurize:sceptergold",
+    "X": "#minecraft:planks"
+  },
+  "pattern": [
+    "XTX",
+    "XBX",
+    "XBX"
+  ],
+  "result": {
+    "id": "minecolonies:blockhutschool"
+  }
+}

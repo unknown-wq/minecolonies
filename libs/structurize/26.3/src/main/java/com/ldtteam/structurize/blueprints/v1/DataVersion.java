@@ -1,0 +1,160 @@
+package com.ldtteam.structurize.blueprints.v1;
+
+import net.minecraft.SharedConstants;
+
+/**
+ * Enum for data
+ */
+public enum DataVersion
+{
+    /*
+     * if adding new values make sure:
+     * - successors match
+     * - upcoming has data version = (latest data version + 1)
+     */
+    UPCOMING(5011 + 1, null, null),
+
+    // TODO(port-26.3): 26.3-snapshot-9 carries world_version 5011 (version.json in the client jar, matching
+    // DetectedVersion#createBuiltIn). Without this entry the chain ended at v26_2 -> UPCOMING(4904), so
+    // DataFixerUtils#runDataFixerCascade walked past the last known version and NPE'd on a null successor
+    // (BlueprintUtilTileEntityFixTest#ordinaryBlockEntitiesStillSurvive), and Structurize#checkDataFixer threw
+    // "Missing some newest data versions" in any dev run because CURRENT resolved to UPCOMING.
+    v26_3(5011, "26.3", UPCOMING),
+
+    // 26.2 data version, /opt/mc-src/net/minecraft/DetectedVersion.java:28. The releases between 1.21.1 and
+    // 26.2 (1.21.2 ... 1.21.11, 26.1.x) are deliberately not listed: this chain only drives the step-by-step
+    // walk in DataFixerUtils, and a blueprint saved by any of them is simply handed to the vanilla data fixer
+    // in one jump, which is what the vanilla fixer does internally anyway.
+    v26_2(4903, "26.2", v26_3),
+
+    v1_21_1(3955, "1.21.1", v26_2),
+    v1_21(3953, "1.21", v1_21_1),
+    v1_20_6(3839, "1.20.6", v1_21),
+    v1_20_5(3837, "1.20.5", v1_20_6),
+    v1_20_4(3700, "1.20.4", v1_20_5),
+    v1_20_3(3698, "1.20.3", v1_20_4),
+    v1_20_2(3578, "1.20.2", v1_20_3),
+    v1_20_1(3465, "1.20.1", v1_20_2),
+    v1_20(3463, "1.20", v1_20_1),
+    v1_19_4(3328, "1.19.4", v1_20),
+    v1_19_3(3218, "1.19.3", v1_19_4),
+    v1_19_2(3120, "1.19.2", v1_19_3),
+    v1_19_1(3117, "1.19.1", v1_19_2),
+    v1_19(3105, "1.19", v1_19_1),
+    v1_18_2(2975, "1.18.2", v1_19),
+    v1_18_1(2865, "1.18.1", v1_18_2),
+    v1_18(2860, "1.18", v1_18_1),
+    v1_17_1(2730, "1.17.1", v1_18),
+    v1_17(2724, "1.17", v1_17_1),
+    v1_16_5(2586, "1.16.5", v1_17),
+    v1_16_4(2584, "1.16.4", v1_16_5),
+    v1_16_3(2580, "1.16.3", v1_16_4),
+    v1_16_2(2578, "1.16.2", v1_16_3),
+    v1_16_1(2567, "1.16.1", v1_16_2),
+    v1_16(2566, "1.16", v1_16_1),
+    v1_15_2(2230, "1.15.2", v1_16),
+    v1_15_1(2227, "1.15.1", v1_15_2),
+    v1_15(2225, "1.15", v1_15_1),
+    v1_14_4(1976, "1.14.4", v1_15),
+    v1_14_3(1968, "1.14.3", v1_14_4),
+    v1_14_2(1963, "1.14.2", v1_14_3),
+    v1_14_1(1957, "1.14.1", v1_14_2),
+    v1_14(1952, "1.14", v1_14_1),
+    v1_13_2(1631, "1.13.2", v1_14),
+    v1_13_1(1628, "1.13.1", v1_13_2),
+    v1_13(1519, "1.13", v1_13_1),
+    // 1466 does not like block entities in it's standalone datafixer type
+    post1466(1467, "post1466", v1_13),
+    pre1466(1465, "pre1466", post1466),
+    v1_12_2(1343, "1.12.2", pre1466),
+    v1_12_1(1241, "1.12.1", v1_12_2),
+    v1_12(1139, "1.12", v1_12_1),
+    v1_11_2(922, "1.11.2", v1_12),
+    v1_11_1(921, "1.11.1", v1_11_2),
+    v1_11(819, "1.11", v1_11_1),
+    v1_10_2(512, "1.10.2", v1_11),
+    v1_10_1(511, "1.10.1", v1_10_2),
+    v1_10(510, "1.10", v1_10_1),
+    v1_9_4(184, "1.9.4", v1_10),
+    v1_9_3(183, "1.9.3", v1_9_4),
+    v1_9_2(176, "1.9.2", v1_9_3),
+    v1_9_1(175, "1.9.1", v1_9_2),
+    v1_9(169, "1.9", v1_9_1),
+    DEFAULT(0, null, v1_9);
+
+    public static final DataVersion CURRENT = findFromDataVersion(SharedConstants.getCurrentVersion().dataVersion().version());
+    private final int dataVersion;
+    private final String mcVersion;
+    private final DataVersion successor;
+
+    private DataVersion(final int dataVersion, final String mcVersion, final DataVersion successor)
+    {
+        this.dataVersion = dataVersion;
+        this.mcVersion = mcVersion;
+        this.successor = successor;
+    }
+
+    /**
+     * @return data version of specific mc version
+     */
+    public int getDataVersion()
+    {
+        return dataVersion;
+    }
+
+    /**
+     * @return mc version as readable string
+     */
+    public String getMcVersion()
+    {
+        return mcVersion;
+    }
+
+    /**
+     * @return mc version as readable string
+     */
+    public DataVersion getSuccessor()
+    {
+        return successor;
+    }
+
+    /**
+     * Find data version based on string in format "x.y.z" which should represent Minecraft release version.
+     * Default is data version "0" which is pre 1.9
+     *
+     * @param mcVersion string in format "x.y.z" representing Minecraft release version
+     * @return data version enum
+     */
+    public static DataVersion findFromMcVersion(final String mcVersion)
+    {
+        if (mcVersion == null)
+        {
+            return DataVersion.DEFAULT;
+        }
+
+        for (final DataVersion ver : DataVersion.values())
+        {
+            if (ver.mcVersion != null && ver.mcVersion.equals(mcVersion))
+            {
+                return ver;
+            }
+        }
+        return DataVersion.DEFAULT;
+    }
+
+    /**
+     * Find data version based on its interger value.
+     *
+     * @param dataVersion integer format of data version
+     * @return dataVersion which is the nearest lower than supplied value
+     */
+    public static DataVersion findFromDataVersion(final int dataVersion)
+    {
+        DataVersion version = DEFAULT;
+        while (version.successor != null && version.successor.dataVersion <= dataVersion)
+        {
+            version = version.successor;
+        }
+        return version;
+    }
+}

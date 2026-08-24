@@ -1,0 +1,17 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/5",
+    "value": "minecolonies:block/item/shears"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/14",
+    "value": "minecolonies:block/entity/chest/normal"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/15",
+    "value": "minecolonies:block/item/bucket"
+  }
+]

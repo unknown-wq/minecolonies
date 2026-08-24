@@ -1,0 +1,207 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:entity/chest/normal",
+      "sprite": "minecolonies:block/entity/chest/normal"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:entity/horse/horse_gray"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:entity/chicken/chicken_temperate"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:entity/armorstand/armorstand"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:entity/piglin/zombified_piglin"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:entity/equipment/humanoid/leather"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:gui/builderhut/builder_paper"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:gui/builderhut/builder_paper_sketch_block"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/arrow",
+      "sprite": "minecolonies:block/item/arrow"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/beetroot",
+      "sprite": "minecolonies:block/item/beetroot"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/bread",
+      "sprite": "minecolonies:block/item/bread"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/brick",
+      "sprite": "minecolonies:block/item/brick"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/bucket",
+      "sprite": "minecolonies:block/item/bucket"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/carrot",
+      "sprite": "minecolonies:block/item/carrot"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/clay_ball",
+      "sprite": "minecolonies:block/item/clay_ball"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/diamond_pickaxe",
+      "sprite": "minecolonies:block/item/diamond_pickaxe"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/egg",
+      "sprite": "minecolonies:block/item/egg"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/feather",
+      "sprite": "minecolonies:block/item/feather"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/iron_pickaxe",
+      "sprite": "minecolonies:block/item/iron_pickaxe"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/netherite_pickaxe",
+      "sprite": "minecolonies:block/item/netherite_pickaxe"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/rotten_flesh",
+      "sprite": "minecolonies:block/item/rotten_flesh"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/salmon",
+      "sprite": "minecolonies:block/item/salmon"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:item/scarecrow",
+      "sprite": "minecolonies:block/item/scarecrow"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/shears",
+      "sprite": "minecolonies:block/item/shears"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/string",
+      "sprite": "minecolonies:block/item/string"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/tropical_fish",
+      "sprite": "minecolonies:block/item/tropical_fish"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/slot0"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/slot1"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/slot2"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/slot3"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/slot4"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/slot5"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/slot6"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/slot7"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/surface0"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/surface1"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/surface2"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/surface3"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/surface4"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/surface5"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/surface6"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:misc/rack_empty",
+      "sprite": "minecolonies:block/rack/surface7"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "modifier": [
+            {
+              "type": "minecraft:copy_components",
+              "include": [
+                "domum_ornamentum:texture_data"
+              ],
+              "source": "block_entity"
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "domum_ornamentum:vanilla_slab_compat",
+                "state": {
+                  "type": "double"
+                }
+              },
+              "count": 2.0
+            }
+          ],
+          "name": "domum_ornamentum:vanilla_slab_compat"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}

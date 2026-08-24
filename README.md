@@ -1,11 +1,24 @@
+> [!IMPORTANT]
+> **Эта ветка — порт на Minecraft 26.3-snapshot-9.** Не на релиз: 26.3 ещё не вышел, снапшоты
+> идут примерно раз в неделю, pre-release и release candidate на момент порта не появлялись.
+> База может уехать под ногами.
+>
+> Состояние: компилируется целиком (477 ошибок по четырём проектам → 0), `runDatagen` и `build`
+> зелёные, сервер загружается, клиент запускается. Что при этом **не** проверено и какая
+> деградация открыта — в [PR #10](https://github.com/unknown-wq/minecolonies-fabric/pull/10),
+> подробности по версии — в `API-CHECKLIST-26.3.md`, `CONTENT-CHANGES-26.3.md` и
+> `PORT-PLAN-26.3.md`.
+>
+> Всё остальное в этом README описывает мод как таковой и одинаково верно для 26.2 и 26.3.
+
 <h1 align="center">
   <img src="26.2/src/main/resources/minecolonies_logo.png" alt="MineColonies logo" width="200">
   <br>
-  MineColonies — Fabric port for Minecraft 26.2
+  MineColonies — Fabric port for Minecraft 26.3-snapshot-9
 </h1>
 
 <p align="center">
-  <b>Build and run a colony in Minecraft 26.2 on the Fabric loader.</b><br>
+  <b>Build and run a colony in Minecraft 26.3 on the Fabric loader.</b><br>
   Builders, farmers, guards, research, quests and hundreds of workers — an unofficial community port
   of <a href="https://github.com/ldtteam/minecolonies">LDTTeam's MineColonies</a> from NeoForge to Fabric,
   shipped as a single jar with its three library mods bundled inside.<br>
@@ -16,9 +29,9 @@
 </p>
 
 <p align="center">
-  <img alt="Minecraft 26.2" src="https://img.shields.io/badge/Minecraft-26.2-brightgreen?style=for-the-badge">
+  <img alt="Minecraft 26.3-snapshot-9" src="https://img.shields.io/badge/Minecraft-26.3--snapshot--9-yellow?style=for-the-badge">
   <img alt="Fabric" src="https://img.shields.io/badge/Loader-Fabric%200.19.3-1976d2?style=for-the-badge">
-  <img alt="Fabric API" src="https://img.shields.io/badge/Fabric%20API-0.154.2%2B26.2-1976d2?style=for-the-badge">
+  <img alt="Fabric API" src="https://img.shields.io/badge/Fabric%20API-0.158.0%2B26.3-1976d2?style=for-the-badge">
   <img alt="Java 25" src="https://img.shields.io/badge/Java-25-orange?style=for-the-badge">
   <img alt="License GPL-3.0" src="https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge">
 </p>

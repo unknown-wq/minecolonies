@@ -1,0 +1,638 @@
+package com.minecolonies.core.entity.ai.workers.guard;
+
+import com.google.common.base.Suppliers;
+import com.minecolonies.api.colony.jobs.ModJobs;
+import com.minecolonies.api.compatibility.tinkers.TinkersToolHelper;
+import com.minecolonies.api.entity.ai.combat.CombatAIStates;
+import com.minecolonies.api.entity.ai.combat.threat.IThreatTableEntity;
+import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
+import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.ITickRateStateMachine;
+import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickingTransition;
+import com.minecolonies.api.entity.citizen.Skill;
+import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
+import com.minecolonies.api.equipment.ModEquipmentTypes;
+import com.minecolonies.api.equipment.registry.EquipmentTypeEntry;
+import com.minecolonies.api.util.DamageSourceKeys;
+import com.minecolonies.api.util.InventoryUtils;
+import com.minecolonies.api.util.ItemStackUtils;
+import com.minecolonies.api.util.SoundUtils;
+import com.minecolonies.api.util.Utils;
+import com.minecolonies.api.util.constant.ColonyConstants;
+import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.MineColonies;
+import com.minecolonies.core.colony.jobs.AbstractJobGuard;
+import com.minecolonies.core.entity.ai.combat.AttackMoveAI;
+import com.minecolonies.core.entity.ai.combat.CombatUtils;
+import com.minecolonies.core.entity.citizen.EntityCitizen;
+import com.minecolonies.core.entity.pathfinding.navigation.EntityNavigationUtils;
+import com.minecolonies.core.entity.pathfinding.pathresults.PathResult;
+import com.minecolonies.core.items.ItemSpear;
+import com.minecolonies.core.util.citizenutils.CitizenItemUtils;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
+import net.minecraft.resources.Identifier;
+
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.component.AttackRange;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
+
+import java.util.List;
+
+import static com.minecolonies.api.research.util.ResearchConstants.*;
+import static com.minecolonies.api.util.constant.GuardConstants.*;
+import static com.minecolonies.api.util.constant.StatisticsConstants.MOBS_KILLED;
+import static com.minecolonies.api.util.constant.StatisticsConstants.MOB_KILLED;
+import static com.minecolonies.core.colony.buildings.modules.BuildingModules.STATS_MODULE;
+import static com.minecolonies.core.entity.ai.BehaviourStateGroup.GUARD_ABORT_AND_FIGHT;
+import static com.minecolonies.core.entity.ai.workers.guard.AbstractEntityAIFight.SPEED_LEVEL_BONUS;
+import static com.minecolonies.core.entity.ai.workers.guard.AbstractEntityAIGuard.PATROL_DEVIATION_RAID_POINT;
+
+/**
+ * Knight combat AI
+ */
+public class MeleeCombatAI extends AttackMoveAI<EntityCitizen>
+{
+    /**
+     * Combat icon
+     */
+    private final static VisibleCitizenStatus KNIGHT_COMBAT =
+      new VisibleCitizenStatus(Identifier.fromNamespaceAndPath(Constants.MOD_ID, "textures/icons/work/knight_combat.png"), "com.minecolonies.gui.visiblestatus.knight_combat");
+
+    /**
+     * Knockback chance
+     */
+    private static final int                   KNOCKBACK_CHANCE = 5;
+    private final        AbstractEntityAIGuard parentAI;
+
+    /**
+     * Last used time of the aoe ability
+     */
+    private long lastAoeUseTime = 0;
+
+    /**
+     * Cooldown for the Aoe knockback in ticks
+     */
+    private final int KNOCKBACK_COOLDOWN = 30 * 8;
+
+    /**
+     * Minimum time needed to next attack to use the shield
+     */
+    private final int MIN_TIME_TO_ATTACK = 8;
+
+    /**
+     * The value of the speed which the guard will move.
+     */
+    private static final double COMBAT_SPEED = 1.0;
+
+    /**
+     * The reach profile vanilla puts on every one of its spears, used for spears that carry none of their own.
+     * Resolved once and lazily, because item stacks cannot be built while the registries are still loading.
+     */
+    private static final com.google.common.base.Supplier<AttackRange> VANILLA_SPEAR_RANGE = Suppliers.memoize(
+      () -> new ItemStack(Items.IRON_SPEAR).getOrDefault(DataComponents.ATTACK_RANGE,
+        new AttackRange(2.0F, 4.5F, 2.0F, 6.5F, 0.125F, 0.5F)));
+
+    public MeleeCombatAI(
+      final EntityCitizen owner,
+      final ITickRateStateMachine stateMachine,
+      final AbstractEntityAIGuard parentAI)
+    {
+        super(owner, stateMachine);
+
+        this.parentAI = parentAI;
+        stateMachine.addTransition(new TickingTransition<>(CombatAIStates.ATTACKING, () -> true, this::attackProtect, 8));
+        stateMachine.addTransitionGroup(GUARD_ABORT_AND_FIGHT, new TickingTransition(this::checkForTarget, () -> CombatAIStates.ATTACKING, 5).withName("busy_checkTarget"));
+        stateMachine.addTransitionGroup(GUARD_ABORT_AND_FIGHT, new TickingTransition(this::searchNearbyTarget, () -> CombatAIStates.ATTACKING, 80).withName("busy_searchTarget"));
+    }
+
+    /**
+     * Check if the guard can protect himself with a shield And if so, do it.
+     *
+     * @return The next IAIState.
+     */
+    protected IAIState attackProtect()
+    {
+        final int shieldSlot = InventoryUtils.findFirstSlotInItemHandlerWith(user.getInventoryCitizen(), Items.SHIELD);
+        if (!isHuscarl() && shieldSlot != -1 && target != null && target.isAlive() && nextAttackTime - user.level().getGameTime() >= MIN_TIME_TO_ATTACK &&
+              user.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(SHIELD_USAGE) > 0)
+        {
+            CitizenItemUtils.setHeldItem(user, InteractionHand.OFF_HAND, shieldSlot);
+            user.startUsingItem(InteractionHand.OFF_HAND);
+
+            // Apply the colony Flag to the shield
+            ItemStack shieldStack = user.getInventoryCitizen().getHeldItem(InteractionHand.OFF_HAND);
+            if (!shieldStack.getOrDefault(DataComponents.BANNER_PATTERNS, BannerPatternLayers.EMPTY).equals(user.getCitizenData().getColony().getColonyFlag()))
+            {
+                shieldStack.set(DataComponents.BANNER_PATTERNS, user.getCitizenData().getColony().getColonyFlag());
+                user.getInventoryCitizen().markDirty();
+            }
+            user.lookAt(target, (float) TURN_AROUND, (float) TURN_AROUND);
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if is a huscarl instance.
+     * @return true if so.
+     */
+    public boolean isHuscarl()
+    {
+        return parentAI.getJob().getJobRegistryEntry() == ModJobs.huscarl.get();
+    }
+
+    /**
+     * Checks if the guard has a weapon to attack with.
+     * 
+     * @return true if the guard can attack, false otherwise.
+     */
+    @Override
+    public boolean canAttack()
+    {
+        EquipmentTypeEntry tool = getWeaponType();
+
+        final int weaponSlot =
+          InventoryUtils.getFirstSlotOfItemHandlerContainingEquipment(user.getInventoryCitizen(),
+            tool,
+            0,
+            user.getCitizenData().getWorkBuilding().getMaxEquipmentLevel());
+
+        if (weaponSlot != -1)
+        {
+            CitizenItemUtils.setHeldItem(user, InteractionHand.MAIN_HAND, weaponSlot);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Gets the weapon type that the AI will look for when checking if it can attack.
+     * <p>
+     * A huscarl is an axeman and a knight is a swordsman, but a knight who is carrying a spear is a spearman: the
+     * hut-level decision of what to arm him with lives in {@code EntityAIMelee#getToolsNeeded}, and this only has to
+     * agree with what actually ended up in his pack. Answering "sword" for a guard whose pack holds nothing but a
+     * spear would make {@link #canAttack()} fail and the guard would refuse to fight at all.
+     *
+     * @return the weapon type.
+     */
+    public EquipmentTypeEntry getWeaponType()
+    {
+        if (isHuscarl())
+        {
+            return ModEquipmentTypes.axe.get();
+        }
+
+        final EquipmentTypeEntry spear = ModEquipmentTypes.spear.get();
+        if (InventoryUtils.getFirstSlotOfItemHandlerContainingEquipment(user.getInventoryCitizen(),
+          spear,
+          0,
+          user.getCitizenData().getWorkBuilding().getMaxEquipmentLevel()) != -1)
+        {
+            return spear;
+        }
+
+        return ModEquipmentTypes.sword.get();
+    }
+
+    /**
+     * Whether the guard currently has a spear in his main hand.
+     *
+     * @return true if so.
+     */
+    protected boolean isUsingSpear()
+    {
+        return ItemStackUtils.isSpear(user.getItemInHand(InteractionHand.MAIN_HAND));
+    }
+
+    /**
+     * Whether this guard should fight with a spearman's footwork rather than a swordsman's.
+     * <p>
+     * Deliberately false while mounted. Cavalry already carries a spear and already has its own reach and damage
+     * treatment ({@code CavalryCombatAI}); a mounted unit's charge is the horse's, and re-tuning mounted combat is
+     * not part of teaching foot guards to use a spear. A cavalryman who ends up on foot does get the footwork.
+     *
+     * @return true if the spear footwork applies.
+     */
+    protected boolean usesSpearFootwork()
+    {
+        return !user.isPassenger() && isUsingSpear();
+    }
+
+    /**
+     * The reach profile of the spear in hand.
+     * <p>
+     * Vanilla writes the same {@code ATTACK_RANGE} onto all seven of its spears from {@code Item.Properties#spear},
+     * so it is read off a plain iron spear rather than copied as literals here, and it stays right if vanilla
+     * retunes it. The mod's own {@code ItemSpear} predates data components and carries no such profile; treating it
+     * as an ordinary spear is more honest than inventing a second set of numbers for it.
+     *
+     * @return the attack range profile to reason about.
+     */
+    private AttackRange getSpearRange()
+    {
+        final AttackRange range = user.getItemInHand(InteractionHand.MAIN_HAND).get(DataComponents.ATTACK_RANGE);
+        return range != null ? range : VANILLA_SPEAR_RANGE.get();
+    }
+
+    /**
+     * The distance at which the spear in hand can be brought to bear, in the same
+     * centre-to-centre units {@link #getAttackDistance()} works in.
+     * <p>
+     * {@code effectiveMaxRange} already halves the player's 4.5 to 2.25 for a non-player wielder. That figure is a
+     * reach measured from the eyes to the target's hitbox, so the guard's own width is added to compare it against a
+     * centre-to-centre distance.
+     *
+     * @return the maximum striking distance.
+     */
+    protected double getSpearReach()
+    {
+        return getSpearRange().effectiveMaxRange(user) + user.getBbWidth();
+    }
+
+    /**
+     * The dead zone of the spear in hand: closer than this the shaft is across the target and the thrust is wasted.
+     * <p>
+     * This is the whole mechanical reason a spearman must not stand in the grinder like a swordsman, and it is not
+     * invented here -- it is {@code AttackRange#minReach}, which vanilla sets to 2.0 on every spear (1.0 once the
+     * non-player factor is applied, ~1.6 once converted to centre-to-centre distance).
+     *
+     * @return the minimum striking distance.
+     */
+    protected double getSpearDeadZone()
+    {
+        return getSpearRange().effectiveMinRange(user) + user.getBbWidth();
+    }
+
+    /**
+     * Back away from a target, keeping it in sight the whole way.
+     *
+     * @param target the target to give ground to.
+     */
+    private void giveGround(final LivingEntity target)
+    {
+        EntityNavigationUtils.walkAwayFrom(user, target.blockPosition(), SPEAR_STEP_BACK_DISTANCE, getCombatMovementSpeed());
+        user.lookAt(target, (float) TURN_AROUND, (float) TURN_AROUND);
+        user.getLookControl().setLookAt(target, (float) TURN_AROUND, (float) TURN_AROUND);
+    }
+
+    /**
+     * For a spearman "in position" is a band, not a ceiling: too close is as wrong as too far.
+     * <p>
+     * That single change is what turns the inherited machinery into spear footwork without a second state machine.
+     * {@code AttackMoveAI#move} re-paths whenever the guard is not in position, and {@link #moveInAttackPosition}
+     * below reads "not in position" as "back off" when the target is inside the point of the spear; the same answer
+     * reaches {@code isInDistanceForAttack}, so a guard with a target hanging off his chest does not swing at it, he
+     * steps back and then thrusts.
+     *
+     * @param target the target.
+     * @return whether the guard is at a distance from which he can fight.
+     */
+    @Override
+    protected boolean isInAttackDistance(final LivingEntity target)
+    {
+        if (usesSpearFootwork())
+        {
+            final double distance = user.distanceTo(target);
+            return distance <= getAttackDistance() && distance >= getSpearDeadZone();
+        }
+
+        return super.isInAttackDistance(target);
+    }
+
+    @Override
+    protected void doAttack(final LivingEntity target)
+    {
+        // A swordsman takes the last step into his target on every swing. A spearman must not: closing that gap is
+        // precisely what he spends the rest of his footwork undoing, and doing both would leave him jammed against
+        // the target with the spear inside its own dead zone. He is brought into range by the ordinary approach.
+        if (!usesSpearFootwork() && user.distanceTo(target) > 1)
+        {
+            moveInAttackPosition(target);
+        }
+
+        user.swingForAttack(InteractionHand.MAIN_HAND);
+        user.playSound(isUsingSpear() ? SoundEvents.SPEAR_ATTACK.value() : SoundEvents.PLAYER_ATTACK_SWEEP,
+          (float) BASIC_VOLUME,
+          (float) SoundUtils.getRandomPitch(user.getRandom()));
+
+        final double damageToBeDealt = getAttackDamage();
+        DamageSource source = target.level().damageSources().source(DamageSourceKeys.GUARD, user);
+        if (MineColonies.getConfig().getServer().pvp_mode.get() && target instanceof Player)
+        {
+            source = target.level().damageSources().source(DamageSourceKeys.GUARD_PVP, user);
+        }
+
+        final int fireLevel = EnchantmentHelper.getItemEnchantmentLevel(Utils.getRegistryValue(Enchantments.FIRE_ASPECT, user.level()), user.getItemInHand(InteractionHand.MAIN_HAND));
+        if (fireLevel > 0)
+        {
+            target.setRemainingFireTicks(fireLevel * 4 * 20);
+        }
+
+        if (user.level().getGameTime() - lastAoeUseTime > KNOCKBACK_COOLDOWN)
+        {
+            doAoeAttack(source, damageToBeDealt);
+        }
+
+        if (isHuscarl())
+        {
+            double share = (50 + user.getCitizenData().getCitizenSkillHandler().getLevel(Skill.Adaptability) / 2.0) / 100.0;
+            target.hurt(target.level().damageSources().source(DamageSourceKeys.PIERCE, user), (float) damageToBeDealt * (float) share);
+            target.hurt(source, (float) damageToBeDealt * (float) (1.0 - share));
+        }
+        else
+        {
+            target.hurt(source, (float) damageToBeDealt);
+        }
+
+        target.setLastHurtByMob(user);
+
+        if (target instanceof Mob && user.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(KNIGHT_TAUNT) > 0)
+        {
+            ((Mob) target).setTarget(user);
+            if (target instanceof IThreatTableEntity)
+            {
+                ((IThreatTableEntity) target).getThreatTable().addThreat(user, 5);
+            }
+        }
+
+        user.stopUsingItem();
+        user.getCitizenData().setVisibleStatus(getCombatStatus());
+        CitizenItemUtils.damageItemInHand(user, InteractionHand.MAIN_HAND, 1);
+
+        // The recoil step. Vanilla's spear users disengage after every engagement (SpearRetreat), and it is the
+        // half of "using a spear" that a swordsman does not do: thrust, then get back out of the other man's reach
+        // rather than standing there to trade. It costs almost no damage output, because it happens during the
+        // attack cooldown the guard would have spent standing still, and it ends barely outside his own reach --
+        // so the next thrust lands as soon as the cooldown is up or as soon as the target follows him in.
+        if (usesSpearFootwork())
+        {
+            giveGround(target);
+        }
+    }
+
+    /**
+     * Gets the visible status of the guard when in combat.
+     *
+     * @return The visible status when in combat.
+     */
+    protected VisibleCitizenStatus getCombatStatus()
+    {
+        return KNIGHT_COMBAT;
+    }
+
+    /**
+     * Does an aoe attack if researched
+     *
+     * @param source          normal attack damage source
+     * @param damageToBeDealt normal attack damage to be distributed to targets
+     */
+    private void doAoeAttack(final DamageSource source, final double damageToBeDealt)
+    {
+        if (user.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(KNIGHT_WHIRLWIND) > 0
+              && user.getRandom().nextInt(KNOCKBACK_CHANCE) == 0)
+        {
+            List<LivingEntity> entities = user.level().getEntitiesOfClass(LivingEntity.class, user.getBoundingBox().inflate(2.0D, 0.5D, 2.0D));
+            for (LivingEntity livingentity : entities)
+            {
+                if (livingentity != user && isEntityValidTarget(livingentity) && (!(livingentity instanceof ArmorStand)))
+                {
+                    final float splitDamage = (float) (damageToBeDealt / entities.size());
+                    livingentity.knockback(
+                      2F,
+                      Mth.sin(livingentity.getYRot() * ((float) Math.PI)),
+                      (-Mth.cos(livingentity.getYRot() * ((float) Math.PI))),
+                      source,
+                      splitDamage);
+                    livingentity.hurt(source, splitDamage);
+                }
+            }
+
+            user.level().playSound(null,
+              user.getX(),
+              user.getY(),
+              user.getZ(),
+              SoundEvents.PLAYER_ATTACK_SWEEP,
+              user.getSoundSource(),
+              1.0F,
+              1.0F);
+
+            double d0 = (double) (-Mth.sin(user.getYRot() * ((float) Math.PI / 180)));
+            double d1 = (double) Mth.cos(user.getYRot() * ((float) Math.PI / 180));
+            if (user.level() instanceof ServerLevel serverLevel)
+            {
+                serverLevel.sendParticles(ParticleTypes.SWEEP_ATTACK,
+                  user.getX() + d0,
+                  user.getY(0.5D),
+                  user.getZ() + d1,
+                  2,
+                  d0,
+                  0.0D,
+                  d1,
+                  0.0D);
+            }
+
+            lastAoeUseTime = user.level().getGameTime();
+        }
+    }
+
+    /**
+     * Calculates the damage to deal
+     *
+     * @return attack damage
+     */
+    protected double getAttackDamage()
+    {
+        double addDmg = 0;
+
+        final ItemStack heldItem = user.getItemInHand(InteractionHand.MAIN_HAND);
+
+        if (ItemStackUtils.doesItemServeAsWeapon(heldItem))
+        {
+            if (heldItem.is(ItemTags.SWORDS))
+            {
+                addDmg += user.getAttribute(Attributes.ATTACK_DAMAGE).getValue();
+            }
+            else if (heldItem.getItem() instanceof ItemSpear)
+            {
+                addDmg += ((ItemSpear) heldItem.getItem()).getDamage() + BASE_PHYSICAL_DAMAGE;
+            }
+            else if (heldItem.is(ItemTags.SPEARS))
+            {
+                // Vanilla spears used to land in the Tinkers' fall-through below and score zero, because
+                // doesItemServeAsWeapon did not know about them either -- so a guard with a vanilla spear hit for
+                // nothing but research bonuses. Read the item's own ATTACK_DAMAGE modifier, the same way the axe
+                // branch below does: a vanilla spear carries only its material bonus there (0 for wood and gold
+                // through 4 for netherite), because vanilla means the rest of a spear's damage to come out of the
+                // charge, which a colony guard does not do. Adding BASE_PHYSICAL_DAMAGE puts an iron spear at 5 and
+                // a netherite one at 7, next to the mod's own spear at 6 and a netherite sword at about 10: a
+                // spearman trades damage for standing outside his target's reach.
+                addDmg += heldItem.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY)
+                            .compute(Attributes.ATTACK_DAMAGE, 0.0D, EquipmentSlot.MAINHAND) + BASE_PHYSICAL_DAMAGE;
+            }
+            else if (heldItem.is(ItemTags.AXES)) // 26.3: AxeItem class removed (tools are data components now); the sibling branch above already tags by ItemTags.SWORDS.
+            {
+                // PORT-NOTE(26.2): upstream 1.21.1 reads `heldItem.getItem().getDamage(heldItem)` here. That is
+                // NeoForge's IItemExtension#getDamage, which returns ItemStack#getDamageValue() -- how much
+                // *durability the axe has spent*, not how hard it hits. So upstream adds the axe's wear to the
+                // huscarl's damage, and CitizenItemUtils#damageItemInHand raises that wear by one on every swing.
+                //
+                // Measured on the running server (GUARD-AUDIT.md 4.1), damage per swing before the crit and
+                // research terms, BASE_PHYSICAL_DAMAGE = 3:
+                //
+                //   axe          this port   upstream 1.21.1 (fresh .. worn out)
+                //   wooden        9           3 ..   62
+                //   stone/iron   11           3 ..  253
+                //   diamond      11           3 .. 1564
+                //   netherite    12           3 .. 2034
+                //
+                // For scale: a knight with a netherite sword measured 10.0 on the same stand. So upstream's
+                // huscarl starts weaker than a bare-handed citizen and ends able to one-shot anything in the
+                // game, purely as a function of how scratched his axe is. This is a bug fix, not a rebalance,
+                // and it is deliberately not reverted -- but it *is* a divergence from upstream, which is why
+                // it is written down here rather than left silent.
+                addDmg += heldItem.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY)
+                            .compute(Attributes.ATTACK_DAMAGE, 0.0D, EquipmentSlot.MAINHAND) + BASE_PHYSICAL_DAMAGE;
+            }
+            else
+            {
+                addDmg += TinkersToolHelper.getDamage(heldItem);
+            }
+            addDmg += EnchantmentHelper.modifyDamage((ServerLevel) user.level(), heldItem, target, user.level().damageSources().mobAttack(user), (float) addDmg);
+        }
+
+        addDmg += user.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(MELEE_DAMAGE);
+
+        // TODO: Recheck balancing, do we need this
+        if (user.getHealth() <= user.getMaxHealth() * 0.2D)
+        {
+            addDmg *= 2;
+        }
+
+        if (ColonyConstants.rand.nextDouble() > 1 / (1 + user.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(GUARD_CRIT)))
+        {
+            addDmg *= 1.5;
+            ((ServerLevel) user.level()).getChunkSource().sendToTrackingPlayersAndSelf(user, new ClientboundAnimatePacket(target, 4));
+        }
+
+        return addDmg * MineColonies.getConfig().getServer().guardDamageMultiplier.get();
+    }
+
+    @Override
+    protected double getAttackDistance()
+    {
+        return usesSpearFootwork() ? getSpearReach() : MAX_DISTANCE_FOR_ATTACK;
+    }
+
+    @Override
+    protected int getAttackDelay()
+    {
+        // TODO: Not sure if we should make knights attack faster, they are intended to not scale in dmg, but health
+        final int reload = KNIGHT_ATTACK_DELAY_BASE - user.getCitizenData().getCitizenSkillHandler().getLevel(Skill.Adaptability) / (isHuscarl() ? 2 : 3);
+        return Math.max(reload, KNIGHT_ATTACK_DELAY_MIN);
+    }
+
+    @Override
+    protected PathResult moveInAttackPosition(final LivingEntity target)
+    {
+        // The archer already answers "get into position" with "get away from it" when the target is on top of him
+        // (RangeCombatAI#moveInAttackPosition); a spearman has the same problem in miniature and the same answer.
+        if (usesSpearFootwork() && user.distanceTo(target) < getSpearDeadZone())
+        {
+            giveGround(target);
+            return user.getNavigation().getPathResult();
+        }
+
+        EntityNavigationUtils.walkToPos(user, target.blockPosition(), (int) getAttackDistance(), false, getCombatMovementSpeed());
+        return user.getNavigation().getPathResult();
+    }
+
+    /**
+     * Get combat speed
+     *
+     * @return movent speed
+     */
+    protected double getCombatMovementSpeed()
+    {
+        double levelAdjustment = user.getCitizenData().getCitizenSkillHandler().getLevel(Skill.Adaptability) * SPEED_LEVEL_BONUS;
+        levelAdjustment += (user.getCitizenData().getWorkBuilding().getBuildingLevelEquivalent() - 1) * SPEED_LEVEL_BONUS;
+
+        levelAdjustment = Math.min(levelAdjustment, 0.3);
+        return COMBAT_SPEED + levelAdjustment;
+    }
+
+    @Override
+    protected boolean isAttackableTarget(final LivingEntity entity)
+    {
+        return AbstractEntityAIGuard.isAttackableTarget(user, entity);
+    }
+
+    @Override
+    protected boolean isWithinPersecutionDistance(final LivingEntity target)
+    {
+        return parentAI.isWithinPersecutionDistance(target.blockPosition(), getAttackDistance());
+    }
+
+    @Override
+    protected boolean skipSearch(final LivingEntity entity)
+    {
+        // Found a sleeping guard nearby
+        if (entity instanceof EntityCitizen)
+        {
+            final EntityCitizen citizen = (EntityCitizen) entity;
+            if (citizen.getCitizenJobHandler().getColonyJob() instanceof AbstractJobGuard && ((AbstractJobGuard<?>) citizen.getCitizenJobHandler().getColonyJob()).isAsleep()
+                  && user.getSensing().hasLineOfSight(citizen))
+            {
+                parentAI.setWakeCitizen(citizen);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    protected void onTargetChange(final LivingEntity newTarget)
+    {
+        super.onTargetChange(newTarget);
+        CombatUtils.notifyGuardsOfTarget(user, target, PATROL_DEVIATION_RAID_POINT);
+    }
+
+    @Override
+    protected int getSearchRange()
+    {
+        return 16;
+    }
+
+    @Override
+    protected void onTargetDied(final LivingEntity entity)
+    {
+        parentAI.incrementActionsDone();
+        user.getCitizenExperienceHandler().addExperience(EXP_PER_MOB_DEATH);
+        user.getCitizenColonyHandler().getColonyOrRegister().getStatisticsManager().increment(MOBS_KILLED, user.getCitizenColonyHandler().getColonyOrRegister().getDay());
+        if (entity.getType().getDescription().getContents() instanceof TranslatableContents translatableContents)
+        {
+            parentAI.building.getModule(STATS_MODULE).increment(MOB_KILLED + ";" + translatableContents.getKey());
+        }
+        user.decreaseSaturationForContinuousAction();
+    }
+}

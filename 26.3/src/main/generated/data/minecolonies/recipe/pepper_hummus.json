@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecolonies:bell_pepper",
+    "minecolonies:bell_pepper",
+    "minecolonies:garlic",
+    "minecolonies:onion",
+    "minecolonies:chickpea",
+    "minecolonies:chickpea"
+  ],
+  "result": {
+    "count": 2,
+    "id": "minecolonies:pepper_hummus"
+  }
+}

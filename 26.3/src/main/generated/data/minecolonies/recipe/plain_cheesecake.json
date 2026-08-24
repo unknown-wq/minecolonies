@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecolonies:creamcheese",
+    "minecolonies:creamcheese",
+    "minecolonies:durum",
+    "minecolonies:butter",
+    "minecraft:sugar",
+    "minecraft:egg",
+    "minecraft:egg"
+  ],
+  "result": {
+    "id": "minecolonies:plain_cheesecake"
+  }
+}

@@ -1,0 +1,29 @@
+accessWidener	v2	official
+
+# Namespace is "official" because 26.1+ ships unobfuscated with Mojang names, so member paths are
+# written exactly as they appear in the class files.
+#
+# This file is only half of the job: Loom applies it at compile time via `accessWidenerPath` in
+# build.gradle, and the loader applies it at runtime only because fabric.mod.json names it under
+# "accessWidener". A dev run works with just the first half, so both have to be kept in step.
+#
+# Modifiers below were read from the untouched jar
+# (~/.gradle/caches/fabric-loom/26.2/minecraft-merged.jar), not from a decompiled dump: the dump has
+# the fabric-transitive-access-wideners-v1 tweaker already applied to it and reports several
+# non-public members as public.
+
+# --- datagen: datagen/utils/ModelCollector ------------------------------------------------------
+# The façade writes generated blockstates, block models and item models straight into vanilla's
+# BlockModelGenerators sinks, because 26.2 exposes no other way to reach them: the three fields are
+# private final and BlockModelGenerators has no accessors for them. Read only, so `accessible`
+# alone is enough — the fields are never reassigned, which is what `mutable` would be for.
+accessible	field	net/minecraft/client/data/models/BlockModelGenerators	blockStateOutput	Ljava/util/function/Consumer;
+accessible	field	net/minecraft/client/data/models/BlockModelGenerators	itemModelOutput	Lnet/minecraft/client/data/models/ItemModelOutput;
+accessible	field	net/minecraft/client/data/models/BlockModelGenerators	modelOutput	Ljava/util/function/BiConsumer;
+
+# --- deliberately NOT listed --------------------------------------------------------------------
+# MenuScreens#register(MenuType, ScreenConstructor)          (private static)
+# MenuType#<init>(MenuSupplier, FeatureFlagSet)              (private)
+# Both are used by the mod and both are non-public in vanilla, but both are already widened by
+# fabric-transitive-access-wideners-v1, which declares its own tweaker in its fabric.mod.json and is
+# therefore applied at runtime too. Repeating them here would be harmless but misleading.

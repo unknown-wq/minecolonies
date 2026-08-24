@@ -1,0 +1,72 @@
+package com.minecolonies.core.network.messages.client;
+
+import com.ldtteam.common.network.AbstractClientPlayMessage;
+import com.ldtteam.common.network.PlayMessageType;
+import com.minecolonies.api.util.Utils;
+import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.client.assetfetch.AssetFetchGate;
+import com.minecolonies.core.client.gui.townhall.WindowTownHallCantCreateColony;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.entity.player.Player;
+import com.ldtteam.common.network.PlayMessageContext;
+
+/**
+ * Message to open the colony founding covenant.
+ */
+public class OpenCantFoundColonyWarningMessage  extends AbstractClientPlayMessage
+{
+    public static final PlayMessageType<?> TYPE = PlayMessageType.forClient(Constants.MOD_ID, "open_cant_found_colony_warning", OpenCantFoundColonyWarningMessage::new);
+
+    /**
+     * Colony pos at which we are trying to place.
+     */
+    private BlockPos townHallPos;
+
+    /**
+     * Warning message to display why colony creation is not possible.
+     */
+    private Component warningMessageTranslationKey;
+
+    /**
+     * If we need to set the config setting tooltip.
+     */
+    private boolean displayConfigTooltip;
+
+    /**
+     * Default constructor
+     **/
+    public OpenCantFoundColonyWarningMessage(RegistryFriendlyByteBuf buf, final PlayMessageType<?> type)
+    {
+        super(type);
+        this.warningMessageTranslationKey = Utils.deserializeCodecMess(ComponentSerialization.STREAM_CODEC, buf);
+        this.townHallPos = buf.readBlockPos();
+        this.displayConfigTooltip = buf.readBoolean();
+    }
+
+    public OpenCantFoundColonyWarningMessage(final Component warningMessageTranslationKey, final BlockPos townHallPos, final boolean displayConfigTooltip)
+    {
+        super(TYPE);
+        this.warningMessageTranslationKey = warningMessageTranslationKey;
+        this.townHallPos = townHallPos;
+        this.displayConfigTooltip = displayConfigTooltip;
+    }
+
+    @Override
+    protected void onExecute(final PlayMessageContext ctxIn, final Player player)
+    {
+        // Asset gate (D2): building the window loads its BlockUI XML, which is not in this jar.
+        AssetFetchGate.openOrOffer(() -> new WindowTownHallCantCreateColony(townHallPos, (MutableComponent) warningMessageTranslationKey, displayConfigTooltip));
+    }
+
+    @Override
+    public void toBytes(RegistryFriendlyByteBuf buf)
+    {
+        Utils.serializeCodecMess(ComponentSerialization.STREAM_CODEC, buf, warningMessageTranslationKey);
+        buf.writeBlockPos(townHallPos);
+        buf.writeBoolean(displayConfigTooltip);
+    }
+}

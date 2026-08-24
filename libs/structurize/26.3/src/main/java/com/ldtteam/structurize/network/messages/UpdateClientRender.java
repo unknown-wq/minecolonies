@@ -1,0 +1,64 @@
+package com.ldtteam.structurize.network.messages;
+
+import com.ldtteam.common.network.AbstractClientPlayMessage;
+import com.ldtteam.common.network.PlayMessageType;
+import com.ldtteam.structurize.api.constants.Constants;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
+import com.ldtteam.common.network.PlayMessageContext;
+
+/**
+ * Marks an area of blocks for re-rendering on the client
+ */
+public class UpdateClientRender extends AbstractClientPlayMessage
+{
+    public static final PlayMessageType<?> TYPE = PlayMessageType.forClient(Constants.MOD_ID, "update_client_render", UpdateClientRender::new);
+
+    /**
+     * Position to scan from.
+     */
+    private final BlockPos from;
+
+    /**
+     * Position to scan to.
+     */
+    private final BlockPos to;
+
+    /**
+     * Empty public constructor.
+     */
+    protected UpdateClientRender(final RegistryFriendlyByteBuf buf, final PlayMessageType<?> type)
+    {
+        super(buf, type);
+        this.from = buf.readBlockPos();
+        this.to = buf.readBlockPos();
+    }
+
+    /**
+     * Update the scan tool.
+     * @param from the start pos.
+     * @param to the end pos.
+     */
+    public UpdateClientRender(final BlockPos from, final BlockPos to)
+    {
+        super(TYPE);
+        this.from = from;
+        this.to = to;
+    }
+
+    @Override
+    protected void toBytes(final RegistryFriendlyByteBuf buf)
+    {
+        buf.writeBlockPos(from);
+        buf.writeBlockPos(to);
+    }
+
+    @SuppressWarnings("resource")
+    @Override
+    protected void onExecute(final PlayMessageContext context, final Player player)
+    {
+        Minecraft.getInstance().levelExtractor.setBlocksDirty(from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ());
+    }
+}

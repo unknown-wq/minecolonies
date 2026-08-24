@@ -1,0 +1,17 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/12",
+    "value": "minecolonies:block/item/string"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/13",
+    "value": "minecolonies:block/item/tropical_fish"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/14",
+    "value": "minecolonies:block/item/salmon"
+  }
+]

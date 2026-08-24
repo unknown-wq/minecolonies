@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "I": "#c:chests",
+    "S": "structurize:sceptergold",
+    "X": "#minecraft:planks"
+  },
+  "pattern": [
+    "XSX",
+    "III",
+    "XXX"
+  ],
+  "result": {
+    "id": "minecolonies:blockpostbox"
+  }
+}

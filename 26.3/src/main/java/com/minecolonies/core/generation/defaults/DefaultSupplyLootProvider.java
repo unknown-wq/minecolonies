@@ -1,0 +1,74 @@
+package com.minecolonies.core.generation.defaults;
+
+import com.minecolonies.api.items.ModItems;
+import com.minecolonies.api.items.component.ModDataComponents;
+import com.minecolonies.api.items.component.SupplyData;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import com.minecolonies.core.generation.SimpleLootTableProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.LootTable.Builder;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.SetComponentsFunction;
+import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
+import net.minecraft.world.level.storage.loot.functions.SetNameFunction;
+import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
+import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.BiConsumer;
+
+import static com.minecolonies.api.util.constant.Constants.*;
+
+/**
+ * Loot table generator for supply camp/ship
+ */
+public class DefaultSupplyLootProvider implements SimpleLootTableProvider.SubProvider
+{
+    /**
+     * Resource locations, path and names must fit the existing json file.
+     */
+    public final static Identifier SUPPLY_CAMP_LT = Identifier.fromNamespaceAndPath(MOD_ID, "chests/supplycamp");
+    public final static Identifier SUPPLY_SHIP_LT = Identifier.fromNamespaceAndPath(MOD_ID, "chests/supplyship");
+
+    public DefaultSupplyLootProvider(@NotNull final HolderLookup.Provider provider)
+    {
+    }
+
+    @Override
+    public void generate(final BiConsumer<ResourceKey<LootTable>, Builder> generator)
+    {
+        final CompoundTag instantTag = new CompoundTag();
+        instantTag.putString(PLACEMENT_NBT, INSTANT_PLACEMENT);
+
+        generator.accept(ResourceKey.create(Registries.LOOT_TABLE, SUPPLY_CAMP_LT),
+                LootTable.lootTable()
+                        .withPool(LootPool.lootPool()
+                                .add(LootItem.lootTableItem(ModItems.supplyCamp)
+                                    .when(LootItemRandomChanceCondition.randomChance(0.01f))
+                                        .apply(SetComponentsFunction.setComponent(ModDataComponents.SUPPLY_COMPONENT.get(), new SupplyData(false, true, -1)))
+                                        .apply(SetNameFunction.setName(Component.translatableEscape("item.minecolonies.supply.free", ModItems.supplyCamp.getName(ModItems.supplyCamp.getDefaultInstance())), SetNameFunction.Target.ITEM_NAME)))
+                                .add(LootItem.lootTableItem(ModItems.scrollBuff)
+                                    .when(LootItemRandomChanceCondition.randomChance(0.1f))
+                                    .apply(SetItemCountFunction.setCount(ConstantValue.exactly(4))))
+                        ));
+
+        generator.accept(ResourceKey.create(Registries.LOOT_TABLE, SUPPLY_SHIP_LT),
+                LootTable.lootTable()
+                        .withPool(LootPool.lootPool()
+                                .add(LootItem.lootTableItem(ModItems.supplyChest)
+                                    .when(LootItemRandomChanceCondition.randomChance(0.01f))
+                                       .apply(SetComponentsFunction.setComponent(ModDataComponents.SUPPLY_COMPONENT.get(), new SupplyData(false, true, -1)))
+                                        .apply(SetNameFunction.setName(Component.translatableEscape("item.minecolonies.supply.free", ModItems.supplyChest.getName(ModItems.supplyChest.getDefaultInstance())), SetNameFunction.Target.ITEM_NAME)))
+                                .add(LootItem.lootTableItem(ModItems.scrollBuff)
+                                    .when(LootItemRandomChanceCondition.randomChance(0.1f))
+                                    .apply(SetItemCountFunction.setCount(ConstantValue.exactly(4))))
+                        ));
+    }
+}

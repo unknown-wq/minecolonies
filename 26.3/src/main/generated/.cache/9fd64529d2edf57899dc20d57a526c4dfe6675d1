@@ -1,0 +1,4 @@
+// 26.3-snapshot-9	-999999999-01-01T00:00:00	MineColonies Fabric 26.2 (Unofficial)/MineColonies Damage Type Tags
+093259cd4bb776acf3c1d8d43ff224abe8ffd5ac data/minecraft/tags/damage_type/bypasses_armor.json
+28ea60ce6f8750c0a314a3133cc0a2beccd4c423 data/minecraft/tags/damage_type/bypasses_shield.json
+454a55bfc6e56ab39ef74879e8164a57eef912ad data/minecraft/tags/damage_type/is_projectile.json

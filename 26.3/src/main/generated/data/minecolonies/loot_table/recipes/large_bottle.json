@@ -1,0 +1,21 @@
+{
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "quality": -1,
+          "weight": 100
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecolonies:large_empty_bottle",
+          "quality": 1,
+          "weight": 100
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "minecolonies:recipes/large_bottle"
+}

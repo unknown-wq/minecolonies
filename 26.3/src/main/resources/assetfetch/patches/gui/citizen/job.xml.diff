@@ -1,0 +1,20 @@
+--- a/gui/citizen/job.xml
++++ b/gui/citizen/job.xml
+@@ -8 +8 @@
+-    <image id="primaryimg" pos="50 74" size="11 11"/>
++    <image id="primaryimg" pos="50 74" size="11 11" source="minecraft:missingno" visible="false"/>
+@@ -11 +11 @@
+-    <image id="comp1img" pos="50 86" size="11 11"/>
++    <image id="comp1img" pos="50 86" size="11 11" source="minecraft:missingno" visible="false"/>
+@@ -14 +14 @@
+-    <image id="adverse1img" pos="50 98" size="11 11"/>
++    <image id="adverse1img" pos="50 98" size="11 11" source="minecraft:missingno" visible="false"/>
+@@ -17 +17 @@
+-    <image id="secondaryimg" pos="50 124" size="11 11"/>
++    <image id="secondaryimg" pos="50 124" size="11 11" source="minecraft:missingno" visible="false"/>
+@@ -20 +20 @@
+-    <image id="comp2img" pos="50 136" size="11 11"/>
++    <image id="comp2img" pos="50 136" size="11 11" source="minecraft:missingno" visible="false"/>
+@@ -23 +23 @@
+-    <image id="adverse2img" pos="50 148" size="11 11"/>
++    <image id="adverse2img" pos="50 148" size="11 11" source="minecraft:missingno" visible="false"/>

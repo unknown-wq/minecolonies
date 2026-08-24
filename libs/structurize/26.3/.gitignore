@@ -1,0 +1,9 @@
+build/
+.gradle/
+libs/*.jar
+run/
+
+# HashCache bookkeeping written next to the datagen output. Loom already keeps it out of the jar
+# (FabricApiDataGeneration excludes ".cache/**"), but it must not be committed: the entries carry
+# absolute-time headers and change on every run.
+src/datagen/generated/structurize/.cache/

@@ -1,0 +1,5 @@
+--- a/gui/townhall/layoutcitizens.xml
++++ b/gui/townhall/layoutcitizens.xml
+@@ -7 +7 @@
+-            <image id="icon" pos="0 0" size="11 11"/>
++            <image id="icon" pos="0 0" size="11 11" source="minecraft:missingno"/>

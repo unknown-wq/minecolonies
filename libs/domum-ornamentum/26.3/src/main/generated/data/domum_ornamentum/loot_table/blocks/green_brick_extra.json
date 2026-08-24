@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "domum_ornamentum:green_brick_extra"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecolonies:cabbage",
+    "minecolonies:cabbage",
+    "minecolonies:nether_pepper",
+    "minecolonies:onion",
+    "minecraft:carrot",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "minecolonies:kimchi"
+  }
+}

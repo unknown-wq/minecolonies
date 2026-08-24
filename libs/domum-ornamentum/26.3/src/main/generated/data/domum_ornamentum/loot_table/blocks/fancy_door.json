@@ -1,0 +1,37 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:match_block",
+            "blocks": "domum_ornamentum:fancy_door",
+            "state": {
+              "half": "lower"
+            }
+          },
+          "modifier": [
+            {
+              "type": "minecraft:copy_components",
+              "include": [
+                "domum_ornamentum:texture_data"
+              ],
+              "source": "block_entity"
+            },
+            {
+              "type": "minecraft:copy_state",
+              "block": "domum_ornamentum:fancy_door",
+              "properties": [
+                "type"
+              ]
+            }
+          ],
+          "name": "domum_ornamentum:fancy_door"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}

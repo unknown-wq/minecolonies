@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecolonies:durum",
+    "minecolonies:onion",
+    "minecolonies:garlic",
+    "minecraft:bowl",
+    "minecraft:potato",
+    "minecraft:carrot"
+  ],
+  "result": {
+    "id": "minecolonies:pottage"
+  }
+}

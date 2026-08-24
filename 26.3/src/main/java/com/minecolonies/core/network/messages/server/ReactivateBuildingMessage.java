@@ -1,0 +1,102 @@
+package com.minecolonies.core.network.messages.server;
+
+import com.ldtteam.common.network.AbstractServerPlayMessage;
+import com.ldtteam.common.network.PlayMessageType;
+import com.minecolonies.api.colony.IColony;
+import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.colony.permissions.Action;
+import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.colony.buildings.AbstractBuilding;
+import com.minecolonies.core.tileentities.TileEntityColonyBuilding;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import com.ldtteam.common.network.PlayMessageContext;
+
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Reactivate a building.
+ */
+public class ReactivateBuildingMessage extends AbstractServerPlayMessage
+{
+    public static final PlayMessageType<?> TYPE = PlayMessageType.forServer(Constants.MOD_ID, "reactivate_building", ReactivateBuildingMessage::new);
+
+    /**
+     * How far from the block the sender is still believed. The window that sends this is opened by right clicking
+     * that very block, so any legitimate sender is within arm's reach; this only stops a hand written packet naming a
+     * position on the other side of the world, which the block lookups below would otherwise load and generate a
+     * chunk for, on the server thread.
+     */
+    private static final int MAX_INTERACTION_DISTANCE = 64;
+
+    /**
+     * The position to reactivate it.
+     */
+    private final BlockPos pos;
+
+    /**
+     * Reactivate the building.
+     *
+     * @param pos the position of the building.
+     */
+    public ReactivateBuildingMessage(final BlockPos pos)
+    {
+        super(TYPE);
+        this.pos = pos;
+    }
+
+    /**
+     * Reads this packet from a {@link RegistryFriendlyByteBuf}.
+     *
+     * @param buf The buffer begin read from.
+     */
+    protected ReactivateBuildingMessage(final RegistryFriendlyByteBuf buf, final PlayMessageType<?> type)
+    {
+        super(buf, type);
+        pos = buf.readBlockPos();
+    }
+
+    /**
+     * Writes this packet to a {@link RegistryFriendlyByteBuf}.
+     *
+     * @param buf The buffer being written to.
+     */
+    @Override
+    protected void toBytes(@NotNull final RegistryFriendlyByteBuf buf)
+    {
+        buf.writeBlockPos(pos);
+    }
+
+    @Override
+    protected void onExecute(final PlayMessageContext ctxIn, final ServerPlayer player)
+    {
+        if (!player.level().isLoaded(pos) || player.blockPosition().distSqr(pos) > MAX_INTERACTION_DISTANCE * MAX_INTERACTION_DISTANCE)
+        {
+            return;
+        }
+
+        final Level world = player.level();
+        final IColony colony = IColonyManager.getInstance().getColonyByPosFromWorld(world, pos);
+        if (colony != null && colony.getPermissions().hasPermission(player, Action.MANAGE_HUTS))
+        {
+            AbstractBuilding building = (AbstractBuilding) colony.getServerBuildingManager().getBuilding(pos);
+            if (building == null)
+            {
+                final BlockEntity tileEntity = world.getBlockEntity(pos);
+                if (tileEntity instanceof final TileEntityColonyBuilding hut)
+                {
+                    if (!colony.getServerBuildingManager().canPlaceAt(tileEntity.getBlockState().getBlock(), pos, player))
+                    {
+                        return;
+                    }
+
+                    hut.reactivate();
+                    colony.getServerBuildingManager().addNewBuilding(hut, world);
+                }
+            }
+        }
+    }
+}

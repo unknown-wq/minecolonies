@@ -1,0 +1,212 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "condition": {
+        "type": "minecraft:all_of",
+        "terms": [
+          {
+            "type": "minecolonies:entity_in_biome_tag",
+            "tag": "#minecolonies:humidbiomes"
+          },
+          {
+            "type": "minecraft:inverted",
+            "term": {
+              "type": "minecraft:any_of",
+              "terms": [
+                {
+                  "type": "minecraft:match_tool",
+                  "predicate": {
+                    "items": "minecraft:shears"
+                  }
+                },
+                {
+                  "type": "minecraft:match_tool",
+                  "predicate": {
+                    "predicates": {
+                      "minecraft:enchantments": [
+                        {
+                          "enchantments": "minecraft:silk_touch",
+                          "levels": {
+                            "min": 1
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_tool",
+                    "predicate": {
+                      "items": "minecraft:netherite_hoe"
+                    }
+                  },
+                  {
+                    "type": "minecraft:random_chance",
+                    "chance": 0.04
+                  }
+                ]
+              },
+              "name": "minecolonies:rice"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_tool",
+                    "predicate": {
+                      "items": "minecraft:diamond_hoe"
+                    }
+                  },
+                  {
+                    "type": "minecraft:random_chance",
+                    "chance": 0.035
+                  }
+                ]
+              },
+              "name": "minecolonies:rice"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_tool",
+                    "predicate": {
+                      "items": "minecraft:iron_hoe"
+                    }
+                  },
+                  {
+                    "type": "minecraft:random_chance",
+                    "chance": 0.03
+                  }
+                ]
+              },
+              "name": "minecolonies:rice"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_tool",
+                    "predicate": {
+                      "items": "minecraft:golden_hoe"
+                    }
+                  },
+                  {
+                    "type": "minecraft:random_chance",
+                    "chance": 0.024999999
+                  }
+                ]
+              },
+              "name": "minecolonies:rice"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:all_of",
+                    "terms": [
+                      {
+                        "type": "minecraft:match_tool",
+                        "predicate": {
+                          "items": "#minecraft:hoes"
+                        }
+                      },
+                      {
+                        "type": "minecraft:inverted",
+                        "term": {
+                          "type": "minecraft:match_tool",
+                          "predicate": {
+                            "items": "minecraft:netherite_hoe"
+                          }
+                        }
+                      },
+                      {
+                        "type": "minecraft:inverted",
+                        "term": {
+                          "type": "minecraft:match_tool",
+                          "predicate": {
+                            "items": "minecraft:diamond_hoe"
+                          }
+                        }
+                      },
+                      {
+                        "type": "minecraft:inverted",
+                        "term": {
+                          "type": "minecraft:match_tool",
+                          "predicate": {
+                            "items": "minecraft:iron_hoe"
+                          }
+                        }
+                      },
+                      {
+                        "type": "minecraft:inverted",
+                        "term": {
+                          "type": "minecraft:match_tool",
+                          "predicate": {
+                            "items": "minecraft:golden_hoe"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:random_chance",
+                    "chance": 0.02
+                  }
+                ]
+              },
+              "name": "minecolonies:rice"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:inverted",
+                    "term": {
+                      "type": "minecraft:match_tool",
+                      "predicate": {
+                        "items": "#minecraft:hoes"
+                      }
+                    }
+                  },
+                  {
+                    "type": "minecraft:random_chance",
+                    "chance": 0.01
+                  }
+                ]
+              },
+              "name": "minecolonies:rice"
+            }
+          ]
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "minecolonies:crops/blocks/seagrass"
+}

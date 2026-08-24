@@ -1,0 +1,455 @@
+package com.minecolonies.core.colony.buildings.modules;
+
+
+// PORT-NOTE(structurize): ported against the real Structurize 26.2 API (built 2026-07-31). Kept as a
+// grep marker for files that touch Structurize, not as an open TODO.
+
+import com.ldtteam.blockui.views.BOWindow;
+import com.ldtteam.structurize.blockentities.interfaces.IBlueprintDataProviderBE;
+import com.minecolonies.api.colony.ICitizenData;
+import com.minecolonies.api.colony.IColony;
+import com.minecolonies.api.colony.IColonyView;
+import com.minecolonies.api.colony.IVisitorData;
+import com.minecolonies.api.colony.buildings.IBuilding;
+import com.minecolonies.api.colony.buildings.ModBuildings;
+import com.minecolonies.api.colony.buildings.modules.*;
+import com.minecolonies.api.colony.buildings.modules.stat.IStat;
+import com.minecolonies.api.colony.interactionhandling.ChatPriority;
+import com.minecolonies.api.sounds.TavernSounds;
+import com.minecolonies.api.util.MathUtils;
+import com.minecolonies.api.util.StatsUtil;
+import com.minecolonies.core.MineColonies;
+import com.minecolonies.core.client.gui.huts.WindowHutLiving;
+import com.minecolonies.core.colony.buildings.views.LivingBuildingView;
+import com.minecolonies.core.colony.interactionhandling.RecruitmentInteraction;
+import com.minecolonies.core.datalistener.CustomVisitorListener;
+import com.minecolonies.core.datalistener.RecruitmentItemsListener;
+import com.minecolonies.core.network.messages.client.colony.PlayMusicAtPosMessage;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickRateConstants.MAX_TICKRATE;
+import static com.minecolonies.api.util.constant.Constants.MAX_STORY;
+import static com.minecolonies.api.util.constant.Constants.TAG_COMPOUND;
+import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_VISITORS;
+import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_WORK;
+import static com.minecolonies.api.util.constant.SchematicTagConstants.*;
+import static com.minecolonies.api.util.constant.StatisticsConstants.NEW_VISITORS;
+/**
+ * Tavern building for the colony. Houses 4 citizens Plays a tavern theme on entering Spawns/allows citizen recruitment Spawns trader/quest npcs
+ */
+public class TavernBuildingModule extends AbstractBuildingModule implements IDefinesCoreBuildingStatsModule, IBuildingEventsModule, IPersistentModule, ITickingModule
+{
+    /**
+     * Schematic name
+     */
+    public static final String TAG_VISITOR_ID = "visitor";
+
+    /**
+     * Music interval
+     */
+    private static final int    TWENTY_MINUTES  = 20 * 60 * 20;
+    private static final String TAG_NOVISITTIME = "novisit";
+
+    /**
+     * Cooldown for the music, to not play it too much/not overlap with itself
+     */
+    private int musicCooldown = 0;
+
+    /**
+     * List of additional citizens
+     */
+    private final List<Integer> externalCitizens = new ArrayList<>();
+
+    /**
+     * List of sitting positions for this building
+     */
+    private final List<BlockPos> sitPositions = new ArrayList<>();
+
+    /**
+     * List of work positions for this building
+     */
+    private final List<BlockPos> workPositions = new ArrayList<>();
+
+    private boolean initTags = false;
+
+    /**
+     * Penalty for not spawning visitors after a death
+     */
+    private int noVisitorTime = 10000;
+
+    @Override
+    public IStat<Integer> getMaxInhabitants()
+    {
+        if (building.getBuildingLevel() <= 0)
+        {
+            return (prev) -> 0;
+        }
+
+        return (prev) -> 4;
+    }
+
+    @Override
+    public void onPlayerEnterBuilding(final Player player)
+    {
+        if (musicCooldown <= 0 && building.getBuildingLevel() > 0 && !building.getColony().isDay())
+        {
+            int count = 0;
+            BlockPos avg = BlockPos.ZERO;
+            for (final Integer id : externalCitizens)
+            {
+                final IVisitorData data = building.getColony().getVisitorManager().getVisitor(id);
+                if (data != null)
+                {
+                    if (!data.getSittingPosition().equals(BlockPos.ZERO))
+                    {
+                        count++;
+                        avg = avg.offset(data.getSittingPosition());
+                    }
+                }
+            }
+
+            if (count < 2)
+            {
+                return;
+            }
+
+            avg = new BlockPos(avg.getX() / count, avg.getY() / count, avg.getZ() / count);
+            final PlayMusicAtPosMessage message = new PlayMusicAtPosMessage(TavernSounds.tavernTheme, avg, building.getColony().getWorld(), 0.7f, 1.0f);
+            message.sendToPlayer(building.getColony().getPackageManager().getCloseSubscribers());
+            musicCooldown = TWENTY_MINUTES;
+        }
+    }
+
+    @Override
+    public void onColonyTick(@NotNull final IColony colony)
+    {
+        if (musicCooldown > 0)
+        {
+            musicCooldown -= MAX_TICKRATE;
+        }
+
+        externalCitizens.removeIf(id -> colony.getVisitorManager().getVisitor(id) == null);
+
+        if (noVisitorTime > 0)
+        {
+            // PORT-NOTE(26.2): this method runs once per 500 world ticks (Colony#worldTickSlow), so taking MAX_TICKRATE
+            // off the timer keeps it denominated in world ticks. Dividing the step by the config is what makes every
+            // wait scale at once - the 10000 tick opening delay, the gap set below, and the 30000+ penalty
+            // VisitorCitizen#die applies after a visitor is killed - without any of them having to read the config where
+            // they are written. Rounded up so a large modifier can never stall the timer at a step of zero.
+            noVisitorTime -= Math.max(1, (int) Math.ceil(MAX_TICKRATE / MineColonies.getConfig().getServer().visitorIntervalModifier.get()));
+        }
+
+        if (building.getBuildingLevel() > 0 && externalCitizens.size() < getMaxVisitors() && noVisitorTime <= 0)
+        {
+            spawnVisitorInternal();
+            noVisitorTime = colony.getWorld().getRandom().nextInt(3000)
+                + (6000 / building.getBuildingLevel())
+                * colony.getCitizenManager().getCurrentCitizenCount()
+                / colony.getCitizenManager().getMaxCitizens();
+        }
+    }
+
+    /**
+     * How many visitors this tavern may hold at once.
+     * <p>
+     * PORT-NOTE(26.2): was a hardcoded {@code 3 * buildingLevel}. The 3 is now
+     * {@code minecolonies.config.visitorspertavernlevel}, kept as a per-level multiplier rather than a flat count so
+     * that raising it still leaves a level 1 tavern quieter than a level 5 one. The default reproduces the old
+     * numbers exactly; 0 turns visitors off.
+     *
+     * @return the ceiling on {@link #externalCitizens}.
+     */
+    public int getMaxVisitors()
+    {
+        return MineColonies.getConfig().getServer().visitorsPerTavernLevel.get() * building.getBuildingLevel();
+    }
+
+    @Override
+    public void onUpgradeComplete(final int newlevel)
+    {
+        initTags = false;
+    }
+
+    /**
+     * Spawns a visitor specifically for the tavern logic.
+     */
+    private void spawnVisitorInternal()
+    {
+        final IVisitorData visitorData = spawnVisitor();
+
+        if (visitorData != null && !CustomVisitorListener.chanceCustomVisitors(visitorData))
+        {
+            visitorData.triggerInteraction(new RecruitmentInteraction(Component.translatable(
+                "com.minecolonies.coremod.gui.chat.recruitstory" + (building.getColony().getWorld().getRandom().nextInt(MAX_STORY) + 1), visitorData.getName().split(" ")[0]),
+                ChatPriority.IMPORTANT));
+        }
+    }
+
+    /**
+     * Spawns a visitor citizen that can be recruited.
+     */
+    @Nullable
+    public IVisitorData spawnVisitor()
+    {
+        final RecruitmentItemsListener.RecruitCost cost = RecruitmentItemsListener.getRandomRecruitCost(building.getBuildingLevel());
+        if (cost == null)
+        {
+            return null;
+        }
+
+        final IVisitorData newCitizen = (IVisitorData) building.getColony().getVisitorManager().createAndRegisterCivilianData();
+        newCitizen.setBedPos(building.getPosition());
+        newCitizen.setHomeBuilding(building);
+        newCitizen.getCitizenSkillHandler().init(cost.recruitLevel());
+
+        final ItemStack recruitCostItem = cost.recruitItem().copy();
+        recruitCostItem.setCount(Math.min(cost.recruitItem().getMaxStackSize(), recruitCostItem.getCount() + MathUtils.RANDOM.nextInt(3)));
+        newCitizen.setRecruitCosts(recruitCostItem);
+
+        List<BlockPos> spawnPositions = new ArrayList<>();
+        final BlockPos gatePos = building.getColony().getServerBuildingManager().getRandomBuilding(b -> b.getBuildingType() == ModBuildings.gateHouse.get());
+        if (gatePos != null)
+        {
+            final IBuilding gateHouseBuilding = building.getColony().getServerBuildingManager().getBuilding(gatePos);
+            if (gateHouseBuilding != null)
+            {
+                final List<BlockPos> gatePositions = gateHouseBuilding.getLocationsFromTag(TAG_GATE);
+                if (gatePositions.isEmpty())
+                {
+                    spawnPositions.add(gatePos);
+                }
+                else
+                {
+                    spawnPositions.add(gatePositions.get(MathUtils.RANDOM.nextInt(gatePositions.size())));
+                }
+            }
+        }
+
+        spawnPositions.add(building.getPosition());
+        building.getColony().getVisitorManager().spawnOrCreateCivilian(newCitizen, building.getColony().getWorld(), spawnPositions, true);
+        if (newCitizen.getEntity().isPresent())
+        {
+            newCitizen.getEntity().get().setItemSlot(EquipmentSlot.FEET, cost.boots());
+        }
+
+        StatsUtil.trackStat(building, NEW_VISITORS, 1);
+
+        externalCitizens.add(newCitizen.getId());
+        return newCitizen;
+    }
+
+    @Override
+    public void serializeNBT(@NotNull final HolderLookup.Provider provider, final CompoundTag nbt)
+    {
+        final ListTag visitorlist = new ListTag();
+        for (final Integer id : externalCitizens)
+        {
+            CompoundTag visitorCompound = new CompoundTag();
+            visitorCompound.putInt(TAG_VISITOR_ID, id);
+            visitorlist.add(visitorCompound);
+        }
+
+        nbt.put(TAG_VISITORS, visitorlist);
+        nbt.putInt(TAG_NOVISITTIME, noVisitorTime);
+    }
+
+    @Override
+    public void deserializeNBT(@NotNull final HolderLookup.Provider provider, final CompoundTag nbt)
+    {
+        final ListTag visitorlist = nbt.getListOrEmpty(TAG_VISITORS);
+        for (final Tag data : visitorlist)
+        {
+            final int id = ((CompoundTag) data).getIntOr(TAG_VISITOR_ID, 0);
+            final ICitizenData citizenData = building.getColony().getVisitorManager().getCivilian(id);
+            if (citizenData != null)
+            {
+                externalCitizens.add(id);
+                citizenData.setHomeBuilding(building);
+            }
+        }
+        noVisitorTime = nbt.getIntOr(TAG_NOVISITTIME, 0);
+    }
+
+    /**
+     * Gets a free sitting position
+     *
+     * @return a blockpos to sit at
+     */
+    public BlockPos getFreeSitPosition()
+    {
+        final List<BlockPos> positions = new ArrayList<>(getSitPositions());
+
+        if (positions.isEmpty())
+        {
+            return null;
+        }
+
+        for (final Integer id : externalCitizens)
+        {
+            final IVisitorData data = building.getColony().getVisitorManager().getVisitor(id);
+            if (data != null)
+            {
+                positions.remove(data.getSittingPosition());
+            }
+        }
+
+        if (!positions.isEmpty())
+        {
+            return positions.get(building.getColony().getWorld().getRandom().nextInt(positions.size()));
+        }
+
+        return null;
+    }
+
+    @Override
+    public void onDestroyed()
+    {
+        for (final Integer id : externalCitizens)
+        {
+            building.getColony().getVisitorManager().removeCivilian(building.getColony().getVisitorManager().getVisitor(id));
+        }
+    }
+
+    /**
+     * Gets the assigned visitor ids
+     *
+     * @return list of ids
+     */
+    public List<Integer> getExternalCitizens()
+    {
+        return externalCitizens;
+    }
+
+    /**
+     * Get a random work position
+     *
+     * @return a random work pos
+     */
+    public BlockPos getWorkPos()
+    {
+        if (!getWorkPositions().isEmpty())
+        {
+            return workPositions.get(building.getColony().getWorld().getRandom().nextInt(workPositions.size()));
+        }
+        return null;
+    }
+
+    /**
+     * Get the list of sitting positions
+     *
+     * @return sit pos list
+     */
+    private List<BlockPos> getSitPositions()
+    {
+        initTagPositions();
+        return sitPositions;
+    }
+
+    /**
+     * Get the list of work positions
+     *
+     * @return work pos list
+     */
+    private List<BlockPos> getWorkPositions()
+    {
+        initTagPositions();
+        return workPositions;
+    }
+
+    /**
+     * Initializes the sitting and work position lists
+     */
+    public void initTagPositions()
+    {
+        if (initTags)
+        {
+            return;
+        }
+
+        final IBlueprintDataProviderBE te = building.getTileEntity();
+        if (te != null)
+        {
+            initTags = true;
+            for (final Map.Entry<BlockPos, List<String>> entry : te.getWorldTagPosMap().entrySet())
+            {
+                if (entry.getValue().contains(TAG_SITTING))
+                {
+                    sitPositions.add(entry.getKey());
+                }
+                if (entry.getValue().contains(TAG_SIT_IN))
+                {
+                    sitPositions.add(entry.getKey());
+                }
+                if (entry.getValue().contains(TAG_SIT_OUT))
+                {
+                    sitPositions.add(entry.getKey());
+                }
+
+                if (entry.getValue().contains(TAG_WORK))
+                {
+                    workPositions.add(entry.getKey());
+                }
+            }
+        }
+    }
+
+    /**
+     * Removes the given citizen id
+     *
+     * @param id to remove
+     */
+    public boolean removeCitizen(final Integer id)
+    {
+        externalCitizens.remove(id);
+        return false;
+    }
+
+    /**
+     * Sets the delay time before a new visitor spawns
+     *
+     * @param noVisitorTime time in ticks
+     */
+    public void setNoVisitorTime(final int noVisitorTime)
+    {
+        this.noVisitorTime = noVisitorTime;
+    }
+
+    /**
+     * ClientSide representation of the building.
+     */
+    public static class View extends LivingBuildingView
+    {
+        /**
+         * Instantiates the view of the building.
+         *
+         * @param c the colonyView.
+         * @param l the location of the block.
+         */
+        public View(final IColonyView c, final BlockPos l)
+        {
+            super(c, l);
+        }
+
+        @NotNull
+        @Override
+        public BOWindow getWindow()
+        {
+            return new WindowHutLiving(this);
+        }
+    }
+}

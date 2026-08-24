@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "structurize",
+  "version": "${version}",
+
+  "name": "Structurize Fabric 26.2 (Unofficial)",
+  "description": "An unofficial port of Structurize to the Fabric loader on Minecraft 26.2. The mod itself is the work of the LDT Team; this port is not affiliated with, endorsed by or supported by them. An astonishing way to copy & paste structures! Allows you to save structures of your choice into a file of small size, load them back and place them anywhere anytime, create various shapes using math formulas, and many other nice things a great builder would love to have.",
+  "authors": [
+    "LDT Team"
+  ],
+  "contributors": [
+    "unknown-wq (Fabric 26.2 port)"
+  ],
+  "contact": {
+    "homepage": "https://github.com/unknown-wq/Structurize",
+    "sources": "https://github.com/unknown-wq/Structurize",
+    "issues": "https://github.com/unknown-wq/Structurize/issues/new/choose"
+  },
+
+  "license": "GPL-3.0-only",
+  "icon": "structurize.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.ldtteam.structurize.Structurize"
+    ],
+    "client": [
+      "com.ldtteam.structurize.StructurizeClient"
+    ],
+    "fabric-datagen": [
+      "com.ldtteam.structurize.datagen.StructurizeDataGenerator"
+    ]
+  },
+
+  "accessWidener": "structurize.accesswidener",
+
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "fabric-api": "*",
+    "minecraft": ">=26.2 <26.3",
+    "java": ">=25",
+    "domum_ornamentum": "*",
+    "blockui": "*"
+  }
+}

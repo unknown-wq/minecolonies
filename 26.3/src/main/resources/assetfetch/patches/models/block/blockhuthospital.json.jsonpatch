@@ -1,0 +1,7 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/12",
+    "value": "minecolonies:block/item/shears"
+  }
+]

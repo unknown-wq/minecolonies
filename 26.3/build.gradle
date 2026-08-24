@@ -1,0 +1,222 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+// The three ldtteam libraries are built from their own repositories in /workspace and are not published
+// anywhere, so they arrive as bare jar paths. Loom's `include` (Jar-in-Jar) refuses a bare file --
+// "not a module component and has no capabilities" -- it needs a resolvable module. So the jars are
+// staged into a throwaway Maven layout with a minimal pom each, and referred to by coordinate from
+// there. This has to happen at configuration time: repositories are resolved before any task runs.
+//
+// Deliberately NOT under build/: `clean` wipes that directory *after* configuration has already staged
+// into it, and configuration does not run again before the build resolves -- so `clean build` would
+// resolve nothing and fail with 2000 "package does not exist" errors.
+def stagedLibs = layout.projectDirectory.dir(".staged-libs").asFile
+def stageLib = { String group, String name, String version, String jarPath ->
+	final File jar = file(jarPath)
+	if (!jar.exists()) {
+		throw new GradleException("Dependency jar is missing: ${jarPath}\n" +
+			"Build it in its own repository first -- see gradle.properties for the expected paths.")
+	}
+	final File dir = new File(stagedLibs, "${group.replace('.', '/')}/${name}/${version}")
+	dir.mkdirs()
+	final File staged = new File(dir, "${name}-${version}.jar")
+	if (!staged.exists() || staged.lastModified() < jar.lastModified()) {
+		staged.bytes = jar.bytes
+	}
+	new File(dir, "${name}-${version}.pom").text = """<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>${group}</groupId>
+  <artifactId>${name}</artifactId>
+  <version>${version}</version>
+  <packaging>jar</packaging>
+</project>
+"""
+	return "${group}:${name}:${version}"
+}
+
+ext.blockuiCoords = stageLib("com.ldtteam", "blockui", "0.0.1", project.blockui_jar)
+ext.domumCoords = stageLib("com.ldtteam", "domum_ornamentum", "26.2-1.0.0", project.domum_jar)
+ext.structurizeCoords = stageLib("com.ldtteam", "structurize", "26.2-1.0.0", project.structurize_jar)
+
+repositories {
+	maven {
+		name = "stagedLibs"
+		url = stagedLibs.toURI()
+		metadataSources {
+			mavenPom()
+			artifact()
+		}
+	}
+}
+
+loom {
+	accessWidenerPath = file("src/main/resources/minecolonies.accesswidener")
+}
+
+// Registers the `runDatagen` task and mounts src/main/generated. `client = true` because
+// DefaultItemModelProvider and DefaultEntityIconProvider are client-side providers (item models and
+// the citizen face icons); the whole datagen runs from the single `fabric-datagen` entrypoint,
+// com.minecolonies.core.generation.MineColoniesDataGenerator.
+fabricApi {
+	configureDataGeneration {
+		client = true
+		// Without this, runDatagen runs the data generators of every mod on the classpath -- BlockUI, Domum
+		// Ornamentum and Structurize are plain `implementation files(...)` jars, so Fabric sees three more
+		// fabric-datagen entrypoints and runs them into *our* output directory. They then fight over it: each
+		// run's HashCache deletes the files that run did not write, so the contents changed on every
+		// invocation and a clean run produced someone else's assets.
+		modId = project.mod_id
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	// Minecraft 26.1+ is unobfuscated and Yarn is discontinued: no mappings line is needed.
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	// The three ported ldtteam libraries, built from their own repos in /workspace.
+	// BlockUI is not optional GUI: it also carries com.ldtteam.common, which is where the
+	// mod's network and config layers live. Structurize landed on 2026-07-31 and replaced
+	// the compile-only stubs that had been standing in for it.
+	// Plain `implementation`, not `modImplementation`: 26.1+ is unobfuscated, so there is
+	// nothing to remap, and this Loom does not expose the remapping configurations.
+	implementation blockuiCoords
+	implementation domumCoords
+	implementation structurizeCoords
+
+	// ...and nested into the output jar as well, so a single file is installable.
+	//
+	// None of the three is published to a Maven repository, so a player cannot be asked to go and find
+	// them. Fabric's Jar-in-Jar puts them under META-INF/jars/ and the loader picks them up as ordinary
+	// mods -- each already carries a valid fabric.mod.json with its own id, version and depends block,
+	// which is the only requirement. Nothing is remapped on the way in: 26.1+ is unobfuscated and these
+	// jars are already final.
+	//
+	// fabric-api is deliberately NOT nested: it is a platform, every installation has it, and bundling
+	// a copy of it is how you end up with two versions loaded.
+	include blockuiCoords
+	include domumCoords
+	include structurizeCoords
+
+	// Simple Planes, if it is available to build against. compileOnly and NOT `include`, for two
+	// separate reasons that happen to agree:
+	//
+	//  - It is an optional integration. Everything that names a xyz.przemyk type lives in
+	//    com/minecolonies/core/compatibility/simpleplanes/, is reached only through the
+	//    AircraftCompat proxy, and is installed only behind FabricLoader.isModLoaded("simpleplanes").
+	//    Nothing in the mod loads one of those classes when the aircraft mod is absent, so the
+	//    classes may safely be missing at runtime.
+	//  - Simple Planes is LGPL-3.0-or-later and MineColonies is GPL-3.0-only. Linking against it is
+	//    fine in that direction; bundling a copy of it inside this jar is a redistribution with its
+	//    own obligations and there is no reason to take them on -- it is a separate mod the player
+	//    installs.
+	if (rootProject.hasProperty('simpleplanes_jar') && file(simpleplanes_jar).exists()) {
+		compileOnly files(simpleplanes_jar)
+	}
+}
+
+// JEI and JourneyMap are parked, not deleted: 3826 lines in 25 files that compile
+// against APIs we do not need to get the mod running. The cut is clean -- nothing
+// outside those two packages references them, and Compatibility.jeiProxy already
+// defaults to a no-op IJeiProxy. Delete a line from optional-integrations.txt to
+// bring a file back.
+def parkedIntegrations = file("optional-integrations.txt")
+if (parkedIntegrations.exists()) {
+	sourceSets.main.java {
+		parkedIntegrations.readLines()
+			.findAll { !it.trim().isEmpty() && !it.startsWith("#") }
+			.each { exclude it.trim() }
+	}
+}
+
+// The aircraft compat package is the one optional integration whose exclusion is decided by the build
+// rather than written down in optional-integrations.txt, because the answer depends on whether the jar
+// to compile it against is actually on this machine.
+//
+// WARNING -- the exclusion below does NOT currently give a green build on a machine without the jar,
+// and an earlier version of this comment claimed it did. The cut is not clean the way the JEI and
+// JourneyMap ones are: seven references reach into the package from outside it, so excluding it from
+// the source set leaves them dangling. Measured, not guessed -- `compileJava
+// -Psimpleplanes_jar=/nonexistent/x.jar` fails with exactly these 7 errors in these 2 files:
+//
+//     core/MineColonies.java:33,34        import SimplePlanesAirspaceGuard, SimplePlanesBlastGuard
+//     core/MineColonies.java:208,209      fully-qualified SimplePlanesCompat.init() / new
+//     core/MineColonies.java:222,227      SimplePlanesBlastGuard.register(), ...AirspaceGuard.register()
+//     core/commands/colonycommands/CommandColonyBlastProtection.java:9   import SimplePlanesBlastGuard
+//
+// Fixing it means routing those seven through Compatibility.aircraftCompat, which already has a complete
+// no-aircraft default -- nothing else stands in the way, and at runtime the mod already works with Simple
+// Planes absent. Until that is done, the jar named in gradle.properties is required to BUILD.
+if (!rootProject.hasProperty('simpleplanes_jar') || !file(simpleplanes_jar).exists()) {
+	logger.lifecycle("Simple Planes jar not found -- building without the aircraft integration.")
+	sourceSets.main.java {
+		exclude 'com/minecolonies/core/compatibility/simpleplanes/**'
+	}
+}
+
+// NOTE: there is deliberately NO exclusion for the 147 Structurize-blocked files.
+// Excluding them was tried and abandoned early on: IBuilding, IBuildingView,
+// AbstractBuilding, AbstractBlockHut, Colony and BlockPosUtil all live in that set, so
+// dropping it turned 147 blocked files into 856 broken ones. They compile like everything
+// else — now against the real library. structurize-blocked.txt survives only as the grep
+// list of files to re-check against the real API; this build never reads it.
+
+// Blueprints are byte-identical between Minecraft versions -- UPSTREAM-SYNC.md says so, and they
+// are copied across rather than re-authored. They are also 57 MB, so this tree does not carry a
+// second copy: they are taken from the 26.2 tree at package time. When 26.2 is eventually removed
+// from this branch, move the directory here and delete this block.
+processResources {
+	from("../26.2/src/main/resources/blueprints") {
+		into "blueprints"
+	}
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+
+	// src/main/resources and src/main/generated are both resource roots and they genuinely overlap, because
+	// some authored files are datagen *input* as well as being resources. The quests are the case that matters:
+	// src/main/resources holds the authoring copy with literal English text, QuestTranslationProvider reads it,
+	// lifts the strings into lang/quests.json and writes the shipping copy -- with translation keys instead of
+	// text -- to src/main/generated at the same path. The generated copy is the one that must ship, so it has to
+	// win; deleting the authored copy instead is not an option, since that is what the provider reads (do it and
+	// the provider consumes its own output and every quest string becomes its own key).
+	//
+	// Loom mounts src/main/generated after src/main/resources, so "last one wins" is the generated one.
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+	it.options.release = 25
+	// 5000 is not paranoia: the first compile of a 2060-file mod overflows javac's
+	// default 100-error cap long before it reaches anything informative.
+	it.options.compilerArgs += ["-Xmaxerrs", "5000", "-Xmaxwarns", "0"]
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}"}
+	}
+}

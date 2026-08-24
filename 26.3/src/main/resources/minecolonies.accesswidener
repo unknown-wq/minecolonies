@@ -1,0 +1,127 @@
+accessWidener	v1	official
+
+# Translated from the NeoForge 1.21.1 META-INF/accesstransformer.cfg (84 lines, 59 unique
+# entries). NeoForge was already on Mojang names, so nothing needed renaming — but five
+# versions moved a lot, so every entry below was checked against the decompiled 26.2 in
+# /opt/mc-src. The header is `official`, not `named`: 26.1+ ships unobfuscated.
+#
+# 43 entries survived, 16 did not. The casualties are listed at the bottom — each one is
+# a place where the mod's code has to change, not just its AccessWidener.
+
+# --- client ---------------------------------------------------------------------------
+accessible	method	net/minecraft/client/gui/components/Button	<init>	(IIIILnet/minecraft/network/chat/Component;Lnet/minecraft/client/gui/components/Button$OnPress;Lnet/minecraft/client/gui/components/Button$CreateNarration;)V
+accessible	field	net/minecraft/client/gui/components/Button	DEFAULT_NARRATION	Lnet/minecraft/client/gui/components/Button$CreateNarration;
+accessible	field	net/minecraft/client/multiplayer/ClientAdvancements	progress	Ljava/util/Map;
+
+# HumanoidArmorLayer was restructured in 26.x: the trim atlas moved into
+# EquipmentLayerRenderer, and both surviving methods now take the render state instead of
+# the entity. Descriptors below are the 26.2 ones, not the 1.21.1 ones.
+accessible	method	net/minecraft/client/renderer/entity/layers/HumanoidArmorLayer	getArmorModel	(Lnet/minecraft/client/renderer/entity/state/HumanoidRenderState;Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/client/model/HumanoidModel;
+accessible	method	net/minecraft/client/renderer/entity/layers/HumanoidArmorLayer	usesInnerModel	(Lnet/minecraft/world/entity/EquipmentSlot;)Z
+accessible	method	net/minecraft/client/renderer/entity/layers/HumanoidArmorLayer	renderArmorPiece	(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/EquipmentSlot;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;)V
+
+# --- server internals -----------------------------------------------------------------
+accessible	field	net/minecraft/server/level/ChunkMap	visibleChunkMap	Lit/unimi/dsi/fastutil/longs/Long2ObjectLinkedOpenHashMap;
+accessible	field	net/minecraft/server/level/ServerLevel	navigatingMobs	Ljava/util/Set;
+accessible	field	net/minecraft/server/level/ServerLevel	entityManager	Lnet/minecraft/world/level/entity/PersistentEntitySectionManager;
+accessible	method	net/minecraft/world/level/entity/PersistentEntitySectionManager	stopTracking	(Lnet/minecraft/world/level/entity/EntityAccess;)V
+
+# DistanceManager.tickets became TicketStorage in 26.x. Widened as the closest equivalent;
+# the call sites need rewriting either way.
+accessible	field	net/minecraft/server/level/DistanceManager	ticketStorage	Lnet/minecraft/world/level/TicketStorage;
+
+# --- entities and mob AI ---------------------------------------------------------------
+accessible	field	net/minecraft/world/damagesource/CombatTracker	entries	Ljava/util/List;
+
+accessible	field	net/minecraft/world/entity/ai/goal/GoalSelector	availableGoals	Ljava/util/Set;
+mutable		field	net/minecraft/world/entity/ai/goal/GoalSelector	availableGoals	Ljava/util/Set;
+accessible	field	net/minecraft/world/entity/ai/goal/GoalSelector	disabledFlags	Ljava/util/EnumSet;
+accessible	field	net/minecraft/world/entity/ai/goal/GoalSelector	lockedFlags	Ljava/util/Map;
+
+accessible	field	net/minecraft/world/entity/Entity	dimensions	Lnet/minecraft/world/entity/EntityDimensions;
+accessible	method	net/minecraft/world/entity/Entity	setRemoved	(Lnet/minecraft/world/entity/Entity$RemovalReason;)V
+
+accessible	method	net/minecraft/world/entity/LivingEntity	checkBedExists	()Z
+accessible	method	net/minecraft/world/entity/LivingEntity	detectEquipmentUpdates	()V
+accessible	method	net/minecraft/world/entity/LivingEntity	updateFallFlying	()V
+accessible	method	net/minecraft/world/entity/LivingEntity	updateSwimAmount	()V
+
+accessible	method	net/minecraft/world/entity/Mob	checkAndHandleImportantInteractions	(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;
+accessible	field	net/minecraft/world/entity/Mob	goalSelector	Lnet/minecraft/world/entity/ai/goal/GoalSelector;
+mutable		field	net/minecraft/world/entity/Mob	goalSelector	Lnet/minecraft/world/entity/ai/goal/GoalSelector;
+accessible	field	net/minecraft/world/entity/Mob	moveControl	Lnet/minecraft/world/entity/ai/control/MoveControl;
+accessible	field	net/minecraft/world/entity/Mob	targetSelector	Lnet/minecraft/world/entity/ai/goal/GoalSelector;
+mutable		field	net/minecraft/world/entity/Mob	targetSelector	Lnet/minecraft/world/entity/ai/goal/GoalSelector;
+
+# AbstractArrow and AbstractMinecart moved down a package in 26.x.
+accessible	method	net/minecraft/world/entity/projectile/arrow/AbstractArrow	shouldFall	()Z
+accessible	method	net/minecraft/world/entity/projectile/arrow/AbstractArrow	setPierceLevel	(B)V
+accessible	field	net/minecraft/world/entity/vehicle/minecart/AbstractMinecart	flipped	Z
+
+# --- blocks and block entities ----------------------------------------------------------
+accessible	field	net/minecraft/world/item/CreativeModeTab	displayItemsGenerator	Lnet/minecraft/world/item/CreativeModeTab$DisplayItemsGenerator;
+accessible	field	net/minecraft/world/level/BaseSpawner	nextSpawnData	Lnet/minecraft/world/level/SpawnData;
+accessible	field	net/minecraft/world/level/BaseSpawner	requiredPlayerRange	I
+accessible	method	net/minecraft/world/level/block/DoorBlock	playSound	(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Z)V
+accessible	method	net/minecraft/world/level/block/entity/BeehiveBlockEntity	releaseAllOccupants	(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/entity/BeehiveBlockEntity$BeeReleaseStatus;)Ljava/util/List;
+accessible	field	net/minecraft/world/level/block/entity/BrewingStandBlockEntity	brewTime	I
+accessible	field	net/minecraft/world/level/block/state/BlockBehaviour	hasCollision	Z
+accessible	field	net/minecraft/world/level/block/state/BlockBehaviour$Properties	hasCollision	Z
+accessible	field	net/minecraft/world/level/block/StemBlock	fruit	Lnet/minecraft/resources/ResourceKey;
+
+# AbstractFurnaceBlockEntity.isLit() is gone; the state it read is now this field.
+accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	litTimeRemaining	I
+
+# Block.canSurvive moved up to BlockBehaviour and is protected there.
+accessible	method	net/minecraft/world/level/block/state/BlockBehaviour	canSurvive	(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z
+
+# --- loot table datagen (fisherman) -------------------------------------------------------
+# ValidationContext.params was renamed to contextKeySet and retyped to ContextKeySet; the
+# four-arg constructor is private in 26.2 and its signature changed to match.
+accessible	field	net/minecraft/world/level/storage/loot/ValidationContext	reporter	Lnet/minecraft/util/ProblemReporter;
+accessible	field	net/minecraft/world/level/storage/loot/ValidationContext	contextKeySet	Lnet/minecraft/util/context/ContextKeySet;
+accessible	field	net/minecraft/world/level/storage/loot/ValidationContext	resolver	Ljava/util/Optional;
+accessible	method	net/minecraft/world/level/storage/loot/ValidationContext	<init>	(Lnet/minecraft/util/ProblemReporter;Lnet/minecraft/util/context/ContextKeySet;Ljava/util/Optional;Ljava/util/Set;)V
+
+# --- item model datagen -------------------------------------------------------------------
+# core/generation/defaults/DefaultItemModelProvider drives ItemModelGenerators from the
+# outside (it extends FabricModelProvider, not ItemModelGenerators), so the two output sinks
+# and the flat-item helper it calls are all private-to-a-foreign-class accesses. Loom widens
+# them for javac, so this compiles with or without these three lines; nothing but the loader
+# widens them at runtime, which is why they have to be declared here.
+accessible	field	net/minecraft/client/data/models/ItemModelGenerators	itemModelOutput	Lnet/minecraft/client/data/models/ItemModelOutput;
+accessible	field	net/minecraft/client/data/models/ItemModelGenerators	modelOutput	Ljava/util/function/BiConsumer;
+accessible	method	net/minecraft/client/data/models/ItemModelGenerators	generateFlatItem	(Lnet/minecraft/world/item/Item;Lnet/minecraft/client/data/models/model/ModelTemplate;)V
+
+# --- commands ------------------------------------------------------------------------------
+accessible	method	net/minecraft/commands/arguments/ResourceKeyArgument	resolveKey	(Lcom/mojang/brigadier/context/CommandContext;Ljava/lang/String;Lnet/minecraft/resources/ResourceKey;Lcom/mojang/brigadier/exceptions/DynamicCommandExceptionType;)Lnet/minecraft/core/Holder$Reference;
+
+# ==========================================================================================
+# Dropped — the target no longer exists in 26.2. Each one is a code change, tracked in
+# 26.2/PORT-STATUS.md.
+#
+#   net.minecraft.resources.ResourceLocation <init>(String,String)
+#       The class is gone. It is net.minecraft.resources.Identifier now, and instances come
+#       from Identifier.fromNamespaceAndPath(...) — no constructor needed.
+#   net.minecraft.client.renderer.RenderStateShard setupState
+#       The class is gone; 26.x rewrote the render pipeline.
+#   net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer armorTrimAtlas
+#       Trim rendering moved into EquipmentLayerRenderer.
+#   net.minecraft.server.level.DistanceManager tickets
+#       Replaced by ticketStorage (widened above).
+#   net.minecraft.world.entity.animal.Sheep ITEM_BY_DYE
+#       Gone entirely; the class also moved to world.entity.animal.sheep.Sheep.
+#   net.minecraft.world.entity.Entity updateFluidOnEyes()
+#       Gone.
+#   net.minecraft.world.entity.ai.goal.GoalSelector profiler
+#       No longer a field: 26.x reads the profiler from Profiler.get() inside tick().
+#   net.minecraft.world.entity.projectile.ThrownPotion applySplash(...)  [both overloads]
+#       The class split into AbstractThrownPotion / ThrownSplashPotion / ThrownLingeringPotion
+#       and applySplash exists nowhere in 26.2.
+#   net.minecraft.world.entity.vehicle.AbstractMinecart lerpSteps, lerpX, lerpY, lerpZ,
+#       lerpXRot, lerpYRot
+#       Interpolation moved to Entity.InterpolationHandler and NewMinecartBehavior.
+#   net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity isLit()
+#       Replaced by litTimeRemaining (widened above).
+#   net.minecraft.world.level.block.Block canSurvive(...)
+#       Moved up to BlockBehaviour (widened above).

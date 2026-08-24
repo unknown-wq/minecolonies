@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " WS",
+    "WUW",
+    "SW "
+  ],
+  "key": {
+    "W": "#minecraft:logs",
+    "U": "minecraft:bucket",
+    "S": "#c:rods/wooden"
+  },
+  "result": {
+    "id": "structurize:blockfluidsubstitution",
+    "count": 32
+  }
+}

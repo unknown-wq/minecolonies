@@ -1,0 +1,5 @@
+--- a/gui/citizen/main.xml
++++ b/gui/citizen/main.xml
+@@ -115 +115 @@
+-    <image id="statusicon" size="30 30" pos="164 18" visible="false"/>
++    <image id="statusicon" size="30 30" pos="164 18" visible="false" source="minecraft:missingno"/>

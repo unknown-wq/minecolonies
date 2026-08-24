@@ -1,0 +1,30 @@
+[
+  {
+    "op": "remove",
+    "path": "/loader"
+  },
+  {
+    "op": "remove",
+    "path": "/base"
+  },
+  {
+    "op": "remove",
+    "path": "/perspectives"
+  },
+  {
+    "op": "remove",
+    "path": "/overrides"
+  },
+  {
+    "op": "replace",
+    "path": "/parent",
+    "value": "minecraft:item/generated"
+  },
+  {
+    "op": "add",
+    "path": "/textures",
+    "value": {
+      "layer0": "minecolonies:item/spear"
+    }
+  }
+]

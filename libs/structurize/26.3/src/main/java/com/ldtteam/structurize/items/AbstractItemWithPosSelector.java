@@ -1,0 +1,263 @@
+package com.ldtteam.structurize.items;
+
+import com.ldtteam.structurize.api.Utils;
+import com.ldtteam.structurize.component.ModDataComponents;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import com.ldtteam.structurize.api.Tuple;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.world.level.Level;
+
+import java.util.Optional;
+import java.util.function.UnaryOperator;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Abstract item mechanic for pos selecting
+ */
+public abstract class AbstractItemWithPosSelector extends Item
+{
+    private static final String START_POS_TKEY   = "item.possetter.firstpos";
+    private static final String END_POS_TKEY     = "item.possetter.secondpos";
+    private static final String MISSING_POS_TKEY = "item.possetter.missingpos";
+
+    /**
+     * MC redirect.
+     *
+     * @param properties item properties
+     */
+    public AbstractItemWithPosSelector(final Properties properties)
+    {
+        super(properties.component(ModDataComponents.POS_SELECTION, PosSelection.EMPTY));
+    }
+
+    /**
+     * Is called when player air-right-clicks with item.
+     *
+     * @param start    first pos
+     * @param end      second pos
+     * @param worldIn  event world
+     * @param playerIn event player
+     * @return event result, typically success
+     */
+    public abstract InteractionResult onAirRightClick(BlockPos start, BlockPos end, Level worldIn, Player playerIn, ItemStack itemStack);
+
+    /**
+     * Uses to search for correct itemstack in both hands.
+     *
+     * @return item reference from {@link ModItems}
+     */
+    public abstract AbstractItemWithPosSelector getRegisteredItemInstance();
+
+    /**
+     * Structurize: Calls {@link AbstractItemWithPosSelector#onAirRightClick(BlockPos, BlockPos, Level, Player, ItemStack)}.
+     * {@inheritDoc}
+     */
+    @Override
+    public InteractionResult use(final Level worldIn, final Player playerIn, final InteractionHand handIn)
+    {
+        final ItemStack itemstack = playerIn.getItemInHand(handIn);
+        final PosSelection compound = PosSelection.readFromItemStack(itemstack);
+
+        if (compound.startPos().isEmpty())
+        {
+            if (worldIn.isClientSide())
+            {
+                playerIn.sendSystemMessage(Component.translatable(MISSING_POS_TKEY + "1"));
+            }
+            return InteractionResult.FAIL;
+        }
+
+        if (compound.endPos().isEmpty())
+        {
+            if (worldIn.isClientSide())
+            {
+                playerIn.sendSystemMessage(Component.translatable(MISSING_POS_TKEY + "2"));
+            }
+            return InteractionResult.FAIL;
+        }
+
+        return onAirRightClick(
+            compound.startPos().get(),
+            compound.endPos().get(),
+            worldIn,
+            playerIn,
+            itemstack);
+    }
+
+    /**
+     * Structurize: Captures second position or Anchor Pos.
+     * {@inheritDoc}
+     */
+    @Override
+    public InteractionResult useOn(final UseOnContext context)
+    {
+        final BlockPos pos = context.getClickedPos();
+        if (context.getLevel().isClientSide())
+        {
+            context.getPlayer().sendSystemMessage(Component.translatable(END_POS_TKEY, pos.getX(), pos.getY(), pos.getZ()));
+            Utils.playSuccessSound(context.getPlayer());
+        }
+        PosSelection.updateItemStack(context.getItemInHand(), data -> data.setEndpos(pos));
+        return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * Structurize: Prevent block breaking server side.
+     * {@inheritDoc}
+     */
+    /**
+     * 26.2: {@code Item#canAttackBlock(BlockState, Level, BlockPos, Player)} became
+     * {@code Item#canDestroyBlock(ItemStack, BlockState, Level, BlockPos, LivingEntity)}
+     * (/opt/mc-src/net/minecraft/world/item/Item.java:169).
+     */
+    @Override
+    public boolean canDestroyBlock(final ItemStack stack, final BlockState state, final Level worldIn, final BlockPos pos, final LivingEntity user)
+    {
+        if (!(user instanceof final Player player))
+        {
+            return super.canDestroyBlock(stack, state, worldIn, pos, user);
+        }
+        ItemStack itemstack = player.getMainHandItem();
+        if (!itemstack.getItem().equals(getRegisteredItemInstance()))
+        {
+            itemstack = player.getOffhandItem();
+        }
+        PosSelection.updateItemStack(itemstack, data -> data.setStartPos(pos));
+        if (player.level().isClientSide())
+        {
+            Utils.playSuccessSound(player);
+            player.sendSystemMessage(Component.translatable(START_POS_TKEY, pos.getX(), pos.getY(), pos.getZ()));
+        }
+        return false;
+    }
+
+    /**
+     * Override this so items have instant click in survival.
+     */
+    @Override
+    public float getDestroySpeed(final ItemStack stack, final BlockState state)
+    {
+        return Float.MAX_VALUE;
+    }
+
+    /**
+     * Saves the start/end coordinates on this stack.
+     * @param tool The tool stack (assumed already been validated)
+     * @param start The new start position
+     * @param end The new end position
+     * @deprecated use datacomponents
+     */
+    @Deprecated(forRemoval = true, since = "1.21")
+    public static void setBounds(@NotNull final ItemStack tool,
+                                 @NotNull final BlockPos start,
+                                 @NotNull final BlockPos end)
+    {
+        PosSelection.updateItemStack(tool, data -> data.setSelection(start, end));
+    }
+
+    /**
+     * Loads the start/end coordinates from this stack.
+     * @param tool The tool stack (assumed already been validated)
+     * @return the start/end positions
+     * @deprecated use datacomponents
+     */
+    @Deprecated(forRemoval = true, since = "1.21")
+    public static Tuple<BlockPos, BlockPos> getBounds(@NotNull final ItemStack tool)
+    {
+        final PosSelection tag = PosSelection.readFromItemStack(tool);
+        return new Tuple<>(tag.startPos().orElse(null), tag.endPos().orElse(null));
+    }
+
+    /**
+     * Data components for storing start and end pos
+     */
+    public record PosSelection(Optional<BlockPos> startPos, Optional<BlockPos> endPos)
+    { 
+        public static final PosSelection EMPTY = new PosSelection(Optional.empty(), Optional.empty());
+
+        public static final Codec<PosSelection> CODEC = RecordCodecBuilder.create(
+            builder -> builder
+                .group(BlockPos.CODEC.optionalFieldOf("start_pos").forGetter(PosSelection::startPos),
+                    BlockPos.CODEC.optionalFieldOf("end_pos").forGetter(PosSelection::endPos))
+                .apply(builder, PosSelection::new));
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, PosSelection> STREAM_CODEC =
+            StreamCodec.composite(ByteBufCodecs.optional(BlockPos.STREAM_CODEC),
+                PosSelection::startPos,
+                ByteBufCodecs.optional(BlockPos.STREAM_CODEC),
+                PosSelection::endPos,
+                PosSelection::new);
+
+        /**
+         * @return true if both start and end positions are set
+         */
+        public boolean hasSelection()
+        {
+            return startPos.isPresent() && endPos.isPresent();
+        }
+
+        /**
+         * For use with {@link ItemStack#update(DataComponentType, Object, UnaryOperator)}
+         */
+        public PosSelection setStartPos(final BlockPos pos)
+        {
+            return new PosSelection(Optional.ofNullable(pos), endPos);
+        }
+
+        /**
+         * For use with {@link ItemStack#update(DataComponentType, Object, UnaryOperator)}
+         */
+        public PosSelection setEndpos(final BlockPos pos)
+        {
+            return new PosSelection(startPos, Optional.ofNullable(pos));
+        }
+
+        /**
+         * For use with {@link ItemStack#update(DataComponentType, Object, UnaryOperator)}
+         */
+        public PosSelection setSelection(final BlockPos startPos, final BlockPos endPos)
+        {
+            return new PosSelection(Optional.ofNullable(startPos), Optional.ofNullable(endPos));
+        }
+
+        /**
+         * Writes this posSelection into given itemStack.
+         * 
+         * @see BlockEntity#saveToItem(ItemStack, net.minecraft.core.HolderLookup.Provider)
+         */
+        public void writeToItemStack(final ItemStack itemStack)
+        {
+            itemStack.set(ModDataComponents.POS_SELECTION, this);
+        }
+    
+        /**
+         * @return posSelection stored in given itemStack (or empty instance)
+         */
+        public static PosSelection readFromItemStack(final ItemStack itemStack)
+        {
+            return itemStack.getOrDefault(ModDataComponents.POS_SELECTION, PosSelection.EMPTY);
+        }
+    
+        /**
+         * Performs updating of posSelection in given itemStack
+         */
+        public static void updateItemStack(final ItemStack itemStack, final UnaryOperator<PosSelection> updater)
+        {
+            updater.apply(readFromItemStack(itemStack)).writeToItemStack(itemStack);
+        }
+    }
+}

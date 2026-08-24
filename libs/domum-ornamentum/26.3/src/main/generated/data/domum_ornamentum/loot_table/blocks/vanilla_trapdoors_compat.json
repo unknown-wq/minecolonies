@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "modifier": [
+            {
+              "type": "minecraft:copy_components",
+              "include": [
+                "domum_ornamentum:texture_data"
+              ],
+              "source": "block_entity"
+            },
+            {
+              "type": "minecraft:copy_state",
+              "block": "domum_ornamentum:vanilla_trapdoors_compat",
+              "properties": [
+                "type"
+              ]
+            }
+          ],
+          "name": "domum_ornamentum:vanilla_trapdoors_compat"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}

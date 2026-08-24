@@ -1,0 +1,39 @@
+accessWidener	v2	official
+
+# Port of src/main/resources/META-INF/accesstransformer.cfg to Fabric.
+# Header namespace is "official" because 26.1+ ships unobfuscated with Mojang names, so member
+# paths are written exactly as they appear in /opt/mc-src.
+
+# --- keybinds -----------------------------------------------------------------------------------
+# event/ClientEventSubscriber: replays a pick-block press.
+accessible	field	net/minecraft/client/KeyMapping	clickCount	I
+mutable	field	net/minecraft/client/KeyMapping	clickCount	I
+
+# --- placeholder substitution -------------------------------------------------------------------
+# util/BlockUtils: decides whether a block is a plausible "solid" replacement.
+accessible	field	net/minecraft/world/level/block/state/BlockBehaviour	hasCollision	Z
+
+# --- world gen settings -------------------------------------------------------------------------
+# util/BlockUtils: asks the chunk generator what the natural surface block at a position would be.
+accessible	method	net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator	createNoiseChunk	(Lnet/minecraft/world/level/chunk/ChunkAccess;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/levelgen/blending/Blender;Lnet/minecraft/world/level/levelgen/RandomState;)Lnet/minecraft/world/level/levelgen/NoiseChunk;
+accessible	class	net/minecraft/world/level/levelgen/SurfaceRules$Context
+accessible	method	net/minecraft/world/level/levelgen/SurfaceRules$Context	<init>	(Lnet/minecraft/world/level/levelgen/SurfaceSystem;Lnet/minecraft/world/level/levelgen/RandomState;Lnet/minecraft/world/level/chunk/ChunkAccess;Lnet/minecraft/world/level/levelgen/NoiseChunk;Ljava/util/function/Function;Lnet/minecraft/world/level/levelgen/WorldGenerationContext;Ljava/util/Set;)V
+accessible	method	net/minecraft/world/level/levelgen/SurfaceRules$Context	updateXZ	(II)V
+accessible	method	net/minecraft/world/level/levelgen/SurfaceRules$Context	updateY	(IIII)V
+accessible	class	net/minecraft/world/level/levelgen/SurfaceRules$SurfaceRule
+
+# --- 1.12.2 blueprint fixer ---------------------------------------------------------------------
+# blueprints/v1/BlueprintUtil#fixCross1343: the flower pot / note block block-entity -> block-state maps.
+# 26.2 moved both out of ChunkPalettedStorageFix into its private nested MappingConstants, so the class
+# itself has to be widened as well as the two fields.
+accessible	class	net/minecraft/util/datafix/fixes/ChunkPalettedStorageFix$MappingConstants
+accessible	field	net/minecraft/util/datafix/fixes/ChunkPalettedStorageFix$MappingConstants	FLOWER_POT_MAP	Ljava/util/Map;
+accessible	field	net/minecraft/util/datafix/fixes/ChunkPalettedStorageFix$MappingConstants	NOTE_BLOCK_MAP	Ljava/util/Map;
+
+# --- dropped from the NeoForge access transformer -----------------------------------------------
+# public-f net.minecraft.client.renderer.RenderStateShard setupState
+#   -> RenderStateShard does not exist in 26.2 (render pipelines replaced it).
+# public com.mojang.blaze3d.platform.GlStateManager BLEND / BlendState / BooleanState
+#   -> GlStateManager does not exist in 26.2 (Blaze3D rewrite, Vulkan backend).
+# public net.minecraft.world.entity.decoration.{ItemFrame,GlowItemFrame} getFrameItemStack
+#   -> api/ItemStackUtils now uses the public Entity#getPickResult() instead.

@@ -1,0 +1,9525 @@
+[
+  {
+    "item": "domum_ornamentum:architectscutter"
+  },
+  {
+    "item": "domum_ornamentum:beige_bricks"
+  },
+  {
+    "item": "domum_ornamentum:beige_stone_bricks"
+  },
+  {
+    "item": "domum_ornamentum:black_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:black_floating_carpet"
+  },
+  {
+    "item": "domum_ornamentum:blockbarreldeco_onside"
+  },
+  {
+    "item": "domum_ornamentum:blockbarreldeco_standing"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:blockpaperwall"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:blockpillar"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:blocktiledpaperwall"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:blockypillar"
+  },
+  {
+    "item": "domum_ornamentum:blue_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:blue_cobblestone_extra"
+  },
+  {
+    "item": "domum_ornamentum:blue_floating_carpet"
+  },
+  {
+    "item": "domum_ornamentum:brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:brown_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:brown_bricks"
+  },
+  {
+    "item": "domum_ornamentum:brown_floating_carpet"
+  },
+  {
+    "item": "domum_ornamentum:brown_stone_bricks"
+  },
+  {
+    "item": "domum_ornamentum:cactus_extra"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:center_light"
+  },
+  {
+    "item": "domum_ornamentum:cobblestone_extra"
+  },
+  {
+    "item": "domum_ornamentum:cream_bricks"
+  },
+  {
+    "item": "domum_ornamentum:cream_stone_bricks"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:crossed_light"
+  },
+  {
+    "item": "domum_ornamentum:cyan_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:cyan_floating_carpet"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:dark_brick"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:double_crossed"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:down_gated"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:dynamic_timberframe"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data",
+      "minecraft:block_state"
+    ],
+    "item": "domum_ornamentum:fancy_door"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:fancy_light"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data",
+      "minecraft:block_state"
+    ],
+    "item": "domum_ornamentum:fancy_trapdoors"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:four_light"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:framed"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:framed_light"
+  },
+  {
+    "item": "domum_ornamentum:gray_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:gray_floating_carpet"
+  },
+  {
+    "item": "domum_ornamentum:green_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:green_cactus_extra"
+  },
+  {
+    "item": "domum_ornamentum:green_cobblestone_extra"
+  },
+  {
+    "item": "domum_ornamentum:green_floating_carpet"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:horizontal_light"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:horizontal_plain"
+  },
+  {
+    "item": "domum_ornamentum:light_blue_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:light_blue_floating_carpet"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:light_brick"
+  },
+  {
+    "item": "domum_ornamentum:light_gray_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:light_gray_floating_carpet"
+  },
+  {
+    "item": "domum_ornamentum:lime_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:lime_floating_carpet"
+  },
+  {
+    "item": "domum_ornamentum:magenta_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:magenta_floating_carpet"
+  },
+  {
+    "item": "domum_ornamentum:mossy_cobblestone_extra"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:one_crossed_lr"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:one_crossed_rl"
+  },
+  {
+    "item": "domum_ornamentum:orange_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:orange_floating_carpet"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data",
+      "minecraft:block_state"
+    ],
+    "item": "domum_ornamentum:panel"
+  },
+  {
+    "item": "domum_ornamentum:paper_extra"
+  },
+  {
+    "item": "domum_ornamentum:pink_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:pink_floating_carpet"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:plain"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data",
+      "minecraft:block_state"
+    ],
+    "item": "domum_ornamentum:post"
+  },
+  {
+    "item": "domum_ornamentum:purple_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:purple_cobblestone_extra"
+  },
+  {
+    "item": "domum_ornamentum:purple_floating_carpet"
+  },
+  {
+    "item": "domum_ornamentum:red_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:red_floating_carpet"
+  },
+  {
+    "item": "domum_ornamentum:roan_bricks"
+  },
+  {
+    "item": "domum_ornamentum:roan_stone_bricks"
+  },
+  {
+    "item": "domum_ornamentum:sand_bricks"
+  },
+  {
+    "item": "domum_ornamentum:sand_stone_bricks"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:shingle"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:shingle_flat"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:shingle_flat_lower"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:shingle_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:side_framed"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:side_framed_horizontal"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:squarepillar"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:up_gated"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data",
+      "minecraft:block_state"
+    ],
+    "item": "domum_ornamentum:vanilla_doors_compat"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:vanilla_fence_compat"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:vanilla_fence_gate_compat"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:vanilla_slab_compat"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:vanilla_stairs_compat"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data",
+      "minecraft:block_state"
+    ],
+    "item": "domum_ornamentum:vanilla_trapdoors_compat"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:vanilla_wall_compat"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "domum_ornamentum:vertical_light"
+  },
+  {
+    "item": "domum_ornamentum:wheat_extra"
+  },
+  {
+    "item": "domum_ornamentum:white_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:white_floating_carpet"
+  },
+  {
+    "item": "domum_ornamentum:white_paper_extra"
+  },
+  {
+    "item": "domum_ornamentum:yellow_brick_extra"
+  },
+  {
+    "item": "domum_ornamentum:yellow_floating_carpet"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:amazonchiefegg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:amazonegg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:amazonspearmanegg"
+  },
+  {
+    "item": "minecolonies:ancienttome"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:apple_pie"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:assistanthammer_diamond"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:assistanthammer_gold"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:assistanthammer_iron"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:baked_salmon"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:banner_rally_guards"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:barbarcheregg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:barbarianegg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:barbchiefegg"
+  },
+  {
+    "item": "minecolonies:barrel_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:bell_pepper"
+  },
+  {
+    "item": "minecolonies:blockconstructiontape"
+  },
+  {
+    "item": "minecolonies:blockhutalchemist"
+  },
+  {
+    "item": "minecolonies:blockhutarchery"
+  },
+  {
+    "item": "minecolonies:blockhutbaker"
+  },
+  {
+    "item": "minecolonies:blockhutbarracks"
+  },
+  {
+    "item": "minecolonies:blockhutbarrackstower"
+  },
+  {
+    "item": "minecolonies:blockhutbeekeeper"
+  },
+  {
+    "item": "minecolonies:blockhutblacksmith"
+  },
+  {
+    "item": "minecolonies:blockhutbuilder"
+  },
+  {
+    "item": "minecolonies:blockhutchickenherder"
+  },
+  {
+    "item": "minecolonies:blockhutcitizen"
+  },
+  {
+    "item": "minecolonies:blockhutcombatacademy"
+  },
+  {
+    "item": "minecolonies:blockhutcomposter"
+  },
+  {
+    "item": "minecolonies:blockhutconcretemixer"
+  },
+  {
+    "item": "minecolonies:blockhutcook"
+  },
+  {
+    "item": "minecolonies:blockhutcowboy"
+  },
+  {
+    "item": "minecolonies:blockhutcrusher"
+  },
+  {
+    "item": "minecolonies:blockhutdeliveryman"
+  },
+  {
+    "item": "minecolonies:blockhutdyer"
+  },
+  {
+    "item": "minecolonies:blockhutenchanter"
+  },
+  {
+    "item": "minecolonies:blockhutfarmer"
+  },
+  {
+    "item": "minecolonies:blockhutfield"
+  },
+  {
+    "item": "minecolonies:blockhutfisherman"
+  },
+  {
+    "item": "minecolonies:blockhutfletcher"
+  },
+  {
+    "item": "minecolonies:blockhutflorist"
+  },
+  {
+    "item": "minecolonies:blockhutgatehouse"
+  },
+  {
+    "item": "minecolonies:blockhutglassblower"
+  },
+  {
+    "item": "minecolonies:blockhutgraveyard"
+  },
+  {
+    "item": "minecolonies:blockhutguardtower"
+  },
+  {
+    "item": "minecolonies:blockhuthospital"
+  },
+  {
+    "item": "minecolonies:blockhutkitchen"
+  },
+  {
+    "item": "minecolonies:blockhutlibrary"
+  },
+  {
+    "item": "minecolonies:blockhutlumberjack"
+  },
+  {
+    "item": "minecolonies:blockhutmechanic"
+  },
+  {
+    "item": "minecolonies:blockhutminer"
+  },
+  {
+    "item": "minecolonies:blockhutmysticalsite"
+  },
+  {
+    "item": "minecolonies:blockhutnetherworker"
+  },
+  {
+    "item": "minecolonies:blockhutplantation"
+  },
+  {
+    "item": "minecolonies:blockhutplantationfield"
+  },
+  {
+    "item": "minecolonies:blockhutrabbithutch"
+  },
+  {
+    "item": "minecolonies:blockhutsawmill"
+  },
+  {
+    "item": "minecolonies:blockhutschool"
+  },
+  {
+    "item": "minecolonies:blockhutshepherd"
+  },
+  {
+    "item": "minecolonies:blockhutsifter"
+  },
+  {
+    "item": "minecolonies:blockhutsmeltery"
+  },
+  {
+    "item": "minecolonies:blockhutstable"
+  },
+  {
+    "item": "minecolonies:blockhutstonemason"
+  },
+  {
+    "item": "minecolonies:blockhutstonesmeltery"
+  },
+  {
+    "item": "minecolonies:blockhutswineherder"
+  },
+  {
+    "item": "minecolonies:blockhuttavern"
+  },
+  {
+    "item": "minecolonies:blockhuttownhall"
+  },
+  {
+    "item": "minecolonies:blockhutuniversity"
+  },
+  {
+    "item": "minecolonies:blockhutwarehouse"
+  },
+  {
+    "item": "minecolonies:blockminecoloniesgrave"
+  },
+  {
+    "item": "minecolonies:blockminecoloniesnamedgrave"
+  },
+  {
+    "checkednbtkeys": [
+      "domum_ornamentum:texture_data"
+    ],
+    "item": "minecolonies:blockminecoloniesrack"
+  },
+  {
+    "item": "minecolonies:blockpostbox"
+  },
+  {
+    "item": "minecolonies:blockstash"
+  },
+  {
+    "item": "minecolonies:blockwaypoint"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:borscht"
+  },
+  {
+    "item": "minecolonies:bread_dough"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:build_goggles"
+  },
+  {
+    "item": "minecolonies:butter"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:butternut_squash"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:cabbage"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecolonies:cabochis"
+  },
+  {
+    "item": "minecolonies:cake_batter"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:cheddar_cheese"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:cheese_pizza"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:cheese_ravioli"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:chicken_broth"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:chickpea"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecolonies:chiefsword"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:chorus_bread"
+  },
+  {
+    "item": "minecolonies:clipboard"
+  },
+  {
+    "item": "minecolonies:colony_banner"
+  },
+  {
+    "item": "minecolonies:colonymap"
+  },
+  {
+    "item": "minecolonies:colonysign"
+  },
+  {
+    "item": "minecolonies:compost"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecolonies:composted_dirt"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecolonies:congee"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecolonies:cooked_rice"
+  },
+  {
+    "item": "minecolonies:cookie_dough"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:corn"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:corn_chowder"
+  },
+  {
+    "item": "minecolonies:cornmeal"
+  },
+  {
+    "item": "minecolonies:creamcheese"
+  },
+  {
+    "item": "minecolonies:decorationcontroller"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:drownedpiratearcheregg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:drownedpiratecaptainegg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:drownedpirateegg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:durum"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:eggdrop_soup"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:eggplant"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:eggplant_dolma"
+  },
+  {
+    "item": "minecolonies:farmland"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:feta_cheese"
+  },
+  {
+    "item": "minecolonies:fieldstick"
+  },
+  {
+    "item": "minecolonies:firearrow"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:fish_dinner"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:fish_n_chips"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:flatbread"
+  },
+  {
+    "item": "minecolonies:floodedfarmland"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:fried_rice"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:garlic"
+  },
+  {
+    "item": "minecolonies:gate_iron"
+  },
+  {
+    "item": "minecolonies:gate_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:golden_bread"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:hand_pie"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecolonies:iron_scimitar"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:kebab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:kimchi"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecolonies:lamb_stew"
+  },
+  {
+    "item": "minecolonies:large_empty_bottle"
+  },
+  {
+    "item": "minecolonies:large_milk_bottle"
+  },
+  {
+    "item": "minecolonies:large_soy_milk_bottle"
+  },
+  {
+    "item": "minecolonies:large_water_bottle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:lembas_scone"
+  },
+  {
+    "item": "minecolonies:magicpotion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:manchet_bread"
+  },
+  {
+    "item": "minecolonies:manchet_dough"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:meat_ravioli"
+  },
+  {
+    "item": "minecolonies:mediumquarry"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:milky_bread"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:mint"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:mint_jelly"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:mint_tea"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:mintchoco_cheesecake"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecolonies:mistletoe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:muffin"
+  },
+  {
+    "item": "minecolonies:muffin_dough"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:mummyarcheregg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:mummyegg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:mushroom_pizza"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:mutton_dinner"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:nether_pepper"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:norsemenarcheregg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:norsemenchiefegg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:onion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecolonies:pasta_plain"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecolonies:pasta_tomato"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:pea_soup"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:peas"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:pepper_hummus"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:pharaoegg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:pharaoscepter"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:pierogi"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:pirate_boots"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:pirate_cap"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:pirate_chest"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:pirate_hat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:pirate_leggins"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:pirate_legs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:pirate_shoes"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:pirate_top"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:piratearcheregg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:piratecaptainegg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:pirateegg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:pita_hummus"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:plain_cheesecake"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:plate_armor_boots"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:plate_armor_chest"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:plate_armor_helmet"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecolonies:plate_armor_legs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:polenta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:potato_soup"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecolonies:pottage"
+  },
+  {
+    "item": "minecolonies:questlog"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:ramen"
+  },
+  {
+    "item": "minecolonies:raw_noodle"
+  },
+  {
+    "item": "minecolonies:raw_pumpkin_pie"
+  },
+  {
+    "item": "minecolonies:resourcescroll"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:rice"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:rice_ball"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:unbreakable"
+    ],
+    "item": "minecolonies:santa_hat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:scan_analyzer"
+  },
+  {
+    "item": "minecolonies:scepterbeekeeper"
+  },
+  {
+    "item": "minecolonies:scepterborder"
+  },
+  {
+    "item": "minecolonies:scepterclaim"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:scepterguard"
+  },
+  {
+    "item": "minecolonies:scepterlumberjack"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:scepterpermission"
+  },
+  {
+    "item": "minecolonies:scepterterritory"
+  },
+  {
+    "item": "minecolonies:scepterunclaim"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:schnitzel"
+  },
+  {
+    "item": "minecolonies:scroll_area_tp"
+  },
+  {
+    "item": "minecolonies:scroll_buff"
+  },
+  {
+    "item": "minecolonies:scroll_guard_help"
+  },
+  {
+    "item": "minecolonies:scroll_highlight"
+  },
+  {
+    "item": "minecolonies:scroll_tp"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecolonies:shieldmaidenegg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:sifter_mesh_diamond"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:sifter_mesh_flint"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:sifter_mesh_iron"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:sifter_mesh_string"
+  },
+  {
+    "item": "minecolonies:simplequarry"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:soybean"
+  },
+  {
+    "item": "minecolonies:soysauce"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecolonies:spear"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:spicy_eggplant"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:spicy_grilled_chicken"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:squash_soup"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:steak_dinner"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:stew_trencher"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:stuffed_pepper"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:stuffed_pita"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:sugary_bread"
+  },
+  {
+    "item": "minecolonies:supplycampdeployer"
+  },
+  {
+    "item": "minecolonies:supplychestdeployer"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:sushi_roll"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:tacos"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:tofu"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:tomato"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:tortillas"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:veggie_quiche"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:veggie_ravioli"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:veggie_soup"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecolonies:yogurt"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecolonies:yogurt_with_berries"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_chest_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_fence"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:acacia_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_planks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_sapling"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:acacia_wood"
+  },
+  {
+    "item": "minecraft:activator_rail"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:allay_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:allium"
+  },
+  {
+    "item": "minecraft:amethyst_block"
+  },
+  {
+    "item": "minecraft:amethyst_cluster"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_trim_material"
+    ],
+    "item": "minecraft:amethyst_shard"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:damage_resistant"
+    ],
+    "item": "minecraft:ancient_debris"
+  },
+  {
+    "item": "minecraft:andesite"
+  },
+  {
+    "item": "minecraft:andesite_slab"
+  },
+  {
+    "item": "minecraft:andesite_stairs"
+  },
+  {
+    "item": "minecraft:andesite_wall"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:angler_pottery_sherd"
+  },
+  {
+    "item": "minecraft:anvil"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:apple"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:archer_pottery_sherd"
+  },
+  {
+    "item": "minecraft:armadillo_scute"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:armadillo_spawn_egg"
+  },
+  {
+    "item": "minecraft:armor_stand"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:arms_up_pottery_sherd"
+  },
+  {
+    "item": "minecraft:arrow"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bucket_entity_data"
+    ],
+    "item": "minecraft:axolotl_bucket"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:axolotl_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:azalea"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:azalea_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:azure_bluet"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:baked_potato"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_chest_raft"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_fence"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_mosaic"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_mosaic_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_mosaic_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_planks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_raft"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bamboo_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:barrel"
+  },
+  {
+    "item": "minecraft:basalt"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:bat_spawn_egg"
+  },
+  {
+    "item": "minecraft:beacon"
+  },
+  {
+    "item": "minecraft:bedrock"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bees",
+      "minecraft:block_state"
+    ],
+    "item": "minecraft:bee_nest"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:bee_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:beef"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bees",
+      "minecraft:block_state"
+    ],
+    "item": "minecraft:beehive"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:villager_food"
+    ],
+    "item": "minecraft:beetroot"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:beetroot_seeds"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecraft:beetroot_soup"
+  },
+  {
+    "item": "minecraft:bell"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:big_dripleaf"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_chest_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_fence"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:birch_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_planks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_sapling"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:birch_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:black_banner"
+  },
+  {
+    "item": "minecraft:black_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:black_bundle"
+  },
+  {
+    "item": "minecraft:black_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:black_carpet"
+  },
+  {
+    "item": "minecraft:black_concrete"
+  },
+  {
+    "item": "minecraft:black_concrete_powder"
+  },
+  {
+    "item": "minecraft:black_concrete_slab"
+  },
+  {
+    "item": "minecraft:black_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:black_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:black_dye"
+  },
+  {
+    "item": "minecraft:black_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:black_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:black_shulker_box"
+  },
+  {
+    "item": "minecraft:black_stained_glass"
+  },
+  {
+    "item": "minecraft:black_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:black_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:black_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:black_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:black_wool_stairs"
+  },
+  {
+    "item": "minecraft:blackstone"
+  },
+  {
+    "item": "minecraft:blackstone_slab"
+  },
+  {
+    "item": "minecraft:blackstone_stairs"
+  },
+  {
+    "item": "minecraft:blackstone_wall"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:blade_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:blast_furnace"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:brewing_fuel"
+    ],
+    "item": "minecraft:blaze_powder"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:blaze_rod"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:blaze_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:blue_banner"
+  },
+  {
+    "item": "minecraft:blue_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:blue_bundle"
+  },
+  {
+    "item": "minecraft:blue_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:blue_carpet"
+  },
+  {
+    "item": "minecraft:blue_concrete"
+  },
+  {
+    "item": "minecraft:blue_concrete_powder"
+  },
+  {
+    "item": "minecraft:blue_concrete_slab"
+  },
+  {
+    "item": "minecraft:blue_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:blue_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:blue_dye"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:chicken/variant"
+    ],
+    "item": "minecraft:blue_egg"
+  },
+  {
+    "item": "minecraft:blue_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:blue_harness"
+  },
+  {
+    "item": "minecraft:blue_ice"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:blue_orchid"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:blue_shulker_box"
+  },
+  {
+    "item": "minecraft:blue_stained_glass"
+  },
+  {
+    "item": "minecraft:blue_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:blue_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:blue_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:blue_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:blue_wool_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:bogged_spawn_egg"
+  },
+  {
+    "item": "minecraft:bolt_armor_trim_smithing_template"
+  },
+  {
+    "item": "minecraft:bone"
+  },
+  {
+    "item": "minecraft:bone_block"
+  },
+  {
+    "item": "minecraft:bone_meal"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:enchantable",
+      "minecraft:enchantments"
+    ],
+    "item": "minecraft:book"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_banner_patterns"
+    ],
+    "item": "minecraft:bordure_indented_banner_pattern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage"
+    ],
+    "item": "minecraft:bow"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:bowl"
+  },
+  {
+    "item": "minecraft:brain_coral"
+  },
+  {
+    "item": "minecraft:brain_coral_block"
+  },
+  {
+    "item": "minecraft:brain_coral_fan"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:villager_food"
+    ],
+    "item": "minecraft:bread"
+  },
+  {
+    "item": "minecraft:breeze_rod"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:breeze_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:brewer_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:brewing_stand"
+  },
+  {
+    "item": "minecraft:brick"
+  },
+  {
+    "item": "minecraft:brick_slab"
+  },
+  {
+    "item": "minecraft:brick_stairs"
+  },
+  {
+    "item": "minecraft:brick_wall"
+  },
+  {
+    "item": "minecraft:bricks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:brown_banner"
+  },
+  {
+    "item": "minecraft:brown_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:brown_bundle"
+  },
+  {
+    "item": "minecraft:brown_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:brown_carpet"
+  },
+  {
+    "item": "minecraft:brown_concrete"
+  },
+  {
+    "item": "minecraft:brown_concrete_powder"
+  },
+  {
+    "item": "minecraft:brown_concrete_slab"
+  },
+  {
+    "item": "minecraft:brown_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:brown_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:brown_dye"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:chicken/variant"
+    ],
+    "item": "minecraft:brown_egg"
+  },
+  {
+    "item": "minecraft:brown_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:brown_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:brown_mushroom"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:brown_mushroom_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:brown_shulker_box"
+  },
+  {
+    "item": "minecraft:brown_stained_glass"
+  },
+  {
+    "item": "minecraft:brown_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:brown_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:brown_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:brown_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:brown_wool_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecraft:brush"
+  },
+  {
+    "item": "minecraft:bubble_coral"
+  },
+  {
+    "item": "minecraft:bubble_coral_block"
+  },
+  {
+    "item": "minecraft:bubble_coral_fan"
+  },
+  {
+    "item": "minecraft:bucket"
+  },
+  {
+    "item": "minecraft:budding_amethyst"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:bundle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:burn_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:bush"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:cactus"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:cactus_flower"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:cake"
+  },
+  {
+    "item": "minecraft:calcite"
+  },
+  {
+    "item": "minecraft:calibrated_sculk_sensor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:camel_husk_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:camel_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:campfire"
+  },
+  {
+    "item": "minecraft:candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:villager_food"
+    ],
+    "item": "minecraft:carrot"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecraft:carrot_on_a_stick"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cartography_table"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:compostable",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:carved_pumpkin"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:cat_spawn_egg"
+  },
+  {
+    "item": "minecraft:cauldron"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:cave_spider_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:chainmail_boots"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:chainmail_chestplate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:chainmail_helmet"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:chainmail_leggings"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:charcoal"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_chest_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_fence"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:cherry_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_planks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_sapling"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cherry_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:chest"
+  },
+  {
+    "item": "minecraft:chest_minecart"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:chicken"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:chicken_spawn_egg"
+  },
+  {
+    "item": "minecraft:chipped_anvil"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:chiseled_bookshelf"
+  },
+  {
+    "item": "minecraft:chiseled_cinnabar"
+  },
+  {
+    "item": "minecraft:chiseled_copper"
+  },
+  {
+    "item": "minecraft:chiseled_deepslate"
+  },
+  {
+    "item": "minecraft:chiseled_nether_bricks"
+  },
+  {
+    "item": "minecraft:chiseled_polished_blackstone"
+  },
+  {
+    "item": "minecraft:chiseled_quartz_block"
+  },
+  {
+    "item": "minecraft:chiseled_red_sandstone"
+  },
+  {
+    "item": "minecraft:chiseled_resin_bricks"
+  },
+  {
+    "item": "minecraft:chiseled_sandstone"
+  },
+  {
+    "item": "minecraft:chiseled_stone_bricks"
+  },
+  {
+    "item": "minecraft:chiseled_sulfur"
+  },
+  {
+    "item": "minecraft:chiseled_tuff"
+  },
+  {
+    "item": "minecraft:chiseled_tuff_bricks"
+  },
+  {
+    "item": "minecraft:chorus_flower"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_cooldown"
+    ],
+    "item": "minecraft:chorus_fruit"
+  },
+  {
+    "item": "minecraft:chorus_plant"
+  },
+  {
+    "item": "minecraft:cinnabar"
+  },
+  {
+    "item": "minecraft:cinnabar_brick_slab"
+  },
+  {
+    "item": "minecraft:cinnabar_brick_stairs"
+  },
+  {
+    "item": "minecraft:cinnabar_brick_wall"
+  },
+  {
+    "item": "minecraft:cinnabar_bricks"
+  },
+  {
+    "item": "minecraft:cinnabar_slab"
+  },
+  {
+    "item": "minecraft:cinnabar_stairs"
+  },
+  {
+    "item": "minecraft:cinnabar_wall"
+  },
+  {
+    "item": "minecraft:clay"
+  },
+  {
+    "item": "minecraft:clay_ball"
+  },
+  {
+    "item": "minecraft:clock"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:closed_eyeblossom"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:coal"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:coal_block"
+  },
+  {
+    "item": "minecraft:coal_ore"
+  },
+  {
+    "item": "minecraft:coarse_dirt"
+  },
+  {
+    "item": "minecraft:coast_armor_trim_smithing_template"
+  },
+  {
+    "item": "minecraft:cobbled_deepslate"
+  },
+  {
+    "item": "minecraft:cobbled_deepslate_slab"
+  },
+  {
+    "item": "minecraft:cobbled_deepslate_stairs"
+  },
+  {
+    "item": "minecraft:cobbled_deepslate_wall"
+  },
+  {
+    "item": "minecraft:cobblestone"
+  },
+  {
+    "item": "minecraft:cobblestone_slab"
+  },
+  {
+    "item": "minecraft:cobblestone_stairs"
+  },
+  {
+    "item": "minecraft:cobblestone_wall"
+  },
+  {
+    "item": "minecraft:cobweb"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:cocoa_beans"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:cod"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bucket_entity_data",
+      "minecraft:food"
+    ],
+    "item": "minecraft:cod_bucket"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:cod_spawn_egg"
+  },
+  {
+    "item": "minecraft:comparator"
+  },
+  {
+    "item": "minecraft:compass"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:composter"
+  },
+  {
+    "item": "minecraft:conduit"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:cooked_beef"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:cooked_chicken"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:cooked_cod"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:cooked_mutton"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:cooked_porkchop"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:cooked_rabbit"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:cooked_salmon"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:cookie"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:copper_axe"
+  },
+  {
+    "item": "minecraft:copper_bars"
+  },
+  {
+    "item": "minecraft:copper_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:copper_boots"
+  },
+  {
+    "item": "minecraft:copper_bulb"
+  },
+  {
+    "item": "minecraft:copper_chain"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:copper_chestplate"
+  },
+  {
+    "item": "minecraft:copper_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:copper_golem_spawn_egg"
+  },
+  {
+    "item": "minecraft:copper_grate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:copper_helmet"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:copper_hoe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:copper_horse_armor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_trim_material"
+    ],
+    "item": "minecraft:copper_ingot"
+  },
+  {
+    "item": "minecraft:copper_lantern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:copper_leggings"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:copper_nautilus_armor"
+  },
+  {
+    "item": "minecraft:copper_nugget"
+  },
+  {
+    "item": "minecraft:copper_ore"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:copper_pickaxe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:copper_shovel"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attack_range",
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_type",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:kinetic_weapon",
+      "minecraft:max_damage",
+      "minecraft:minimum_attack_charge",
+      "minecraft:piercing_weapon",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:copper_spear"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:copper_sword"
+  },
+  {
+    "item": "minecraft:copper_torch"
+  },
+  {
+    "item": "minecraft:copper_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:cornflower"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:cow_spawn_egg"
+  },
+  {
+    "item": "minecraft:cracked_deepslate_bricks"
+  },
+  {
+    "item": "minecraft:cracked_deepslate_tiles"
+  },
+  {
+    "item": "minecraft:cracked_nether_bricks"
+  },
+  {
+    "item": "minecraft:cracked_polished_blackstone_bricks"
+  },
+  {
+    "item": "minecraft:cracked_stone_bricks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:crafter"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:crafting_table"
+  },
+  {
+    "item": "minecraft:creaking_heart"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:creaking_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_banner_patterns"
+    ],
+    "item": "minecraft:creeper_banner_pattern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:creeper_spawn_egg"
+  },
+  {
+    "item": "minecraft:crimson_button"
+  },
+  {
+    "item": "minecraft:crimson_door"
+  },
+  {
+    "item": "minecraft:crimson_fence"
+  },
+  {
+    "item": "minecraft:crimson_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:crimson_fungus"
+  },
+  {
+    "item": "minecraft:crimson_hyphae"
+  },
+  {
+    "item": "minecraft:crimson_nylium"
+  },
+  {
+    "item": "minecraft:crimson_planks"
+  },
+  {
+    "item": "minecraft:crimson_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:crimson_roots"
+  },
+  {
+    "item": "minecraft:crimson_slab"
+  },
+  {
+    "item": "minecraft:crimson_stairs"
+  },
+  {
+    "item": "minecraft:crimson_stem"
+  },
+  {
+    "item": "minecraft:crimson_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:charged_projectiles",
+      "minecraft:cooking_fuel",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage"
+    ],
+    "item": "minecraft:crossbow"
+  },
+  {
+    "item": "minecraft:crying_obsidian"
+  },
+  {
+    "item": "minecraft:cut_copper"
+  },
+  {
+    "item": "minecraft:cut_copper_slab"
+  },
+  {
+    "item": "minecraft:cut_copper_stairs"
+  },
+  {
+    "item": "minecraft:cut_red_sandstone"
+  },
+  {
+    "item": "minecraft:cut_red_sandstone_slab"
+  },
+  {
+    "item": "minecraft:cut_sandstone"
+  },
+  {
+    "item": "minecraft:cut_sandstone_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cyan_banner"
+  },
+  {
+    "item": "minecraft:cyan_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:cyan_bundle"
+  },
+  {
+    "item": "minecraft:cyan_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:cyan_carpet"
+  },
+  {
+    "item": "minecraft:cyan_concrete"
+  },
+  {
+    "item": "minecraft:cyan_concrete_powder"
+  },
+  {
+    "item": "minecraft:cyan_concrete_slab"
+  },
+  {
+    "item": "minecraft:cyan_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:cyan_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:cyan_dye"
+  },
+  {
+    "item": "minecraft:cyan_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:cyan_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:cyan_shulker_box"
+  },
+  {
+    "item": "minecraft:cyan_stained_glass"
+  },
+  {
+    "item": "minecraft:cyan_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:cyan_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cyan_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cyan_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:cyan_wool_stairs"
+  },
+  {
+    "item": "minecraft:damaged_anvil"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:dandelion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:danger_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_chest_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_fence"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:dark_oak_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_planks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_sapling"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dark_oak_wood"
+  },
+  {
+    "item": "minecraft:dark_prismarine"
+  },
+  {
+    "item": "minecraft:dark_prismarine_slab"
+  },
+  {
+    "item": "minecraft:dark_prismarine_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:daylight_detector"
+  },
+  {
+    "item": "minecraft:dead_brain_coral"
+  },
+  {
+    "item": "minecraft:dead_brain_coral_block"
+  },
+  {
+    "item": "minecraft:dead_brain_coral_fan"
+  },
+  {
+    "item": "minecraft:dead_bubble_coral"
+  },
+  {
+    "item": "minecraft:dead_bubble_coral_block"
+  },
+  {
+    "item": "minecraft:dead_bubble_coral_fan"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dead_bush"
+  },
+  {
+    "item": "minecraft:dead_fire_coral"
+  },
+  {
+    "item": "minecraft:dead_fire_coral_block"
+  },
+  {
+    "item": "minecraft:dead_fire_coral_fan"
+  },
+  {
+    "item": "minecraft:dead_horn_coral"
+  },
+  {
+    "item": "minecraft:dead_horn_coral_block"
+  },
+  {
+    "item": "minecraft:dead_horn_coral_fan"
+  },
+  {
+    "item": "minecraft:dead_tube_coral"
+  },
+  {
+    "item": "minecraft:dead_tube_coral_block"
+  },
+  {
+    "item": "minecraft:dead_tube_coral_fan"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container",
+      "minecraft:pot_decorations"
+    ],
+    "item": "minecraft:decorated_pot"
+  },
+  {
+    "item": "minecraft:deepslate"
+  },
+  {
+    "item": "minecraft:deepslate_brick_slab"
+  },
+  {
+    "item": "minecraft:deepslate_brick_stairs"
+  },
+  {
+    "item": "minecraft:deepslate_brick_wall"
+  },
+  {
+    "item": "minecraft:deepslate_bricks"
+  },
+  {
+    "item": "minecraft:deepslate_coal_ore"
+  },
+  {
+    "item": "minecraft:deepslate_copper_ore"
+  },
+  {
+    "item": "minecraft:deepslate_diamond_ore"
+  },
+  {
+    "item": "minecraft:deepslate_emerald_ore"
+  },
+  {
+    "item": "minecraft:deepslate_gold_ore"
+  },
+  {
+    "item": "minecraft:deepslate_iron_ore"
+  },
+  {
+    "item": "minecraft:deepslate_lapis_ore"
+  },
+  {
+    "item": "minecraft:deepslate_redstone_ore"
+  },
+  {
+    "item": "minecraft:deepslate_tile_slab"
+  },
+  {
+    "item": "minecraft:deepslate_tile_stairs"
+  },
+  {
+    "item": "minecraft:deepslate_tile_wall"
+  },
+  {
+    "item": "minecraft:deepslate_tiles"
+  },
+  {
+    "item": "minecraft:detector_rail"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_trim_material"
+    ],
+    "item": "minecraft:diamond"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:diamond_axe"
+  },
+  {
+    "item": "minecraft:diamond_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:diamond_boots"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:diamond_chestplate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:diamond_helmet"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:diamond_hoe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:diamond_horse_armor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:diamond_leggings"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:diamond_nautilus_armor"
+  },
+  {
+    "item": "minecraft:diamond_ore"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:diamond_pickaxe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:diamond_shovel"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attack_range",
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_type",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:kinetic_weapon",
+      "minecraft:max_damage",
+      "minecraft:minimum_attack_charge",
+      "minecraft:piercing_weapon",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:diamond_spear"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:diamond_sword"
+  },
+  {
+    "item": "minecraft:diorite"
+  },
+  {
+    "item": "minecraft:diorite_slab"
+  },
+  {
+    "item": "minecraft:diorite_stairs"
+  },
+  {
+    "item": "minecraft:diorite_wall"
+  },
+  {
+    "item": "minecraft:dirt"
+  },
+  {
+    "item": "minecraft:dirt_path"
+  },
+  {
+    "item": "minecraft:disc_fragment_5"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:dispenser"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:dolphin_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:donkey_spawn_egg"
+  },
+  {
+    "item": "minecraft:dragon_breath"
+  },
+  {
+    "item": "minecraft:dried_ghast"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:dried_kelp"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:dried_kelp_block"
+  },
+  {
+    "item": "minecraft:dripstone_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:dropper"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:drowned_spawn_egg"
+  },
+  {
+    "item": "minecraft:dune_armor_trim_smithing_template"
+  },
+  {
+    "item": "minecraft:echo_shard"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:chicken/variant"
+    ],
+    "item": "minecraft:egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:elder_guardian_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable",
+      "minecraft:glider",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:elytra"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_trim_material"
+    ],
+    "item": "minecraft:emerald"
+  },
+  {
+    "item": "minecraft:emerald_block"
+  },
+  {
+    "item": "minecraft:emerald_ore"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:stored_enchantments"
+    ],
+    "item": "minecraft:enchanted_book"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:enchanted_golden_apple"
+  },
+  {
+    "item": "minecraft:enchanting_table"
+  },
+  {
+    "item": "minecraft:end_crystal"
+  },
+  {
+    "item": "minecraft:end_rod"
+  },
+  {
+    "item": "minecraft:end_stone"
+  },
+  {
+    "item": "minecraft:end_stone_brick_slab"
+  },
+  {
+    "item": "minecraft:end_stone_brick_stairs"
+  },
+  {
+    "item": "minecraft:end_stone_brick_wall"
+  },
+  {
+    "item": "minecraft:end_stone_bricks"
+  },
+  {
+    "item": "minecraft:ender_eye"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:use_cooldown"
+    ],
+    "item": "minecraft:ender_pearl"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:enderman_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:endermite_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:evoker_spawn_egg"
+  },
+  {
+    "item": "minecraft:experience_bottle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:explorer_pottery_sherd"
+  },
+  {
+    "item": "minecraft:exposed_chiseled_copper"
+  },
+  {
+    "item": "minecraft:exposed_copper"
+  },
+  {
+    "item": "minecraft:exposed_copper_bars"
+  },
+  {
+    "item": "minecraft:exposed_copper_bulb"
+  },
+  {
+    "item": "minecraft:exposed_copper_chain"
+  },
+  {
+    "item": "minecraft:exposed_copper_door"
+  },
+  {
+    "item": "minecraft:exposed_copper_grate"
+  },
+  {
+    "item": "minecraft:exposed_copper_lantern"
+  },
+  {
+    "item": "minecraft:exposed_copper_trapdoor"
+  },
+  {
+    "item": "minecraft:exposed_cut_copper"
+  },
+  {
+    "item": "minecraft:exposed_cut_copper_slab"
+  },
+  {
+    "item": "minecraft:exposed_cut_copper_stairs"
+  },
+  {
+    "item": "minecraft:exposed_lightning_rod"
+  },
+  {
+    "item": "minecraft:eye_armor_trim_smithing_template"
+  },
+  {
+    "item": "minecraft:farmland"
+  },
+  {
+    "item": "minecraft:feather"
+  },
+  {
+    "item": "minecraft:fermented_spider_eye"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:fern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_banner_patterns"
+    ],
+    "item": "minecraft:field_masoned_banner_pattern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:map_decorations",
+      "minecraft:map_id"
+    ],
+    "item": "minecraft:filled_map"
+  },
+  {
+    "item": "minecraft:fire_charge"
+  },
+  {
+    "item": "minecraft:fire_coral"
+  },
+  {
+    "item": "minecraft:fire_coral_block"
+  },
+  {
+    "item": "minecraft:fire_coral_fan"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:firefly_bush"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:fireworks"
+    ],
+    "item": "minecraft:firework_rocket"
+  },
+  {
+    "item": "minecraft:firework_star"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage"
+    ],
+    "item": "minecraft:fishing_rod"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:fletching_table"
+  },
+  {
+    "item": "minecraft:flint"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecraft:flint_and_steel"
+  },
+  {
+    "item": "minecraft:flow_armor_trim_smithing_template"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_banner_patterns"
+    ],
+    "item": "minecraft:flow_banner_pattern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:flow_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_banner_patterns"
+    ],
+    "item": "minecraft:flower_banner_pattern"
+  },
+  {
+    "item": "minecraft:flower_pot"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:flowering_azalea"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:flowering_azalea_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:fox_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:friend_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:frog_spawn_egg"
+  },
+  {
+    "item": "minecraft:frogspawn"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:furnace"
+  },
+  {
+    "item": "minecraft:furnace_minecart"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:ghast_spawn_egg"
+  },
+  {
+    "item": "minecraft:ghast_tear"
+  },
+  {
+    "item": "minecraft:gilded_blackstone"
+  },
+  {
+    "item": "minecraft:glass"
+  },
+  {
+    "item": "minecraft:glass_bottle"
+  },
+  {
+    "item": "minecraft:glass_pane"
+  },
+  {
+    "item": "minecraft:glistering_melon_slice"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_banner_patterns"
+    ],
+    "item": "minecraft:globe_banner_pattern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:glow_berries"
+  },
+  {
+    "item": "minecraft:glow_ink_sac"
+  },
+  {
+    "item": "minecraft:glow_item_frame"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:glow_lichen"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:glow_squid_spawn_egg"
+  },
+  {
+    "item": "minecraft:glowstone"
+  },
+  {
+    "item": "minecraft:glowstone_dust"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:instrument"
+    ],
+    "item": "minecraft:goat_horn"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:goat_spawn_egg"
+  },
+  {
+    "item": "minecraft:gold_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_trim_material"
+    ],
+    "item": "minecraft:gold_ingot"
+  },
+  {
+    "item": "minecraft:gold_nugget"
+  },
+  {
+    "item": "minecraft:gold_ore"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:golden_apple"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:golden_axe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:golden_boots"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:golden_carrot"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:golden_chestplate"
+  },
+  {
+    "item": "minecraft:golden_dandelion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:golden_helmet"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:golden_hoe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:golden_horse_armor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:golden_leggings"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:golden_nautilus_armor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:golden_pickaxe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:golden_shovel"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attack_range",
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_type",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:kinetic_weapon",
+      "minecraft:max_damage",
+      "minecraft:minimum_attack_charge",
+      "minecraft:piercing_weapon",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:golden_spear"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:golden_sword"
+  },
+  {
+    "item": "minecraft:granite"
+  },
+  {
+    "item": "minecraft:granite_slab"
+  },
+  {
+    "item": "minecraft:granite_stairs"
+  },
+  {
+    "item": "minecraft:granite_wall"
+  },
+  {
+    "item": "minecraft:grass_block"
+  },
+  {
+    "item": "minecraft:gravel"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:gray_banner"
+  },
+  {
+    "item": "minecraft:gray_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:gray_bundle"
+  },
+  {
+    "item": "minecraft:gray_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:gray_carpet"
+  },
+  {
+    "item": "minecraft:gray_concrete"
+  },
+  {
+    "item": "minecraft:gray_concrete_powder"
+  },
+  {
+    "item": "minecraft:gray_concrete_slab"
+  },
+  {
+    "item": "minecraft:gray_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:gray_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:gray_dye"
+  },
+  {
+    "item": "minecraft:gray_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:gray_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:gray_shulker_box"
+  },
+  {
+    "item": "minecraft:gray_stained_glass"
+  },
+  {
+    "item": "minecraft:gray_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:gray_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:gray_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:gray_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:gray_wool_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:green_banner"
+  },
+  {
+    "item": "minecraft:green_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:green_bundle"
+  },
+  {
+    "item": "minecraft:green_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:green_carpet"
+  },
+  {
+    "item": "minecraft:green_concrete"
+  },
+  {
+    "item": "minecraft:green_concrete_powder"
+  },
+  {
+    "item": "minecraft:green_concrete_slab"
+  },
+  {
+    "item": "minecraft:green_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:green_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:green_dye"
+  },
+  {
+    "item": "minecraft:green_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:green_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:green_shulker_box"
+  },
+  {
+    "item": "minecraft:green_stained_glass"
+  },
+  {
+    "item": "minecraft:green_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:green_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:green_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:green_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:green_wool_stairs"
+  },
+  {
+    "item": "minecraft:grindstone"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:guardian_spawn_egg"
+  },
+  {
+    "item": "minecraft:gunpowder"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_banner_patterns"
+    ],
+    "item": "minecraft:guster_banner_pattern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:guster_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:hanging_roots"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:happy_ghast_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:hay_block"
+  },
+  {
+    "item": "minecraft:heart_of_the_sea"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:heart_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:heartbreak_pottery_sherd"
+  },
+  {
+    "item": "minecraft:heavy_core"
+  },
+  {
+    "item": "minecraft:heavy_weighted_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:hoglin_spawn_egg"
+  },
+  {
+    "item": "minecraft:honey_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecraft:honey_bottle"
+  },
+  {
+    "item": "minecraft:honeycomb"
+  },
+  {
+    "item": "minecraft:honeycomb_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:hopper"
+  },
+  {
+    "item": "minecraft:hopper_minecart"
+  },
+  {
+    "item": "minecraft:horn_coral"
+  },
+  {
+    "item": "minecraft:horn_coral_block"
+  },
+  {
+    "item": "minecraft:horn_coral_fan"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:horse_spawn_egg"
+  },
+  {
+    "item": "minecraft:host_armor_trim_smithing_template"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:howl_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:husk_spawn_egg"
+  },
+  {
+    "item": "minecraft:ice"
+  },
+  {
+    "item": "minecraft:ink_sac"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:iron_axe"
+  },
+  {
+    "item": "minecraft:iron_bars"
+  },
+  {
+    "item": "minecraft:iron_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:iron_boots"
+  },
+  {
+    "item": "minecraft:iron_chain"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:iron_chestplate"
+  },
+  {
+    "item": "minecraft:iron_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:iron_golem_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:iron_helmet"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:iron_hoe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:iron_horse_armor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_trim_material"
+    ],
+    "item": "minecraft:iron_ingot"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:iron_leggings"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:iron_nautilus_armor"
+  },
+  {
+    "item": "minecraft:iron_nugget"
+  },
+  {
+    "item": "minecraft:iron_ore"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:iron_pickaxe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:iron_shovel"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attack_range",
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_type",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:kinetic_weapon",
+      "minecraft:max_damage",
+      "minecraft:minimum_attack_charge",
+      "minecraft:piercing_weapon",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:iron_spear"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:iron_sword"
+  },
+  {
+    "item": "minecraft:iron_trapdoor"
+  },
+  {
+    "item": "minecraft:item_frame"
+  },
+  {
+    "item": "minecraft:jack_o_lantern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jukebox"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_chest_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_fence"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:jungle_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_planks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_sapling"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:jungle_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:kelp"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:ladder"
+  },
+  {
+    "item": "minecraft:lantern"
+  },
+  {
+    "item": "minecraft:lapis_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_trim_material"
+    ],
+    "item": "minecraft:lapis_lazuli"
+  },
+  {
+    "item": "minecraft:lapis_ore"
+  },
+  {
+    "item": "minecraft:large_amethyst_bud"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:large_fern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:lava_bucket"
+  },
+  {
+    "item": "minecraft:lead"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:leaf_litter"
+  },
+  {
+    "item": "minecraft:leather"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:leather_boots"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:leather_chestplate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:leather_helmet"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:leather_horse_armor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:leather_leggings"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:lectern"
+  },
+  {
+    "item": "minecraft:lever"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:light_blue_banner"
+  },
+  {
+    "item": "minecraft:light_blue_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:light_blue_bundle"
+  },
+  {
+    "item": "minecraft:light_blue_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:light_blue_carpet"
+  },
+  {
+    "item": "minecraft:light_blue_concrete"
+  },
+  {
+    "item": "minecraft:light_blue_concrete_powder"
+  },
+  {
+    "item": "minecraft:light_blue_concrete_slab"
+  },
+  {
+    "item": "minecraft:light_blue_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:light_blue_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:light_blue_dye"
+  },
+  {
+    "item": "minecraft:light_blue_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:light_blue_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:light_blue_shulker_box"
+  },
+  {
+    "item": "minecraft:light_blue_stained_glass"
+  },
+  {
+    "item": "minecraft:light_blue_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:light_blue_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:light_blue_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:light_blue_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:light_blue_wool_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:light_gray_banner"
+  },
+  {
+    "item": "minecraft:light_gray_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:light_gray_bundle"
+  },
+  {
+    "item": "minecraft:light_gray_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:light_gray_carpet"
+  },
+  {
+    "item": "minecraft:light_gray_concrete"
+  },
+  {
+    "item": "minecraft:light_gray_concrete_powder"
+  },
+  {
+    "item": "minecraft:light_gray_concrete_slab"
+  },
+  {
+    "item": "minecraft:light_gray_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:light_gray_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:light_gray_dye"
+  },
+  {
+    "item": "minecraft:light_gray_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:light_gray_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:light_gray_shulker_box"
+  },
+  {
+    "item": "minecraft:light_gray_stained_glass"
+  },
+  {
+    "item": "minecraft:light_gray_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:light_gray_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:light_gray_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:light_gray_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:light_gray_wool_stairs"
+  },
+  {
+    "item": "minecraft:light_weighted_pressure_plate"
+  },
+  {
+    "item": "minecraft:lightning_rod"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:lilac"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:lily_of_the_valley"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:lily_pad"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:lime_banner"
+  },
+  {
+    "item": "minecraft:lime_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:lime_bundle"
+  },
+  {
+    "item": "minecraft:lime_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:lime_carpet"
+  },
+  {
+    "item": "minecraft:lime_concrete"
+  },
+  {
+    "item": "minecraft:lime_concrete_powder"
+  },
+  {
+    "item": "minecraft:lime_concrete_slab"
+  },
+  {
+    "item": "minecraft:lime_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:lime_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:lime_dye"
+  },
+  {
+    "item": "minecraft:lime_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:lime_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:lime_shulker_box"
+  },
+  {
+    "item": "minecraft:lime_stained_glass"
+  },
+  {
+    "item": "minecraft:lime_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:lime_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:lime_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:lime_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:lime_wool_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:potion_contents",
+      "minecraft:potion_duration_scale"
+    ],
+    "item": "minecraft:lingering_potion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:llama_spawn_egg"
+  },
+  {
+    "item": "minecraft:lodestone"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:loom"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:mace"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:magenta_banner"
+  },
+  {
+    "item": "minecraft:magenta_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:magenta_bundle"
+  },
+  {
+    "item": "minecraft:magenta_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:magenta_carpet"
+  },
+  {
+    "item": "minecraft:magenta_concrete"
+  },
+  {
+    "item": "minecraft:magenta_concrete_powder"
+  },
+  {
+    "item": "minecraft:magenta_concrete_slab"
+  },
+  {
+    "item": "minecraft:magenta_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:magenta_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:magenta_dye"
+  },
+  {
+    "item": "minecraft:magenta_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:magenta_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:magenta_shulker_box"
+  },
+  {
+    "item": "minecraft:magenta_stained_glass"
+  },
+  {
+    "item": "minecraft:magenta_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:magenta_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:magenta_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:magenta_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:magenta_wool_stairs"
+  },
+  {
+    "item": "minecraft:magma_block"
+  },
+  {
+    "item": "minecraft:magma_cream"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:magma_cube_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_chest_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_fence"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:mangrove_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_planks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_propagule"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_roots"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:mangrove_wood"
+  },
+  {
+    "item": "minecraft:map"
+  },
+  {
+    "item": "minecraft:medium_amethyst_bud"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:melon"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:melon_seeds"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:melon_slice"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecraft:milk_bucket"
+  },
+  {
+    "item": "minecraft:minecart"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:miner_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_banner_patterns"
+    ],
+    "item": "minecraft:mojang_banner_pattern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:mooshroom_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:moss_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:moss_carpet"
+  },
+  {
+    "item": "minecraft:mossy_cobblestone"
+  },
+  {
+    "item": "minecraft:mossy_cobblestone_slab"
+  },
+  {
+    "item": "minecraft:mossy_cobblestone_stairs"
+  },
+  {
+    "item": "minecraft:mossy_cobblestone_wall"
+  },
+  {
+    "item": "minecraft:mossy_stone_brick_slab"
+  },
+  {
+    "item": "minecraft:mossy_stone_brick_stairs"
+  },
+  {
+    "item": "minecraft:mossy_stone_brick_wall"
+  },
+  {
+    "item": "minecraft:mossy_stone_bricks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:mourner_pottery_sherd"
+  },
+  {
+    "item": "minecraft:mud"
+  },
+  {
+    "item": "minecraft:mud_brick_slab"
+  },
+  {
+    "item": "minecraft:mud_brick_stairs"
+  },
+  {
+    "item": "minecraft:mud_brick_wall"
+  },
+  {
+    "item": "minecraft:mud_bricks"
+  },
+  {
+    "item": "minecraft:muddy_mangrove_roots"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:mule_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:mushroom_stem"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecraft:mushroom_stew"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:mutton"
+  },
+  {
+    "item": "minecraft:mycelium"
+  },
+  {
+    "item": "minecraft:name_tag"
+  },
+  {
+    "item": "minecraft:nautilus_shell"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:nautilus_spawn_egg"
+  },
+  {
+    "item": "minecraft:nether_brick"
+  },
+  {
+    "item": "minecraft:nether_brick_fence"
+  },
+  {
+    "item": "minecraft:nether_brick_slab"
+  },
+  {
+    "item": "minecraft:nether_brick_stairs"
+  },
+  {
+    "item": "minecraft:nether_brick_wall"
+  },
+  {
+    "item": "minecraft:nether_bricks"
+  },
+  {
+    "item": "minecraft:nether_gold_ore"
+  },
+  {
+    "item": "minecraft:nether_quartz_ore"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:nether_sprouts"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:damage_resistant"
+    ],
+    "item": "minecraft:nether_star"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:nether_wart"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:nether_wart_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:damage_resistant",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:netherite_axe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:damage_resistant"
+    ],
+    "item": "minecraft:netherite_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_resistant",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:netherite_boots"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_resistant",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:netherite_chestplate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_resistant",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:netherite_helmet"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:damage_resistant",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:netherite_hoe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_resistant",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:netherite_horse_armor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:damage_resistant",
+      "minecraft:provides_trim_material"
+    ],
+    "item": "minecraft:netherite_ingot"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_resistant",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:netherite_leggings"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_resistant",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:netherite_nautilus_armor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_resistant",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:netherite_pickaxe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:damage_resistant"
+    ],
+    "item": "minecraft:netherite_scrap"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:damage_resistant",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:netherite_shovel"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attack_range",
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_resistant",
+      "minecraft:damage_type",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:kinetic_weapon",
+      "minecraft:max_damage",
+      "minecraft:minimum_attack_charge",
+      "minecraft:piercing_weapon",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:netherite_spear"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_resistant",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:netherite_sword"
+  },
+  {
+    "item": "minecraft:netherite_upgrade_smithing_template"
+  },
+  {
+    "item": "minecraft:netherrack"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:note_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_chest_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_fence"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:oak_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_planks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_sapling"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_shelf"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:oak_wood"
+  },
+  {
+    "item": "minecraft:observer"
+  },
+  {
+    "item": "minecraft:obsidian"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:ocelot_spawn_egg"
+  },
+  {
+    "item": "minecraft:ochre_froglight"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:ominous_bottle_amplifier"
+    ],
+    "item": "minecraft:ominous_bottle"
+  },
+  {
+    "item": "minecraft:ominous_trial_key"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:open_eyeblossom"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:orange_banner"
+  },
+  {
+    "item": "minecraft:orange_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:orange_bundle"
+  },
+  {
+    "item": "minecraft:orange_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:orange_carpet"
+  },
+  {
+    "item": "minecraft:orange_concrete"
+  },
+  {
+    "item": "minecraft:orange_concrete_powder"
+  },
+  {
+    "item": "minecraft:orange_concrete_slab"
+  },
+  {
+    "item": "minecraft:orange_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:orange_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:orange_dye"
+  },
+  {
+    "item": "minecraft:orange_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:orange_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:orange_poplar_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:orange_shulker_box"
+  },
+  {
+    "item": "minecraft:orange_stained_glass"
+  },
+  {
+    "item": "minecraft:orange_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:orange_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:orange_tulip"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:orange_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:orange_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:orange_wool_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:oxeye_daisy"
+  },
+  {
+    "item": "minecraft:oxidized_chiseled_copper"
+  },
+  {
+    "item": "minecraft:oxidized_copper"
+  },
+  {
+    "item": "minecraft:oxidized_copper_bars"
+  },
+  {
+    "item": "minecraft:oxidized_copper_bulb"
+  },
+  {
+    "item": "minecraft:oxidized_copper_chain"
+  },
+  {
+    "item": "minecraft:oxidized_copper_door"
+  },
+  {
+    "item": "minecraft:oxidized_copper_grate"
+  },
+  {
+    "item": "minecraft:oxidized_copper_lantern"
+  },
+  {
+    "item": "minecraft:oxidized_copper_trapdoor"
+  },
+  {
+    "item": "minecraft:oxidized_cut_copper"
+  },
+  {
+    "item": "minecraft:oxidized_cut_copper_slab"
+  },
+  {
+    "item": "minecraft:oxidized_cut_copper_stairs"
+  },
+  {
+    "item": "minecraft:oxidized_lightning_rod"
+  },
+  {
+    "item": "minecraft:packed_ice"
+  },
+  {
+    "item": "minecraft:packed_mud"
+  },
+  {
+    "item": "minecraft:painting"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:pale_hanging_moss"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:pale_moss_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:pale_moss_carpet"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_chest_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_fence"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:pale_oak_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_planks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_sapling"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pale_oak_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:panda_spawn_egg"
+  },
+  {
+    "item": "minecraft:paper"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:parched_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:parrot_spawn_egg"
+  },
+  {
+    "item": "minecraft:pearlescent_froglight"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:peony"
+  },
+  {
+    "item": "minecraft:phantom_membrane"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:phantom_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:pig_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_banner_patterns"
+    ],
+    "item": "minecraft:piglin_banner_pattern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:piglin_brute_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:piglin_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:pillager_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pink_banner"
+  },
+  {
+    "item": "minecraft:pink_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:pink_bundle"
+  },
+  {
+    "item": "minecraft:pink_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:pink_carpet"
+  },
+  {
+    "item": "minecraft:pink_concrete"
+  },
+  {
+    "item": "minecraft:pink_concrete_powder"
+  },
+  {
+    "item": "minecraft:pink_concrete_slab"
+  },
+  {
+    "item": "minecraft:pink_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:pink_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:pink_dye"
+  },
+  {
+    "item": "minecraft:pink_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:pink_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:pink_petals"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:pink_shulker_box"
+  },
+  {
+    "item": "minecraft:pink_stained_glass"
+  },
+  {
+    "item": "minecraft:pink_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:pink_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:pink_tulip"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pink_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pink_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:pink_wool_stairs"
+  },
+  {
+    "item": "minecraft:piston"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:pitcher_plant"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:pitcher_pod"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:plenty_pottery_sherd"
+  },
+  {
+    "item": "minecraft:podzol"
+  },
+  {
+    "item": "minecraft:pointed_dripstone"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:poisonous_potato"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:polar_bear_spawn_egg"
+  },
+  {
+    "item": "minecraft:polished_andesite"
+  },
+  {
+    "item": "minecraft:polished_andesite_slab"
+  },
+  {
+    "item": "minecraft:polished_andesite_stairs"
+  },
+  {
+    "item": "minecraft:polished_basalt"
+  },
+  {
+    "item": "minecraft:polished_blackstone"
+  },
+  {
+    "item": "minecraft:polished_blackstone_brick_slab"
+  },
+  {
+    "item": "minecraft:polished_blackstone_brick_stairs"
+  },
+  {
+    "item": "minecraft:polished_blackstone_brick_wall"
+  },
+  {
+    "item": "minecraft:polished_blackstone_bricks"
+  },
+  {
+    "item": "minecraft:polished_blackstone_button"
+  },
+  {
+    "item": "minecraft:polished_blackstone_pressure_plate"
+  },
+  {
+    "item": "minecraft:polished_blackstone_slab"
+  },
+  {
+    "item": "minecraft:polished_blackstone_stairs"
+  },
+  {
+    "item": "minecraft:polished_blackstone_wall"
+  },
+  {
+    "item": "minecraft:polished_cinnabar"
+  },
+  {
+    "item": "minecraft:polished_cinnabar_slab"
+  },
+  {
+    "item": "minecraft:polished_cinnabar_stairs"
+  },
+  {
+    "item": "minecraft:polished_cinnabar_wall"
+  },
+  {
+    "item": "minecraft:polished_deepslate"
+  },
+  {
+    "item": "minecraft:polished_deepslate_slab"
+  },
+  {
+    "item": "minecraft:polished_deepslate_stairs"
+  },
+  {
+    "item": "minecraft:polished_deepslate_wall"
+  },
+  {
+    "item": "minecraft:polished_diorite"
+  },
+  {
+    "item": "minecraft:polished_diorite_slab"
+  },
+  {
+    "item": "minecraft:polished_diorite_stairs"
+  },
+  {
+    "item": "minecraft:polished_granite"
+  },
+  {
+    "item": "minecraft:polished_granite_slab"
+  },
+  {
+    "item": "minecraft:polished_granite_stairs"
+  },
+  {
+    "item": "minecraft:polished_sulfur"
+  },
+  {
+    "item": "minecraft:polished_sulfur_slab"
+  },
+  {
+    "item": "minecraft:polished_sulfur_stairs"
+  },
+  {
+    "item": "minecraft:polished_sulfur_wall"
+  },
+  {
+    "item": "minecraft:polished_tuff"
+  },
+  {
+    "item": "minecraft:polished_tuff_slab"
+  },
+  {
+    "item": "minecraft:polished_tuff_stairs"
+  },
+  {
+    "item": "minecraft:polished_tuff_wall"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_chest_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_fence"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_planks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_sapling"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:poplar_wood"
+  },
+  {
+    "item": "minecraft:popped_chorus_fruit"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:poppy"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:porkchop"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:villager_food"
+    ],
+    "item": "minecraft:potato"
+  },
+  {
+    "item": "minecraft:potent_sulfur"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:potion_contents",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecraft:potion"
+  },
+  {
+    "item": "minecraft:powder_snow_bucket"
+  },
+  {
+    "item": "minecraft:powered_rail"
+  },
+  {
+    "item": "minecraft:prismarine"
+  },
+  {
+    "item": "minecraft:prismarine_brick_slab"
+  },
+  {
+    "item": "minecraft:prismarine_brick_stairs"
+  },
+  {
+    "item": "minecraft:prismarine_bricks"
+  },
+  {
+    "item": "minecraft:prismarine_crystals"
+  },
+  {
+    "item": "minecraft:prismarine_shard"
+  },
+  {
+    "item": "minecraft:prismarine_slab"
+  },
+  {
+    "item": "minecraft:prismarine_stairs"
+  },
+  {
+    "item": "minecraft:prismarine_wall"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:prize_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:pufferfish"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bucket_entity_data",
+      "minecraft:food"
+    ],
+    "item": "minecraft:pufferfish_bucket"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:pufferfish_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:pumpkin"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:pumpkin_pie"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:pumpkin_seeds"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:purple_banner"
+  },
+  {
+    "item": "minecraft:purple_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:purple_bundle"
+  },
+  {
+    "item": "minecraft:purple_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:purple_carpet"
+  },
+  {
+    "item": "minecraft:purple_concrete"
+  },
+  {
+    "item": "minecraft:purple_concrete_powder"
+  },
+  {
+    "item": "minecraft:purple_concrete_slab"
+  },
+  {
+    "item": "minecraft:purple_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:purple_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:purple_dye"
+  },
+  {
+    "item": "minecraft:purple_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:purple_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:purple_shulker_box"
+  },
+  {
+    "item": "minecraft:purple_stained_glass"
+  },
+  {
+    "item": "minecraft:purple_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:purple_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:purple_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:purple_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:purple_wool_stairs"
+  },
+  {
+    "item": "minecraft:purpur_block"
+  },
+  {
+    "item": "minecraft:purpur_pillar"
+  },
+  {
+    "item": "minecraft:purpur_slab"
+  },
+  {
+    "item": "minecraft:purpur_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_trim_material"
+    ],
+    "item": "minecraft:quartz"
+  },
+  {
+    "item": "minecraft:quartz_block"
+  },
+  {
+    "item": "minecraft:quartz_bricks"
+  },
+  {
+    "item": "minecraft:quartz_pillar"
+  },
+  {
+    "item": "minecraft:quartz_slab"
+  },
+  {
+    "item": "minecraft:quartz_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:rabbit"
+  },
+  {
+    "item": "minecraft:rabbit_foot"
+  },
+  {
+    "item": "minecraft:rabbit_hide"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:rabbit_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecraft:rabbit_stew"
+  },
+  {
+    "item": "minecraft:rail"
+  },
+  {
+    "item": "minecraft:raiser_armor_trim_smithing_template"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:ravager_spawn_egg"
+  },
+  {
+    "item": "minecraft:raw_copper"
+  },
+  {
+    "item": "minecraft:raw_copper_block"
+  },
+  {
+    "item": "minecraft:raw_gold"
+  },
+  {
+    "item": "minecraft:raw_gold_block"
+  },
+  {
+    "item": "minecraft:raw_iron"
+  },
+  {
+    "item": "minecraft:raw_iron_block"
+  },
+  {
+    "item": "minecraft:recovery_compass"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:red_banner"
+  },
+  {
+    "item": "minecraft:red_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:red_bundle"
+  },
+  {
+    "item": "minecraft:red_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:red_carpet"
+  },
+  {
+    "item": "minecraft:red_concrete"
+  },
+  {
+    "item": "minecraft:red_concrete_powder"
+  },
+  {
+    "item": "minecraft:red_concrete_slab"
+  },
+  {
+    "item": "minecraft:red_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:red_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:red_dye"
+  },
+  {
+    "item": "minecraft:red_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:red_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:red_mushroom"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:red_mushroom_block"
+  },
+  {
+    "item": "minecraft:red_nether_brick_slab"
+  },
+  {
+    "item": "minecraft:red_nether_brick_stairs"
+  },
+  {
+    "item": "minecraft:red_nether_brick_wall"
+  },
+  {
+    "item": "minecraft:red_nether_bricks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:red_poplar_leaves"
+  },
+  {
+    "item": "minecraft:red_sand"
+  },
+  {
+    "item": "minecraft:red_sandstone"
+  },
+  {
+    "item": "minecraft:red_sandstone_slab"
+  },
+  {
+    "item": "minecraft:red_sandstone_stairs"
+  },
+  {
+    "item": "minecraft:red_sandstone_wall"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:red_shrub"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:red_shulker_box"
+  },
+  {
+    "item": "minecraft:red_stained_glass"
+  },
+  {
+    "item": "minecraft:red_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:red_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:red_tulip"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:red_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:red_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:red_wool_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_trim_material"
+    ],
+    "item": "minecraft:redstone"
+  },
+  {
+    "item": "minecraft:redstone_block"
+  },
+  {
+    "item": "minecraft:redstone_lamp"
+  },
+  {
+    "item": "minecraft:redstone_ore"
+  },
+  {
+    "item": "minecraft:redstone_torch"
+  },
+  {
+    "item": "minecraft:reinforced_deepslate"
+  },
+  {
+    "item": "minecraft:repeater"
+  },
+  {
+    "item": "minecraft:resin_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_trim_material"
+    ],
+    "item": "minecraft:resin_brick"
+  },
+  {
+    "item": "minecraft:resin_brick_slab"
+  },
+  {
+    "item": "minecraft:resin_brick_stairs"
+  },
+  {
+    "item": "minecraft:resin_brick_wall"
+  },
+  {
+    "item": "minecraft:resin_bricks"
+  },
+  {
+    "item": "minecraft:resin_clump"
+  },
+  {
+    "item": "minecraft:rib_armor_trim_smithing_template"
+  },
+  {
+    "item": "minecraft:rooted_dirt"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:rose_bush"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:rotten_flesh"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:saddle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:salmon"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bucket_entity_data",
+      "minecraft:food"
+    ],
+    "item": "minecraft:salmon_bucket"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:salmon_spawn_egg"
+  },
+  {
+    "item": "minecraft:sand"
+  },
+  {
+    "item": "minecraft:sandstone"
+  },
+  {
+    "item": "minecraft:sandstone_slab"
+  },
+  {
+    "item": "minecraft:sandstone_stairs"
+  },
+  {
+    "item": "minecraft:sandstone_wall"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:scaffolding"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:scrape_pottery_sherd"
+  },
+  {
+    "item": "minecraft:sculk"
+  },
+  {
+    "item": "minecraft:sculk_catalyst"
+  },
+  {
+    "item": "minecraft:sculk_sensor"
+  },
+  {
+    "item": "minecraft:sculk_shrieker"
+  },
+  {
+    "item": "minecraft:sculk_vein"
+  },
+  {
+    "item": "minecraft:sea_lantern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:sea_pickle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:seagrass"
+  },
+  {
+    "item": "minecraft:sentry_armor_trim_smithing_template"
+  },
+  {
+    "item": "minecraft:shaper_armor_trim_smithing_template"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:sheaf_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage",
+      "minecraft:tool"
+    ],
+    "item": "minecraft:shears"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:sheep_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:shelf_mushroom"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:shelter_pottery_sherd"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:blocks_attacks",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:shield"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:short_dry_grass"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:short_grass"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:shroomlight"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:shulker_box"
+  },
+  {
+    "item": "minecraft:shulker_shell"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:shulker_spawn_egg"
+  },
+  {
+    "item": "minecraft:silence_armor_trim_smithing_template"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:silverfish_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:skeleton_horse_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:skeleton_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_banner_patterns"
+    ],
+    "item": "minecraft:skull_banner_pattern"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:skull_pottery_sherd"
+  },
+  {
+    "item": "minecraft:slime_ball"
+  },
+  {
+    "item": "minecraft:slime_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:slime_spawn_egg"
+  },
+  {
+    "item": "minecraft:small_amethyst_bud"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:small_dripleaf"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:smithing_table"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:smoker"
+  },
+  {
+    "item": "minecraft:smooth_basalt"
+  },
+  {
+    "item": "minecraft:smooth_quartz"
+  },
+  {
+    "item": "minecraft:smooth_quartz_slab"
+  },
+  {
+    "item": "minecraft:smooth_quartz_stairs"
+  },
+  {
+    "item": "minecraft:smooth_red_sandstone"
+  },
+  {
+    "item": "minecraft:smooth_red_sandstone_slab"
+  },
+  {
+    "item": "minecraft:smooth_red_sandstone_stairs"
+  },
+  {
+    "item": "minecraft:smooth_sandstone"
+  },
+  {
+    "item": "minecraft:smooth_sandstone_slab"
+  },
+  {
+    "item": "minecraft:smooth_sandstone_stairs"
+  },
+  {
+    "item": "minecraft:smooth_stone"
+  },
+  {
+    "item": "minecraft:smooth_stone_slab"
+  },
+  {
+    "item": "minecraft:sniffer_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:sniffer_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:provides_pottery_pattern"
+    ],
+    "item": "minecraft:snort_pottery_sherd"
+  },
+  {
+    "item": "minecraft:snout_armor_trim_smithing_template"
+  },
+  {
+    "item": "minecraft:snow"
+  },
+  {
+    "item": "minecraft:snow_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:snow_golem_spawn_egg"
+  },
+  {
+    "item": "minecraft:snowball"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:soul_campfire"
+  },
+  {
+    "item": "minecraft:soul_lantern"
+  },
+  {
+    "item": "minecraft:soul_sand"
+  },
+  {
+    "item": "minecraft:soul_soil"
+  },
+  {
+    "item": "minecraft:soul_torch"
+  },
+  {
+    "item": "minecraft:spawner"
+  },
+  {
+    "item": "minecraft:spectral_arrow"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:spider_eye"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:spider_spawn_egg"
+  },
+  {
+    "item": "minecraft:spire_armor_trim_smithing_template"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:potion_contents"
+    ],
+    "item": "minecraft:splash_potion"
+  },
+  {
+    "item": "minecraft:sponge"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:spore_blossom"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_chest_boat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_door"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_fence"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:spruce_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_planks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_sapling"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:spruce_wood"
+  },
+  {
+    "item": "minecraft:spyglass"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:squid_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stick"
+  },
+  {
+    "item": "minecraft:sticky_piston"
+  },
+  {
+    "item": "minecraft:stone"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:stone_axe"
+  },
+  {
+    "item": "minecraft:stone_brick_slab"
+  },
+  {
+    "item": "minecraft:stone_brick_stairs"
+  },
+  {
+    "item": "minecraft:stone_brick_wall"
+  },
+  {
+    "item": "minecraft:stone_bricks"
+  },
+  {
+    "item": "minecraft:stone_button"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:stone_hoe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:stone_pickaxe"
+  },
+  {
+    "item": "minecraft:stone_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:stone_shovel"
+  },
+  {
+    "item": "minecraft:stone_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attack_range",
+      "minecraft:attribute_modifiers",
+      "minecraft:damage_type",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:kinetic_weapon",
+      "minecraft:max_damage",
+      "minecraft:minimum_attack_charge",
+      "minecraft:piercing_weapon",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:stone_spear"
+  },
+  {
+    "item": "minecraft:stone_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:stone_sword"
+  },
+  {
+    "item": "minecraft:stonecutter"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:stray_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:strider_spawn_egg"
+  },
+  {
+    "item": "minecraft:string"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_acacia_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_acacia_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_bamboo_block"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_birch_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_birch_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_cherry_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_cherry_wood"
+  },
+  {
+    "item": "minecraft:stripped_crimson_hyphae"
+  },
+  {
+    "item": "minecraft:stripped_crimson_stem"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_dark_oak_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_dark_oak_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_jungle_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_jungle_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_mangrove_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_mangrove_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_oak_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_oak_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_pale_oak_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_pale_oak_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_poplar_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_poplar_wood"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_spruce_log"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:stripped_spruce_wood"
+  },
+  {
+    "item": "minecraft:stripped_warped_hyphae"
+  },
+  {
+    "item": "minecraft:stripped_warped_stem"
+  },
+  {
+    "item": "minecraft:sugar"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:sugar_cane"
+  },
+  {
+    "item": "minecraft:sulfur"
+  },
+  {
+    "item": "minecraft:sulfur_brick_slab"
+  },
+  {
+    "item": "minecraft:sulfur_brick_stairs"
+  },
+  {
+    "item": "minecraft:sulfur_brick_wall"
+  },
+  {
+    "item": "minecraft:sulfur_bricks"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bucket_entity_data"
+    ],
+    "item": "minecraft:sulfur_cube_bucket"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:sulfur_cube_spawn_egg"
+  },
+  {
+    "item": "minecraft:sulfur_slab"
+  },
+  {
+    "item": "minecraft:sulfur_spike"
+  },
+  {
+    "item": "minecraft:sulfur_stairs"
+  },
+  {
+    "item": "minecraft:sulfur_wall"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:sunflower"
+  },
+  {
+    "item": "minecraft:suspicious_gravel"
+  },
+  {
+    "item": "minecraft:suspicious_sand"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food",
+      "minecraft:suspicious_stew_effects",
+      "minecraft:use_remainder"
+    ],
+    "item": "minecraft:suspicious_stew"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:sweet_berries"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bucket_entity_data"
+    ],
+    "item": "minecraft:tadpole_bucket"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:tadpole_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:tall_dry_grass"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:tall_grass"
+  },
+  {
+    "item": "minecraft:target"
+  },
+  {
+    "item": "minecraft:terracotta"
+  },
+  {
+    "item": "minecraft:tide_armor_trim_smithing_template"
+  },
+  {
+    "item": "minecraft:tinted_glass"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:potion_contents",
+      "minecraft:potion_duration_scale"
+    ],
+    "item": "minecraft:tipped_arrow"
+  },
+  {
+    "item": "minecraft:tnt"
+  },
+  {
+    "item": "minecraft:tnt_minecart"
+  },
+  {
+    "item": "minecraft:torch"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:torchflower"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:torchflower_seeds"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:death_protection"
+    ],
+    "item": "minecraft:totem_of_undying"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:trader_llama_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:trapped_chest"
+  },
+  {
+    "item": "minecraft:trial_key"
+  },
+  {
+    "item": "minecraft:trial_spawner"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:trident"
+  },
+  {
+    "item": "minecraft:tripwire_hook"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:consumable",
+      "minecraft:food"
+    ],
+    "item": "minecraft:tropical_fish"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bucket_entity_data",
+      "minecraft:food"
+    ],
+    "item": "minecraft:tropical_fish_bucket"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:tropical_fish_spawn_egg"
+  },
+  {
+    "item": "minecraft:tube_coral"
+  },
+  {
+    "item": "minecraft:tube_coral_block"
+  },
+  {
+    "item": "minecraft:tube_coral_fan"
+  },
+  {
+    "item": "minecraft:tuff"
+  },
+  {
+    "item": "minecraft:tuff_brick_slab"
+  },
+  {
+    "item": "minecraft:tuff_brick_stairs"
+  },
+  {
+    "item": "minecraft:tuff_brick_wall"
+  },
+  {
+    "item": "minecraft:tuff_bricks"
+  },
+  {
+    "item": "minecraft:tuff_slab"
+  },
+  {
+    "item": "minecraft:tuff_stairs"
+  },
+  {
+    "item": "minecraft:tuff_wall"
+  },
+  {
+    "item": "minecraft:turtle_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:turtle_helmet"
+  },
+  {
+    "item": "minecraft:turtle_scute"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:turtle_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:twisting_vines"
+  },
+  {
+    "item": "minecraft:verdant_froglight"
+  },
+  {
+    "item": "minecraft:vex_armor_trim_smithing_template"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:vex_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:villager_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:vindicator_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:vine"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:wandering_trader_spawn_egg"
+  },
+  {
+    "item": "minecraft:ward_armor_trim_smithing_template"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:warden_spawn_egg"
+  },
+  {
+    "item": "minecraft:warped_button"
+  },
+  {
+    "item": "minecraft:warped_door"
+  },
+  {
+    "item": "minecraft:warped_fence"
+  },
+  {
+    "item": "minecraft:warped_fence_gate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:warped_fungus"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "minecraft:warped_fungus_on_a_stick"
+  },
+  {
+    "item": "minecraft:warped_hyphae"
+  },
+  {
+    "item": "minecraft:warped_nylium"
+  },
+  {
+    "item": "minecraft:warped_planks"
+  },
+  {
+    "item": "minecraft:warped_pressure_plate"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:warped_roots"
+  },
+  {
+    "item": "minecraft:warped_slab"
+  },
+  {
+    "item": "minecraft:warped_stairs"
+  },
+  {
+    "item": "minecraft:warped_stem"
+  },
+  {
+    "item": "minecraft:warped_trapdoor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:warped_wart_block"
+  },
+  {
+    "item": "minecraft:water_bucket"
+  },
+  {
+    "item": "minecraft:waxed_chiseled_copper"
+  },
+  {
+    "item": "minecraft:waxed_copper_bars"
+  },
+  {
+    "item": "minecraft:waxed_copper_block"
+  },
+  {
+    "item": "minecraft:waxed_copper_bulb"
+  },
+  {
+    "item": "minecraft:waxed_copper_chain"
+  },
+  {
+    "item": "minecraft:waxed_copper_chest"
+  },
+  {
+    "item": "minecraft:waxed_copper_door"
+  },
+  {
+    "item": "minecraft:waxed_copper_grate"
+  },
+  {
+    "item": "minecraft:waxed_copper_lantern"
+  },
+  {
+    "item": "minecraft:waxed_copper_trapdoor"
+  },
+  {
+    "item": "minecraft:waxed_cut_copper"
+  },
+  {
+    "item": "minecraft:waxed_cut_copper_slab"
+  },
+  {
+    "item": "minecraft:waxed_cut_copper_stairs"
+  },
+  {
+    "item": "minecraft:waxed_exposed_chiseled_copper"
+  },
+  {
+    "item": "minecraft:waxed_exposed_copper"
+  },
+  {
+    "item": "minecraft:waxed_exposed_copper_bars"
+  },
+  {
+    "item": "minecraft:waxed_exposed_copper_bulb"
+  },
+  {
+    "item": "minecraft:waxed_exposed_copper_chain"
+  },
+  {
+    "item": "minecraft:waxed_exposed_copper_door"
+  },
+  {
+    "item": "minecraft:waxed_exposed_copper_grate"
+  },
+  {
+    "item": "minecraft:waxed_exposed_copper_lantern"
+  },
+  {
+    "item": "minecraft:waxed_exposed_copper_trapdoor"
+  },
+  {
+    "item": "minecraft:waxed_exposed_cut_copper"
+  },
+  {
+    "item": "minecraft:waxed_exposed_cut_copper_slab"
+  },
+  {
+    "item": "minecraft:waxed_exposed_cut_copper_stairs"
+  },
+  {
+    "item": "minecraft:waxed_exposed_lightning_rod"
+  },
+  {
+    "item": "minecraft:waxed_lightning_rod"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_chiseled_copper"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_copper"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_copper_bars"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_copper_bulb"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_copper_chain"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_copper_door"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_copper_grate"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_copper_lantern"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_copper_trapdoor"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_cut_copper"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_cut_copper_slab"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_cut_copper_stairs"
+  },
+  {
+    "item": "minecraft:waxed_oxidized_lightning_rod"
+  },
+  {
+    "item": "minecraft:waxed_weathered_chiseled_copper"
+  },
+  {
+    "item": "minecraft:waxed_weathered_copper"
+  },
+  {
+    "item": "minecraft:waxed_weathered_copper_bars"
+  },
+  {
+    "item": "minecraft:waxed_weathered_copper_bulb"
+  },
+  {
+    "item": "minecraft:waxed_weathered_copper_chain"
+  },
+  {
+    "item": "minecraft:waxed_weathered_copper_door"
+  },
+  {
+    "item": "minecraft:waxed_weathered_copper_grate"
+  },
+  {
+    "item": "minecraft:waxed_weathered_copper_lantern"
+  },
+  {
+    "item": "minecraft:waxed_weathered_copper_trapdoor"
+  },
+  {
+    "item": "minecraft:waxed_weathered_cut_copper"
+  },
+  {
+    "item": "minecraft:waxed_weathered_cut_copper_slab"
+  },
+  {
+    "item": "minecraft:waxed_weathered_cut_copper_stairs"
+  },
+  {
+    "item": "minecraft:waxed_weathered_lightning_rod"
+  },
+  {
+    "item": "minecraft:wayfinder_armor_trim_smithing_template"
+  },
+  {
+    "item": "minecraft:weathered_chiseled_copper"
+  },
+  {
+    "item": "minecraft:weathered_copper"
+  },
+  {
+    "item": "minecraft:weathered_copper_bars"
+  },
+  {
+    "item": "minecraft:weathered_copper_bulb"
+  },
+  {
+    "item": "minecraft:weathered_copper_chain"
+  },
+  {
+    "item": "minecraft:weathered_copper_door"
+  },
+  {
+    "item": "minecraft:weathered_copper_grate"
+  },
+  {
+    "item": "minecraft:weathered_copper_lantern"
+  },
+  {
+    "item": "minecraft:weathered_copper_trapdoor"
+  },
+  {
+    "item": "minecraft:weathered_cut_copper"
+  },
+  {
+    "item": "minecraft:weathered_cut_copper_slab"
+  },
+  {
+    "item": "minecraft:weathered_cut_copper_stairs"
+  },
+  {
+    "item": "minecraft:weathered_lightning_rod"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:weeping_vines"
+  },
+  {
+    "item": "minecraft:wet_sponge"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:wheat"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:wheat_seeds"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:white_banner"
+  },
+  {
+    "item": "minecraft:white_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:white_bundle"
+  },
+  {
+    "item": "minecraft:white_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:white_carpet"
+  },
+  {
+    "item": "minecraft:white_concrete"
+  },
+  {
+    "item": "minecraft:white_concrete_powder"
+  },
+  {
+    "item": "minecraft:white_concrete_slab"
+  },
+  {
+    "item": "minecraft:white_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:white_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:white_dye"
+  },
+  {
+    "item": "minecraft:white_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:white_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:white_shulker_box"
+  },
+  {
+    "item": "minecraft:white_stained_glass"
+  },
+  {
+    "item": "minecraft:white_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:white_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:white_tulip"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:white_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:white_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:white_wool_stairs"
+  },
+  {
+    "item": "minecraft:wild_armor_trim_smithing_template"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:wildflowers"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:use_cooldown"
+    ],
+    "item": "minecraft:wind_charge"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:witch_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:wither_rose"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:wither_skeleton_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:dyed_color",
+      "minecraft:equippable",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable"
+    ],
+    "item": "minecraft:wolf_armor"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:wolf_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:cooking_fuel",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:wooden_axe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:cooking_fuel",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:wooden_hoe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:cooking_fuel",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:wooden_pickaxe"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:block_transformer",
+      "minecraft:cooking_fuel",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:wooden_shovel"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attack_range",
+      "minecraft:attribute_modifiers",
+      "minecraft:cooking_fuel",
+      "minecraft:damage_type",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:kinetic_weapon",
+      "minecraft:max_damage",
+      "minecraft:minimum_attack_charge",
+      "minecraft:piercing_weapon",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:wooden_spear"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:attribute_modifiers",
+      "minecraft:cooking_fuel",
+      "minecraft:enchantable",
+      "minecraft:enchantments",
+      "minecraft:max_damage",
+      "minecraft:repair_cost",
+      "minecraft:repairable",
+      "minecraft:tool",
+      "minecraft:weapon"
+    ],
+    "item": "minecraft:wooden_sword"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:writable_book_content"
+    ],
+    "item": "minecraft:writable_book"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:banner_patterns",
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:yellow_banner"
+  },
+  {
+    "item": "minecraft:yellow_bed"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:bundle_contents"
+    ],
+    "item": "minecraft:yellow_bundle"
+  },
+  {
+    "item": "minecraft:yellow_candle"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:yellow_carpet"
+  },
+  {
+    "item": "minecraft:yellow_concrete"
+  },
+  {
+    "item": "minecraft:yellow_concrete_powder"
+  },
+  {
+    "item": "minecraft:yellow_concrete_slab"
+  },
+  {
+    "item": "minecraft:yellow_concrete_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel",
+      "minecraft:cushion/color"
+    ],
+    "item": "minecraft:yellow_cushion"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dye"
+    ],
+    "item": "minecraft:yellow_dye"
+  },
+  {
+    "item": "minecraft:yellow_glazed_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:dyed_color",
+      "minecraft:equippable"
+    ],
+    "item": "minecraft:yellow_harness"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:compostable"
+    ],
+    "item": "minecraft:yellow_poplar_leaves"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:container"
+    ],
+    "item": "minecraft:yellow_shulker_box"
+  },
+  {
+    "item": "minecraft:yellow_stained_glass"
+  },
+  {
+    "item": "minecraft:yellow_stained_glass_pane"
+  },
+  {
+    "item": "minecraft:yellow_terracotta"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:yellow_wool"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:yellow_wool_slab"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:cooking_fuel"
+    ],
+    "item": "minecraft:yellow_wool_stairs"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:zoglin_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:zombie_horse_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:zombie_nautilus_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:zombie_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:zombie_villager_spawn_egg"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:entity_data"
+    ],
+    "item": "minecraft:zombified_piglin_spawn_egg"
+  },
+  {
+    "item": "structurize:blockfluidsubstitution"
+  },
+  {
+    "item": "structurize:blocksolidsubstitution"
+  },
+  {
+    "item": "structurize:blocksubstitution"
+  },
+  {
+    "item": "structurize:blocktagsubstitution"
+  },
+  {
+    "item": "structurize:caliper"
+  },
+  {
+    "item": "structurize:sceptergold"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "structurize:sceptersteel"
+  },
+  {
+    "checkednbtkeys": [
+      "minecraft:max_damage"
+    ],
+    "item": "structurize:sceptertag"
+  },
+  {
+    "item": "structurize:shapetool"
+  }
+]

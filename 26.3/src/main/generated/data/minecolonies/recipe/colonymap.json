@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "T": "structurize:sceptergold",
+    "X": "minecraft:map"
+  },
+  "pattern": [
+    "XXX",
+    "XTX",
+    "XXX"
+  ],
+  "result": {
+    "id": "minecolonies:colonymap"
+  }
+}

@@ -1,0 +1,93 @@
+package com.minecolonies.core.network.messages.server.colony.building.university;
+
+import com.ldtteam.common.network.PlayMessageType;
+import com.minecolonies.api.colony.IColony;
+import com.minecolonies.api.colony.buildings.views.IBuildingView;
+import com.minecolonies.api.research.IGlobalResearch;
+import com.minecolonies.api.research.IGlobalResearchTree;
+import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.colony.buildings.workerbuildings.BuildingUniversity;
+import com.minecolonies.core.network.messages.server.AbstractBuildingServerMessage;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.Identifier;
+
+import net.minecraft.server.level.ServerPlayer;
+import com.ldtteam.common.network.PlayMessageContext;
+
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Message for the research execution.
+ */
+public class TryResearchMessage extends AbstractBuildingServerMessage<BuildingUniversity>
+{
+    public static final PlayMessageType<?> TYPE = PlayMessageType.forServer(Constants.MOD_ID, "try_research_message", TryResearchMessage::new);
+
+    /**
+     * Id of research to try research.
+     */
+    private final Identifier researchId;
+
+    /**
+     * Id of research to try research.
+     */
+    private final Identifier branch;
+
+    /**
+     * If the request is a reset.
+     */
+    private final boolean reset;
+
+    /**
+     * Construct a message to attempt to research.
+     *
+     * @param researchId the research id.
+     * @param branch     the research branch.
+     * @param building   the building we're executing on.
+     */
+    public TryResearchMessage(final IBuildingView building, @NotNull final Identifier researchId, final Identifier branch, final boolean reset)
+    {
+        super(TYPE, building);
+        this.researchId = researchId;
+        this.branch = branch;
+        this.reset = reset;
+    }
+
+    protected TryResearchMessage(final RegistryFriendlyByteBuf buf, final PlayMessageType<?> type)
+    {
+        super(buf, type);
+        researchId = buf.readIdentifier();
+        branch = buf.readIdentifier();
+        reset = buf.readBoolean();
+    }
+
+    @Override
+    protected void toBytes(@NotNull final RegistryFriendlyByteBuf buf)
+    {
+        super.toBytes(buf);
+        buf.writeIdentifier(researchId);
+        buf.writeIdentifier(branch);
+        buf.writeBoolean(reset);
+    }
+
+    @Override
+    protected void onExecute(final PlayMessageContext ctxIn, final ServerPlayer player, final IColony colony, final BuildingUniversity building)
+    {
+        final IGlobalResearch research = IGlobalResearchTree.getInstance().getResearch(branch, researchId);
+        if(reset)
+        {
+            if(colony.getResearchManager().getResearchTree().getResearch(branch, researchId) != null)
+            {
+                colony.getResearchManager().getResearchTree().attemptResetResearch(player, colony, colony.getResearchManager().getResearchTree().getResearch(branch, researchId));
+            }
+        }
+        else
+        {
+            if((research.canResearch(building, colony.getResearchManager().getResearchTree()))
+                 || player.isCreative())
+            {
+                colony.getResearchManager().getResearchTree().attemptBeginResearch(player, colony, building, research);
+            }
+        }
+    }
+}

@@ -1,0 +1,127 @@
+package com.ldtteam.blockui.util;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.CardinalLighting;
+import net.minecraft.world.level.ColorResolver;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.lighting.LevelLightEngine;
+import net.minecraft.world.level.material.FluidState;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Small single blockstate level wrapper
+ */
+public class SingleBlockGetter implements BlockGetter
+{
+    public BlockState blockState = null;
+    public BlockEntity blockEntity = null;
+
+    public SingleBlockGetter(final BlockState blockState, final BlockEntity blockEntity)
+    {
+        this.blockState = blockState;
+        this.blockEntity = blockEntity;
+    }
+
+    public SingleBlockGetter(final BlockState blockState)
+    {
+        this(blockState, null);
+    }
+
+    public SingleBlockGetter()
+    {
+        this(null, null);
+    }
+
+    @Override
+    @Nullable
+    public BlockEntity getBlockEntity(final BlockPos pos)
+    {
+        return BlockPos.ZERO.equals(pos) ? blockEntity : null;
+    }
+
+    @Override
+    public BlockState getBlockState(final BlockPos pos)
+    {
+        return BlockPos.ZERO.equals(pos) ? blockState : Blocks.VOID_AIR.defaultBlockState();
+    }
+
+    @Override
+    public FluidState getFluidState(final BlockPos pos)
+    {
+        return getBlockState(pos).getFluidState();
+    }
+
+    @Override
+    public int getHeight()
+    {
+        return 1;
+    }
+
+    @Override
+    public int getMinY()
+    {
+        return 0;
+    }
+
+    /**
+     * Small single blockstate level wrapper. Lighting set to 10, full shading
+     */
+    public static class SingleBlockNeighborhood extends SingleBlockGetter implements BlockAndTintGetter
+    {
+        public SingleBlockNeighborhood(final BlockState blockState, final BlockEntity blockEntity)
+        {
+            super(blockState, blockEntity);
+        }
+
+        public SingleBlockNeighborhood(final BlockState blockState)
+        {
+            super(blockState, null);
+        }
+
+        public SingleBlockNeighborhood()
+        {
+            super(null, null);
+        }
+
+        @Override
+        public LevelLightEngine getLightEngine()
+        {
+            throw new UnsupportedOperationException("Does anyone need LightEngine?");
+        }
+
+        @Override
+        public int getBrightness(final LightLayer lightLayer, final BlockPos pos)
+        {
+            return 10;
+        }
+
+        @Override
+        public int getRawBrightness(final BlockPos pos, final int amount)
+        {
+            return 10;
+        }
+
+        @Override
+        public CardinalLighting cardinalLighting()
+        {
+            return CardinalLighting.DEFAULT;
+        }
+
+        @Override
+        public int getBlockTint(final BlockPos pos, final ColorResolver color)
+        {
+            return color.getColor(
+                Minecraft.getInstance().level.registryAccess().lookupOrThrow(Registries.BIOME).getOrThrow(Biomes.PLAINS).value(),
+                0,
+                0);
+        }
+    }
+}

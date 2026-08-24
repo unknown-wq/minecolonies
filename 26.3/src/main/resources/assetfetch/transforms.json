@@ -1,0 +1,696 @@
+{
+  "formatVersion": 1,
+  "comment": "Recipe for reproducing this port's edits on top of the upstream asset files fetched at install time. `files` edits a fetched file in place; `derivedFiles` writes a NEW pack file starting from `copyFrom`. Steps run in order. Patches quote only the changed fragments; the composite flattening is a rule the runtime recomputes rather than a stored patch.",
+  "canonicalJson": {
+    "encoding": "UTF-8",
+    "indent": 2,
+    "keyValueSeparator": ": ",
+    "itemSeparator": ",",
+    "escapeNonAscii": false,
+    "sortKeys": false,
+    "keyOrder": "document order after patching",
+    "trailingNewline": true,
+    "numbers": "re-emitted from the source literal; do not re-format"
+  },
+  "rules": {
+    "neoforge-composite-flatten": {
+      "description": "Collapse a NeoForge `neoforge:composite` model into a plain vanilla model: drop `loader` and `children`; merge each child's `textures` into the root map in document order (later child wins); append each child's `elements` to the root list; discard child-only keys (`render_type`, `parent`, `groups`)."
+    }
+  },
+  "files": [
+    {
+      "path": "gui/citizen/job.xml",
+      "steps": [
+        {
+          "op": "unifiedDiff",
+          "patch": "patches/gui/citizen/job.xml.diff"
+        }
+      ]
+    },
+    {
+      "path": "gui/citizen/main.xml",
+      "steps": [
+        {
+          "op": "unifiedDiff",
+          "patch": "patches/gui/citizen/main.xml.diff"
+        }
+      ]
+    },
+    {
+      "path": "gui/layouthuts/layoutfarmfields.xml",
+      "steps": [
+        {
+          "op": "unifiedDiff",
+          "patch": "patches/gui/layouthuts/layoutfarmfields.xml.diff"
+        }
+      ]
+    },
+    {
+      "path": "gui/townhall/layoutcitizens.xml",
+      "steps": [
+        {
+          "op": "unifiedDiff",
+          "patch": "patches/gui/townhall/layoutcitizens.xml.diff"
+        }
+      ]
+    },
+    {
+      "path": "gui/windowbuildbuilding.xml",
+      "steps": [
+        {
+          "op": "unifiedDiff",
+          "patch": "patches/gui/windowbuildbuilding.xml.diff"
+        }
+      ]
+    },
+    {
+      "path": "gui/windowfield.xml",
+      "steps": [
+        {
+          "op": "unifiedDiff",
+          "patch": "patches/gui/windowfield.xml.diff"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutarchery.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutarchery.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutbarracks.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutbarracks.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutbeekeeper.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutbeekeeper.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutblacksmith.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutblacksmith.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutchickenherder.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutchickenherder.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutcombatacademy.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutcombatacademy.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutconcretemixer.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutconcretemixer.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutcook.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutdeliveryman.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutdeliveryman.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutdyer.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutdyer.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutenchanter.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutfarmer.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutfield.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutfield.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutfisherman.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutfisherman.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutfletcher.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutfletcher.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutflorist.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutglassblower.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutglassblower.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhuthospital.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhuthospital.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutlumberjack.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutlumberjack.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutminer.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutnetherworker.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutnetherworker.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutrabbithutch.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutrabbithutch.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutschool.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutschool.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutshepherd.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutshepherd.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutstable.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutstable.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutstonesmeltery.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutstonesmeltery.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutswineherder.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutswineherder.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutuniversity.json",
+      "steps": [
+        {
+          "op": "rule",
+          "rule": "neoforge-composite-flatten"
+        },
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutuniversity.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/blockhutwarehouse.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/blockhutwarehouse.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/digsite.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/digsite.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/largequarry.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/largequarry.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/mediumquarry.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/mediumquarry.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/rack/blockrackfull.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/rack/blockrackfull.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/rack/blockrackfull_1.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/rack/blockrackfull_1.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/rack/blockrackfull_2.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/rack/blockrackfull_2.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/rack/blockrackfulldouble.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/rack/blockrackfulldouble.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/rack/blockrackfulldouble_1.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/rack/blockrackfulldouble_1.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/rack/blockrackfulldouble_2.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/rack/blockrackfulldouble_2.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/block/simplequarry.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/block/simplequarry.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/amazonchiefegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/amazonchiefegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/amazonegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/amazonegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/amazonspearmanegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/amazonspearmanegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/barbarcheregg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/barbarcheregg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/barbarianegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/barbarianegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/barbchiefegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/barbchiefegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/drownedpiratearcheregg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/drownedpiratearcheregg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/drownedpiratecaptainegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/drownedpiratecaptainegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/drownedpirateegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/drownedpirateegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/mercegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/mercegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/mummyarcheregg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/mummyarcheregg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/mummyegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/mummyegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/norsemenarcheregg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/norsemenarcheregg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/norsemenchiefegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/norsemenchiefegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/pharaoegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/pharaoegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/piratearcheregg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/piratearcheregg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/piratecaptainegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/piratecaptainegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/pirateegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/pirateegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/shieldmaidenegg.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/shieldmaidenegg.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/spear.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/spear.json.jsonpatch"
+        }
+      ]
+    }
+  ],
+  "derivedFiles": [
+    {
+      "path": "models/item/scepterborder.json",
+      "copyFrom": "models/item/scepterpermission.json",
+      "steps": []
+    },
+    {
+      "path": "models/item/scepterclaim.json",
+      "copyFrom": "models/item/scepterpermission.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/scepterclaim.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/scepterterritory.json",
+      "copyFrom": "models/item/scepterpermission.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/scepterterritory.json.jsonpatch"
+        }
+      ]
+    },
+    {
+      "path": "models/item/scepterunclaim.json",
+      "copyFrom": "models/item/scepterpermission.json",
+      "steps": [
+        {
+          "op": "jsonPatch",
+          "patch": "patches/models/item/scepterunclaim.json.jsonpatch"
+        }
+      ]
+    }
+  ]
+}

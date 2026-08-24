@@ -1,0 +1,952 @@
+package com.ldtteam.blockui;
+
+import com.ldtteam.blockui.controls.AbstractTextBuilder.TooltipBuilder;
+import com.ldtteam.blockui.util.SafeError;
+import com.ldtteam.blockui.util.cursor.Cursor;
+import com.ldtteam.blockui.views.View;
+import com.ldtteam.blockui.views.BOWindow;
+import com.mojang.blaze3d.platform.cursor.CursorType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import org.joml.Matrix3x2fStack;
+import net.minecraft.network.chat.MutableComponent;
+import org.jetbrains.annotations.Nullable;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
+
+/**
+ * A Pane is the root of all UI objects.
+ */
+public class Pane extends UiRenderMacros
+{
+    /**
+     * {@link #paneParamsPath} value meaning "this pane was not built from xml".
+     */
+    private static final String UNKNOWN_XML_PATH = "UNKNOWN";
+
+    protected static Pane lastClickedPane;
+    protected static Pane focus;
+    protected Pane onHover;
+    protected static boolean debugging = false;
+    protected Minecraft mc = Minecraft.getInstance();
+    // Attributes
+    protected String id = "";
+    protected int x = 0;
+    protected int y = 0;
+    protected int width = 0;
+    protected int height = 0;
+    protected Alignment alignment = Alignment.TOP_LEFT;
+    protected boolean visible = true;
+    protected boolean enabled = true;
+    protected String onHoverId = "";
+    protected CursorType cursor = Cursor.DEFAULT;
+    // Runtime
+    protected BOWindow window;
+    private   String paneParamsPath = UNKNOWN_XML_PATH;
+    protected View parent;
+    protected Pane hoverSource = null;
+    /**
+     * Should be only used during drawing methods. Outside drawing scope value may be outdated.
+     */
+    protected boolean wasCursorInPane = false;
+    @Nullable
+    private List<MutableComponent> toolTipLines = null;
+
+    /**
+     * Default constructor.
+     */
+    public Pane()
+    {
+        super();
+        // Required for panes.
+    }
+
+    /**
+     * Constructs a Pane from PaneParams.
+     *
+     * @param params Params for the Pane.
+     */
+    public Pane(final PaneParams params)
+    {
+        super();
+        paneParamsPath = params.getXmlRelatedId();
+        id = params.getString("id", id);
+
+        params.getScaledInteger("size", params.getParentWidth(), params.getParentHeight(), a -> {
+            width = a.get(0);
+            height = a.get(1);
+        });
+
+        params.getScaledInteger("pos", params.getParentLeft(), params.getParentTop(), a -> {
+            x = a.get(0);
+            y = a.get(1);
+        });
+
+        alignment = params.getEnum("align", Alignment.class, alignment);
+        visible = params.getBoolean("visible", visible);
+        enabled = params.getBoolean("enabled", enabled);
+        onHoverId = params.getString("onHoverId", onHoverId);
+        toolTipLines = params.getMultilineText("tooltip", toolTipLines);
+
+        params.getResource("cursor", resLoc -> cursor = Cursor.of(resLoc));
+    }
+
+    /**
+     * Returns the currently focused Pane.
+     *
+     * @return the currently focused Pane.
+     */
+    public static synchronized Pane getFocus()
+    {
+        return focus;
+    }
+
+    /**
+     * Clear the currently focused Pane.
+     */
+    public static void clearFocus()
+    {
+        setFocus(null);
+    }
+
+    /**
+     * Override to respond to the Pane losing focus.
+     */
+    public void onFocusLost()
+    {
+        // Can be overloaded
+    }
+
+    /**
+     * Override to respond to the Pane becoming the current focus.
+     */
+    public void onFocus()
+    {
+        // Can be overloaded
+    }
+
+    /**
+     * Parse the children of the pane.
+     *
+     * @param params the parameter.
+     */
+    public void parseChildren(final PaneParams params)
+    {
+        // Can be overloaded
+    }
+
+    // ID
+
+    public final String getID()
+    {
+        return id;
+    }
+
+    public final void setID(final String id)
+    {
+        this.id = id;
+    }
+
+    /**
+     * Names this pane for error messages, and is expected to actually name it: an error that only says "UNKNOWN" costs
+     * more time than it saves. Three sources, in order of usefulness:
+     * <ol>
+     * <li>the window this pane (or its nearest attached ancestor) belongs to, plus the id/parent path inside it,</li>
+     * <li>the xml path captured by the {@link PaneParams} constructor, for a pane parsed but not attached yet,</li>
+     * <li>for a pane built in code, which has neither, its type plus whatever parent chain exists.</li>
+     * </ol>
+     * The plain {@link #UNKNOWN_XML_PATH} default is never returned - it used to be, for every code-built pane, which
+     * is exactly the population that needs identifying the most because there is no xml file to grep for.
+     *
+     * @return string path from nearest parent with id
+     */
+    public final String getXmlRelatedId()
+    {
+        final String path = id == null || id.isEmpty() ? pathToNearestIdParent(parent) : id;
+        final BOWindow ownerWindow = findWindow(this);
+
+        if (ownerWindow != null)
+        {
+            return ownerWindow.getXmlResourceLocation().toString() + "|" + path;
+        }
+        if (!UNKNOWN_XML_PATH.equals(paneParamsPath))
+        {
+            return paneParamsPath;
+        }
+        return getClass().getSimpleName() + "|" + path;
+    }
+
+    /**
+     * @param pane pane to start at
+     * @return nearest window up the parent chain, or null when this pane is not attached to one (yet)
+     */
+    @Nullable
+    private static BOWindow findWindow(final Pane pane)
+    {
+        if (pane == null)
+        {
+            return null;
+        }
+        return pane.window != null ? pane.window : findWindow(pane.parent);
+    }
+
+    private static String pathToNearestIdParent(final Pane pane)
+    {
+        if (pane == null)
+        {
+            return "root";
+        }
+
+        // ids default to "" rather than null, so an id-less pane has to be recognized by emptiness - checking for null
+        // here made the whole parent walk dead code and produced empty path segments
+        return pane.id != null && !pane.id.isEmpty() ? pane.id : pathToNearestIdParent(pane.parent) + "/" + pane.getClass().getSimpleName();
+    }
+
+    public void requireNonNull(final Object value, final String errorMessage)
+    {
+        // build the decorated message only when it is actually going to be used. Several callers of this sit in
+        // drawSelf, i.e. run for every pane on every frame, and used to concatenate a throwaway string each time -
+        // now that getXmlRelatedId also walks the parent chain, doing it eagerly would be paid per frame forever.
+        if (value == null)
+        {
+            SafeError.requireNonNull(null, errorMessage + " (" + getXmlRelatedId() + ")");
+        }
+    }
+
+    /**
+     * Same as {@link #requireNonNull(Object, String)} for messages that cost something to build, or that are only
+     * legal to build in the failure case. The laziness of the argument above stops at the decoration this method adds:
+     * the message a caller passes is an ordinary expression and is evaluated whether or not the value is null.
+     *
+     * @param value        the reference to check
+     * @param errorMessage produces the message, called only when {@code value} is null
+     */
+    public void requireNonNull(final Object value, final Supplier<String> errorMessage)
+    {
+        if (value == null)
+        {
+            requireNonNull(null, errorMessage.get());
+        }
+    }
+
+    /**
+     * Set the size of a pane.
+     *
+     * @param w the width.
+     * @param h the height.
+     */
+    public void setSize(final int w, final int h)
+    {
+        width = w;
+        height = h;
+    }
+
+    /**
+     * Set the position of the pane.
+     *
+     * @param newX the new x.
+     * @param newY the new y.
+     */
+    public void setPosition(final int newX, final int newY)
+    {
+        x = newX;
+        y = newY;
+    }
+
+    /**
+     * Move the pane by x and y to a place.
+     *
+     * @param dx the x.
+     * @param dy the y.
+     */
+    public void moveBy(final int dx, final int dy)
+    {
+        x += dx;
+        y += dy;
+    }
+
+    public Alignment getAlignment()
+    {
+        return alignment;
+    }
+
+    public void setAlignment(final Alignment alignment)
+    {
+        this.alignment = alignment;
+    }
+
+    // Visibility
+
+    public boolean isVisible()
+    {
+        return visible;
+    }
+
+    /**
+     * @return visible because of anything
+     */
+    public boolean shouldDraw()
+    {
+        return visible || hoverSource != null;
+    }
+
+    public void setVisible(final boolean v)
+    {
+        visible = v;
+    }
+
+    /**
+     * Show this pane.
+     */
+    public void show()
+    {
+        setVisible(true);
+    }
+
+    /**
+     * Hide this pane.
+     */
+    public void hide()
+    {
+        setVisible(false);
+    }
+
+    // Enabling
+
+    public boolean isEnabled()
+    {
+        return enabled;
+    }
+
+    public void setEnabled(final boolean e)
+    {
+        enabled = e;
+    }
+
+    /**
+     * Enable this pane.
+     */
+    public void enable()
+    {
+        setEnabled(true);
+    }
+
+    /**
+     * Disable this pane.
+     */
+    public void disable()
+    {
+        setEnabled(false);
+    }
+
+    /**
+     * Enable and show this pane.
+     */
+    public void on()
+    {
+        setEnabled(true);
+        setVisible(true);
+    }
+
+    /**
+     * Disable and hide this pane.
+     */
+    public void off()
+    {
+        setEnabled(false);
+        setVisible(false);
+    }
+
+    /**
+     * Set Focus to this Pane.
+     */
+    public final void setFocus()
+    {
+        setFocus(this);
+    }
+
+    /**
+     * Return {@code true} if this Pane is the current focus.
+     *
+     * @return {@code true}  if this Pane is the current focus.
+     */
+    public final synchronized boolean isFocus()
+    {
+        return focus == this;
+    }
+
+    /**
+     * Set the currently focused Pane.
+     *
+     * @param f Pane to focus, or nil.
+     */
+    public static synchronized void setFocus(final Pane f)
+    {
+        if (focus != null)
+        {
+            focus.onFocusLost();
+        }
+
+        focus = f;
+
+        if (focus != null)
+        {
+            focus.onFocus();
+        }
+    }
+
+    /**
+     * Used mostly for overrides for default logics like {@link com.ldtteam.blockui.views.ZoomDragView#getCursor ZoomDragView}
+     */
+    public CursorType getCursor()
+    {
+        return cursor;
+    }
+
+    /**
+     * @param cursor use {@link Cursor} instances for default behaviour (or new instances to prevent it)
+     */
+    public void setCursor(final CursorType cursor)
+    {
+        this.cursor = cursor;
+    }
+
+    /**
+     * Draw the current Pane if visible.
+     *
+     * @param mx mouse x.
+     * @param my mouse y.
+     */
+    public void draw(final BOGuiGraphics target, final double mx, final double my)
+    {
+        final boolean oldCursorInPane = wasCursorInPane;
+        wasCursorInPane = isPointInPane(mx, my);
+        handleHover(oldCursorInPane);
+
+        if (shouldDraw())
+        {
+            if (wasCursorInPane && isEnabled())
+            {
+                // intentional getter cuz overrides
+                target.setCursor(getCursor());
+            }
+
+            drawSelf(target, mx, my);
+
+            if (debugging)
+            {
+                final int color = wasCursorInPane ? 0xFF00FF00 : 0xFF0000FF;
+
+                drawLineRect(target, x, y, width, height, color);
+
+                if (wasCursorInPane && !id.isEmpty())
+                {
+                    final int stringWidth = mc.font.width(id) + 1;
+                    target.drawString(id, x + getWidth() - stringWidth, y + getHeight() - mc.font.lineHeight, color);
+                }
+            }
+        }
+    }
+
+    /**
+     * Called instead of normal draw() if it wasnt called during this frame.
+     */
+    public void drawHidden()
+    {
+        final boolean oldCursorInPane = wasCursorInPane;
+        wasCursorInPane = false;
+        handleHover(oldCursorInPane);
+    }
+
+    /**
+     * Draw something after finishing drawing the GUI.
+     *
+     * @param mx mouse x.
+     * @param my mouse y.
+     */
+    public void drawLast(final BOGuiGraphics target, final double mx, final double my)
+    {
+        if (shouldDraw())
+        {
+            drawSelfLast(target, mx, my);
+        }
+    }
+
+    /**
+     * Draw self. The graphics port is already relative to the appropriate location.
+     * <p>
+     * Override this to actually draw.
+     *
+     * @param mx Mouse x (relative to parent).
+     * @param my Mouse y (relative to parent).
+     */
+    public void drawSelf(final BOGuiGraphics ms, final double mx, final double my)
+    {
+        // Can be overloaded
+    }
+
+    /**
+     * Draw self last. The graphics port is already relative to the appropriate location.
+     * <p>
+     * Override this to actually draw last.
+     *
+     * @param mx Mouse x (relative to parent).
+     * @param my Mouse y (relative to parent).
+     */
+    public void drawSelfLast(final BOGuiGraphics ms, final double mx, final double my)
+    {
+        // Can be overloaded
+    }
+
+    /**
+     * Is a point relative to the parent's origin within the pane?
+     *
+     * @param mx point x.
+     * @param my point y.
+     * @return true if the point is in the pane.
+     */
+    public boolean isPointInPane(final double mx, final double my)
+    {
+        return shouldDraw() && mx >= x && mx < (x + width) && my >= y && my < (y + height);
+    }
+
+    /**
+     * Was the cursor in pane during draw method?
+     *
+     * @return true if the cursor was in pane, false otherwise
+     */
+    public boolean wasCursorInPane()
+    {
+        return wasCursorInPane;
+    }
+
+    // Dimensions
+    public int getWidth()
+    {
+        return width;
+    }
+
+    // Drawing
+
+    public int getHeight()
+    {
+        return height;
+    }
+
+    /**
+     * Returns the first Pane (depth-first search) of a given ID. if it matches the specified type. Performs a depth-first search on the hierarchy of Panes and Views.
+     *
+     * @param idIn ID of Pane to find.
+     * @param type Class of the desired Pane type.
+     * @param <T>  The type of pane returned.
+     * @return a Pane of the given ID, if it matches the specified type.
+     */
+    public final <T extends Pane> T findPaneOfTypeByID(final String idIn, final Class<T> type)
+    {
+        @Nullable
+        final Pane p = findPaneByID(idIn);
+        try
+        {
+            return type.cast(p);
+        }
+        catch (final ClassCastException e)
+        {
+            throw new IllegalArgumentException(String.format("No pane with id %s and type %s was found.", idIn, type), e);
+        }
+    }
+
+    /**
+     * Returns the first Pane (depth-first search) of a given type.
+     *
+     * @param type Class of the desired Pane type.
+     * @param <T>  The type of pane returned.
+     * @return a Pane of the given type if found, null otherwise.
+     */
+    public final <T extends Pane> T findFirstPaneByType(final Class<T> type)
+    {
+        return findPaneByType(type);
+    }
+
+    // ----------Subpanes-------------//
+
+    /**
+     * Returns the first Pane of a given ID. Performs a depth-first search on the hierarchy of Panes and Views.
+     *
+     * @param idIn ID of Pane to find.
+     * @return a Pane of the given ID.
+     */
+    @Nullable
+    public Pane findPaneByID(final String idIn)
+    {
+        return id.equals(idIn) ? this : null;
+    }
+
+    /**
+     * Returns the first Pane of a given type. Performs a depth-first search on the hierarchy of Panes and Views.
+     *
+     * @param type type of Pane to find.
+     * @return a Pane of the given type.
+     */
+    @Nullable
+    public <T extends Pane> T findPaneByType(final Class<T> type)
+    {
+        return type.isInstance(this) ? type.cast(this) : null;
+    }
+
+    /**
+     * Return the Pane that contains this one.
+     *
+     * @return the Pane that contains this one
+     */
+    public final View getParent()
+    {
+        return parent;
+    }
+
+    /**
+     * Return the Window that this Pane ultimately belongs to.
+     *
+     * @return the Window that this Pane belongs to.
+     */
+    public final BOWindow getWindow()
+    {
+        return window;
+    }
+
+    public void setWindow(final BOWindow w)
+    {
+        window = w;
+
+        // can't gen tooltip from xml until first window is set
+        if (toolTipLines != null && !toolTipLines.isEmpty())
+        {
+            final TooltipBuilder ttBuilder = PaneBuilders.tooltipBuilder().hoverPane(this);
+            toolTipLines.forEach(ttBuilder::appendNL);
+            toolTipLines = null; // do not regen it when window has changed (unlikely to happen) cuz onHover might have changed
+            onHover = ttBuilder.build();
+        }
+
+        setHoverPane(onHover); // renew hover mount
+    }
+
+    /**
+     * Put this Pane inside a View. Only Views and subclasses can contain Panes.
+     *
+     * @param newParent the View to put this Pane into, or null to remove from Parents.
+     */
+    public void putInside(final View newParent)
+    {
+        if (parent != null)
+        {
+            parent.removeChild(this);
+        }
+
+        parent = newParent;
+
+        if (parent != null)
+        {
+            parent.addChild(this);
+
+            // Allow views to expand zero-widths
+            setSize(width, height);
+        }
+    }
+
+    public boolean isClickable()
+    {
+        return shouldDraw() && isEnabled();
+    }
+
+    // ----------Mouse-------------//
+
+    /**
+     * Process a mouse down on the Pane.
+     * <p>
+     * It is advised that only containers of other panes override this method.
+     *
+     * @param mx mouse X coordinate, relative to parent's top-left.
+     * @param my mouse Y coordinate, relative to parent's top-left.
+     * @return true if event was used or propagation needs to be stopped
+     */
+    public boolean click(final double mx, final double my)
+    {
+        setLastClickedPane(this);
+        return handleClick(mx - x, my - y);
+    }
+
+    /**
+     * Process a rightclick mouse down on the Pane.
+     * <p>
+     * It is advised that only containers of other panes override this method.
+     *
+     * @param mx mouse X coordinate, relative to parent's top-left.
+     * @param my mouse Y coordinate, relative to parent's top-left.
+     * @return true if event was used or propagation needs to be stopped
+     */
+    public boolean rightClick(final double mx, final double my)
+    {
+        setLastClickedPane(this);
+        return handleRightClick(mx - x, my - y);
+    }
+
+    /**
+     * Set a pane as the last clicked pane.
+     *
+     * @param pane pane to set.
+     */
+    private static synchronized void setLastClickedPane(final Pane pane)
+    {
+        lastClickedPane = pane;
+    }
+
+    /**
+     * Process a click on the Pane.
+     * <p>
+     * Override this to process the actual click.
+     *
+     * @param mx mouse X coordinate, relative to Pane's top-left.
+     * @param my mouse Y coordinate, relative to Pane's top-left.
+     * @return true if event was used or propagation needs to be stopped
+     */
+    public boolean handleClick(final double mx, final double my)
+    {
+        // Can be overloaded
+        return false;
+    }
+
+    /**
+     * Process a right click on the Pane.
+     * <p>
+     * Override this to process the actual click.
+     *
+     * @param mx mouse X coordinate, relative to Pane's top-left.
+     * @param my mouse Y coordinate, relative to Pane's top-left.
+     * @return true if event was used or propagation needs to be stopped
+     */
+    public boolean handleRightClick(final double mx, final double my)
+    {
+        // Can be overloaded
+        return false;
+    }
+
+    /**
+     * Check if a pane can handle clicks.
+     *
+     * @param mx int x position.
+     * @param my int y position.
+     * @return true if so.
+     */
+    public boolean canHandleClick(final double mx, final double my)
+    {
+        return shouldDraw() && isEnabled() && isPointInPane(mx, my);
+    }
+
+    /**
+     * Called when a key is pressed.
+     *
+     * @param ch  the character
+     * @param key the key
+     * @return true if event was used or propagation needs to be stopped
+     * @deprecated replaced by {@link #onKeyEvent(KeyEvent)} and {@link #onCharactedEvent(CharacterEvent)}
+     */
+    @Deprecated(forRemoval = true, since = "26.1")
+    public boolean onKeyTyped(final char ch, final int key)
+    {
+        return false;
+    }
+
+    /**
+     * Called when a key is pressed.
+     *
+     * @param keyEvent event with key, scancode and modifier keys
+     * @return true if event was used or propagation needs to be stopped
+     */
+    public boolean onKeyEvent(final KeyEvent keyEvent)
+    {
+        return onKeyTyped('\0', keyEvent.key());
+    }
+
+    /**
+     * Called when a unicode character is emitted.
+     *
+     * @param characterEvent event with unicode codepoint
+     * @return true if event was used or propagation needs to be stopped
+     */
+    public boolean onCharactedEvent(final CharacterEvent characterEvent)
+    {
+        boolean stopPropagation = false;
+        for (char c : Character.toChars(characterEvent.codepoint()))
+        {
+            stopPropagation |= onKeyTyped(c, -1);
+        }
+        return stopPropagation;
+    }
+
+    /**
+     * On update. Can be overloaded.
+     */
+    public void onUpdate()
+    {
+        // Can be overloaded
+    }
+
+    protected synchronized void scissorsStart(final BOGuiGraphics target)
+    {
+        // the vanilla stuff here contains transformation via current pose (baked coordination)
+        // if ever this stop being a thing then in git history (1.21.1) we have our version
+        target.enableScissor(x, y, x + width, y + height);
+    }
+
+    /**
+     * X position.
+     *
+     * @return the int x.
+     */
+    public int getX()
+    {
+        return x;
+    }
+
+    /**
+     * Y position.
+     *
+     * @return the int y.
+     */
+    public int getY()
+    {
+        return y;
+    }
+
+    protected synchronized void scissorsEnd(final BOGuiGraphics target)
+    {
+        final Matrix3x2fStack ms = target.pose();
+        final ScreenRectangle popped = target.scissorStack.peek();
+        if (debugging)
+        {
+            final int color = 0xffff0000;
+            final int w = popped.right() - popped.left();
+            final int h = popped.bottom() - popped.top();
+
+            final int yStart = mc.getWindow().getHeight() - popped.bottom();
+
+            ms.pushMatrix();
+            ms.identity();
+            drawLineRect(target, popped.left(), yStart, w, h, color, 2);
+
+            final String scId = "scissor_" + (id.isEmpty() ? this.toString() : id);
+            final int stringWidth = mc.font.width(scId) + 1;
+            target.drawString(scId,
+                popped.left() + w - stringWidth,
+                yStart + h - 2 * mc.font.lineHeight,
+                color);
+            ms.popMatrix();
+        }
+
+        target.disableScissor();
+    }
+
+    /**
+     * Wheel input.
+     *
+     * @param  horizontalWheel x-axis scrolling, minus for down, plus for up.
+     * @param  verticalWheel   y-axis scrolling, minus for down, plus for up.
+     * @param  mx              mouse x
+     * @param  my              mouse y
+     * @return                 true if event was used or propagation needs to be stopped
+     */
+    public boolean scrollInput(final double horizontalWheel, final double verticalWheel, final double mx, final double my)
+    {
+        // Can be overwritten by child classes
+        return false;
+    }
+
+    /**
+     * Set the parent of the child.
+     *
+     * @param view the parent view.
+     */
+    public void setParentView(final View view)
+    {
+        this.parent = view;
+    }
+
+    /**
+     * Handle onHover element, element must be visible.
+     */
+    protected void handleHover(final boolean wasCursorInPaneLastTick)
+    {
+        if (onHover == null && !onHoverId.isEmpty())
+        {
+            onHover = window.findPaneByID(onHoverId); // do not use setHoverPane, here onHover is defined in xml
+            Objects.requireNonNull(onHover, String.format("Hover pane \"%s\" for \"%s\" was not found.", onHoverId, id));
+            onHover.hide(); // automatically hide it (in case someone forgot to do so in xml)
+        }
+
+        if (onHover != null && this.wasCursorInPane && onHover.hoverSource == null && onHover.isEnabled())
+        {
+            onHover.hoverSource = this;
+        }
+        // if onHover was already drawn then we good, else we have to wait for next frame
+        else if (!this.wasCursorInPane && !wasCursorInPaneLastTick)
+        {
+            if (onHover != null && onHover.hoverSource == this && !onHover.wasCursorInPane)
+            {
+                onHover.hoverSource = null;
+            }
+            else if (hoverSource != null && !hoverSource.wasCursorInPane)
+            {
+                hoverSource = null;
+            }
+        }
+    }
+
+    /**
+     * Overrides current hover pane with given pane.
+     * Old hover is removed from window of this pane.
+     * New hover is added (as last child) to window of this pane.
+     *
+     * @param hoverPane new hover pane
+     * @return old hover pane
+     */
+    public Pane setHoverPane(final Pane hoverPane)
+    {
+        if (onHover != null)
+        {
+            // gc
+            onHover.putInside(null);
+        }
+
+        final Pane oldHover = onHover;
+        this.onHover = hoverPane;
+
+        if (onHover != null)
+        {
+            onHover.putInside(window);
+        }
+
+        return oldHover;
+    }
+
+    public Pane getHoverPane()
+    {
+        return onHover;
+    }
+
+    /**
+     * Mouse drag.
+     *
+     * @param mx     mouse start x
+     * @param my     mouse start y
+     * @param speed  drag speed
+     * @param deltaX relative x
+     * @param deltaY relative y
+     * @return true if event was used or propagation needs to be stopped
+     */
+    public boolean onMouseDrag(final double mx, final double my, final int speed, final double deltaX, final double deltaY)
+    {
+        return false;
+    }
+}

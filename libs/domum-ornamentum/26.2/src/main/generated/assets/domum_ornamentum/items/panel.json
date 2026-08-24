@@ -1,0 +1,118 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "block_state_property": "type",
+    "cases": [
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_boss"
+        },
+        "when": "boss"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_coffer"
+        },
+        "when": "coffer"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_full"
+        },
+        "when": "full"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_horizontal_bars"
+        },
+        "when": "horizontal_bars"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_horizontally_squiggly_striped"
+        },
+        "when": "horizontally_squiggly_striped"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_horizontally_striped"
+        },
+        "when": "horizontally_striped"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_moulding"
+        },
+        "when": "moulding"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_port_manteau"
+        },
+        "when": "port_manteau"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_porthole"
+        },
+        "when": "porthole"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_roundel"
+        },
+        "when": "roundel"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_slot"
+        },
+        "when": "slot"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_vertical_bars"
+        },
+        "when": "vertical_bars"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_vertically_squiggly_striped"
+        },
+        "when": "vertically_squiggly_striped"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_vertically_striped"
+        },
+        "when": "vertically_striped"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "domum_ornamentum:item/panel_waffle"
+        },
+        "when": "waffle"
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "domum_ornamentum:item/panel_full"
+    },
+    "property": "minecraft:block_state"
+  }
+}

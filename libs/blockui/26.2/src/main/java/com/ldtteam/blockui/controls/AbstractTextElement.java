@@ -1,0 +1,584 @@
+package com.ldtteam.blockui.controls;
+
+import com.ldtteam.blockui.Alignment;
+import com.ldtteam.blockui.BOGuiGraphics;
+import com.ldtteam.blockui.Pane;
+import com.ldtteam.blockui.PaneParams;
+import com.ldtteam.blockui.util.SpacerTextComponent;
+import com.ldtteam.blockui.util.SpacerTextComponent.FormattedSpacerComponent;
+import com.ldtteam.blockui.util.ToggleableTextComponent;
+import com.ldtteam.blockui.util.ToggleableTextComponent.FormattedToggleableCharSequence;
+import org.joml.Matrix3x2fStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.FormattedCharSequence;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/**
+ * Contains any code common to text controls.
+ */
+public abstract class AbstractTextElement extends Pane
+{
+    public static final float FILTERING_MAX_SCALE = 2; // enable texture filtering when text is below this scale (in monitor pixels)
+    public static final float FILTERING_THRESHOLD = 0.02f; // should be 1/FILTERING_ROUNDING
+
+    public static final double DEFAULT_TEXT_SCALE = 1.0d;
+    public static final Alignment DEFAULT_TEXT_ALIGNMENT = Alignment.MIDDLE_LEFT;
+    public static final int DEFAULT_TEXT_COLOR = 0xffffffff; // white
+    public static final boolean DEFAULT_TEXT_SHADOW = false;
+    public static final boolean DEFAULT_TEXT_WRAP = false;
+    public static final int DEFAULT_TEXT_LINESPACE = 0;
+    /**
+     * Useable when you want to have unlimited text etc.
+     * Currently 1M pixels.
+     */
+    public static final int SIZE_FOR_UNLIMITED_ELEMENTS = 1_000_000;
+
+    /**
+     * The text scale.
+     */
+    protected double textScale = DEFAULT_TEXT_SCALE;
+
+    /**
+     * How the text aligns in it.
+     */
+    protected Alignment textAlignment = DEFAULT_TEXT_ALIGNMENT;
+
+    /**
+     * The standard text color.
+     */
+    protected int textColor = DEFAULT_TEXT_COLOR;
+
+    /**
+     * The hover text color.
+     */
+    protected int textHoverColor = DEFAULT_TEXT_COLOR;
+
+    /**
+     * The disabled text color.
+     */
+    protected int textDisabledColor = DEFAULT_TEXT_COLOR;
+
+    /**
+     * The default state for shadows.
+     */
+    protected boolean textShadow = DEFAULT_TEXT_SHADOW;
+
+    /**
+     * The default state for wrapping.
+     */
+    protected boolean textWrap = DEFAULT_TEXT_WRAP;
+
+    /**
+     * The linespace of the text.
+     */
+    protected int textLinespace = DEFAULT_TEXT_LINESPACE;
+
+    /**
+     * The text holder.
+     */
+    protected List<MutableComponent> text;
+
+    // rendering
+    protected List<FormattedCharSequence> preparedText;
+    protected int renderedTextWidth;
+    protected int renderedTextHeight;
+
+    protected int textOffsetX = 0;
+    protected int textOffsetY = 0;
+    protected int textWidth = width;
+    protected int textHeight = height;
+
+    /**
+     * Creates a stock text element using the programmed defaults
+     */
+    public AbstractTextElement()
+    {
+        this(
+          DEFAULT_TEXT_ALIGNMENT,
+          DEFAULT_TEXT_COLOR,
+          DEFAULT_TEXT_COLOR,
+          DEFAULT_TEXT_COLOR,
+          DEFAULT_TEXT_SHADOW,
+          DEFAULT_TEXT_WRAP
+        );
+    }
+
+    /**
+     * Creates an instance of the abstractTextElement.
+     */
+    public AbstractTextElement(
+      final Alignment defaultTextAlignment,
+      final int defaultTextColor,
+      final int defaultTextHoverColor,
+      final int defaultTextDisabledColor,
+      final boolean defaultTextShadow,
+      final boolean defaultTextWrap)
+    {
+        super();
+
+        this.textAlignment = defaultTextAlignment;
+        this.textColor = defaultTextColor;
+        this.textHoverColor = defaultTextHoverColor;
+        this.textDisabledColor = defaultTextDisabledColor;
+        this.textShadow = defaultTextShadow;
+        this.textWrap = defaultTextWrap;
+    }
+
+    public AbstractTextElement(final PaneParams params)
+    {
+        this(
+          params,
+          DEFAULT_TEXT_ALIGNMENT,
+          DEFAULT_TEXT_COLOR,
+          DEFAULT_TEXT_COLOR,
+          DEFAULT_TEXT_COLOR,
+          DEFAULT_TEXT_SHADOW,
+          DEFAULT_TEXT_WRAP
+        );
+    }
+
+    /**
+     * Create from xml.
+     *
+     * @param params xml parameters.
+     */
+    public AbstractTextElement(final PaneParams params,
+        final Alignment defaultTextAlignment,
+        final int defaultTextColor,
+        final int defaultTextHoverColor,
+        final int defaultTextDisabledColor,
+        final boolean defaultTextShadow,
+        final boolean defaultTextWrap)
+    {
+        super(params);
+
+        textAlignment = params.getEnum("textalign", Alignment.class, defaultTextAlignment);
+        if (params.hasAttribute("color"))
+        {
+            // provide fast way to set all colors
+            setColors(params.getColor("color", defaultTextColor));
+        }
+        else
+        {
+            textColor = params.getColor("textcolor", defaultTextColor);
+            textHoverColor = params.getColor("texthovercolor", defaultTextHoverColor);
+            textDisabledColor = params.getColor("textdisabledcolor", defaultTextDisabledColor);
+        }
+        textShadow = params.getBoolean("shadow", defaultTextShadow);
+        textWrap = params.getBoolean("wrap", defaultTextWrap);
+        textScale = params.getDouble("textscale", textScale);
+        textLinespace = params.getInteger("linespace", textLinespace);
+
+        // both label and text are allowed to merge label and text elements
+        // don't use setText, implementing classes are responsible for calling recalcTextRendering()
+        text = params.getMultilineText(params.hasAnyAttribute("label", "text"));
+    }
+
+    /**
+     * Calculates the containing text rectangle based on the text contents
+     */
+    protected void recalcTextRendering()
+    {
+        if (textScale <= 0.0d || textWidth < 1 || textHeight < 1 || isTextEmpty())
+        {
+            preparedText = Collections.emptyList();
+            return;
+        }
+
+        final int maxWidth = (int) (textWidth / textScale) - (textShadow ? 1 : 0);
+        preparedText = text.stream().flatMap(textBlock -> toFormattedSequence(maxWidth, textBlock)).collect(Collectors.toList());
+    }
+
+    private Stream<? extends FormattedCharSequence> toFormattedSequence(final int maxWidth, MutableComponent textBlock)
+    {
+        if (textBlock.getContents() instanceof final SpacerTextComponent spacer)
+        {
+            return Stream.of(spacer.getVisualOrderText());
+        }
+        else if (textBlock.getContents() instanceof final ToggleableTextComponent toggleable)
+        {
+            return toFormattedSequence(maxWidth, toggleable.data())
+                .map(formatted -> new FormattedToggleableCharSequence(toggleable.condition(), formatted));
+        }
+        else if (textBlock.getContents() == Component.empty().getContents() && textBlock.getSiblings().isEmpty())
+        {
+            return Stream.of(textBlock.getVisualOrderText());
+        }
+        else
+        {
+            return mc.font.split(textBlock, maxWidth).stream();
+        }
+    }
+
+    public void recalcPreparedTextBox()
+    {
+        if (textWrap)
+        {
+            // + Math.ceil(textScale) / textScale is to negate last pixel of vanilla font rendering
+            final int maxHeight = (int) (textHeight / textScale) + 1;
+            final int lineHeight = this.mc.font.lineHeight + textLinespace;
+
+            // TODO: fix me, surely not like this
+            // TODO: add ellipsis if cut
+            // Only slice when it actually shortens the list, see truncatePreparedText.
+            truncatePreparedText(Math.min(preparedText.size(), maxHeight / lineHeight));
+
+            int heightSum = 0;
+            int widthMax = 0;
+            for (final FormattedCharSequence textBlock : preparedText)
+            {
+                if (textBlock instanceof final FormattedSpacerComponent spacer)
+                {
+                    heightSum += spacer.pixelHeight() + textLinespace;
+                }
+                else if (textBlock instanceof final FormattedToggleableCharSequence toggleable)
+                {
+                    if (toggleable.condition().getAsBoolean())
+                    {
+                        heightSum += lineHeight;
+                        widthMax = Math.max(widthMax, mc.font.width(toggleable.data()));
+                    }
+                }
+                else
+                {
+                    heightSum += lineHeight;
+                    widthMax = Math.max(widthMax, mc.font.width(textBlock));
+                }
+            }
+            renderedTextWidth = (int) (widthMax * textScale);
+            renderedTextHeight = (int) ((Math.min(heightSum, maxHeight) - 1 - textLinespace) * textScale);
+        }
+        else
+        {
+            truncatePreparedText(1);
+            renderedTextWidth = (int) (mc.font.width(preparedText.get(0)) * textScale);
+            renderedTextHeight = (int) ((this.mc.font.lineHeight - 1) * textScale);
+        }
+    }
+
+    /**
+     * Cuts {@link #preparedText} down to at most {@code lines} entries, and does nothing at all when it is that short
+     * already.
+     * <p>
+     * The guard is the whole point. {@link #recalcPreparedTextBox()} runs from {@link #drawSelf} - i.e. once per frame,
+     * for every text element of every open window - and used to re-slice unconditionally. {@code List#subList} on an
+     * {@code ArrayList} hands back an {@code ArrayList$SubList} that keeps a strong reference to the list it was taken
+     * from, so slicing an already-sliced list nests rather than flattens: assigning the result back to
+     * {@code preparedText} built a chain one link longer on every frame, each link keeping the previous one reachable.
+     * Measured on JDK 25, one text element, {@code preparedText.subList(0, 1)} per frame: after 36 000 frames (ten
+     * minutes at 60 fps) the chain is 36 000 deep and holds ~724 KB live; with this guard it is one object and 32
+     * bytes. Multiply by every text element in every window that stays open.
+     * <p>
+     * Skipping the call when {@code lines == preparedText.size()} is not an approximation - {@code subList(0, size())}
+     * is a view with exactly the same elements in the same order, and nothing here mutates through it.
+     *
+     * @param lines number of lines to keep, must not exceed the current size
+     */
+    private void truncatePreparedText(final int lines)
+    {
+        if (lines < preparedText.size())
+        {
+            preparedText = preparedText.subList(0, lines);
+        }
+    }
+
+    @Override
+    public void drawSelf(final BOGuiGraphics ms, final double mx, final double my)
+    {
+        if (!preparedText.isEmpty())
+        {
+            recalcPreparedTextBox();
+            innerDrawSelf(ms, mx, my);
+        }
+    }
+
+    protected void innerDrawSelf(final BOGuiGraphics target, final double mx, final double my)
+    {
+        final Matrix3x2fStack ms = target.pose();
+
+        final int color = isEnabled() ? (wasCursorInPane ? textHoverColor : textColor) : textDisabledColor;
+
+        int offsetX = textOffsetX;
+        int offsetY = textOffsetY;
+
+        if (textAlignment.isRightAligned())
+        {
+            offsetX += textWidth - renderedTextWidth;
+        }
+        else if (textAlignment.isHorizontalCentered())
+        {
+            offsetX += (textWidth - renderedTextWidth) / 2;
+        }
+
+        if (textAlignment.isBottomAligned())
+        {
+            offsetY += textHeight - renderedTextHeight;
+        }
+        else if (textAlignment.isVerticalCentered())
+        {
+            offsetY += (textHeight - renderedTextHeight) / 2;
+        }
+
+        ms.pushMatrix();
+        ms.translate(x + offsetX, y + offsetY);
+        ms.scale((float) textScale, (float) textScale);
+
+        int lineShift = 0;
+        for (FormattedCharSequence row : preparedText)
+        {
+            if (row == FormattedCharSequence.EMPTY)
+            {
+                lineShift += mc.font.lineHeight + textLinespace;
+                continue;
+            }
+            else if (row instanceof final FormattedToggleableCharSequence toggleable)
+            {
+                if (!toggleable.condition().getAsBoolean())
+                {
+                    continue;
+                }
+                row = toggleable.data();
+            }
+            else if (row instanceof FormattedSpacerComponent spacer)
+            {
+                lineShift += spacer.pixelHeight() + textLinespace;
+                continue;
+            }
+
+            final int xOffset;
+
+            if (textAlignment.isRightAligned())
+            {
+                xOffset = (int) ((renderedTextWidth - mc.font.width(row) * textScale) / textScale);
+            }
+            else if (textAlignment.isHorizontalCentered())
+            {
+                xOffset = (int) ((renderedTextWidth - mc.font.width(row) * textScale) / 2 / textScale);
+            }
+            else
+            {
+                xOffset = 0;
+            }
+
+            target.text(mc.font, row, xOffset, lineShift, color, textShadow);
+            lineShift += mc.font.lineHeight + textLinespace;
+        }
+
+        ms.popMatrix();
+    }
+
+    public Alignment getTextAlignment()
+    {
+        return textAlignment;
+    }
+
+    public void setTextAlignment(final Alignment textAlignment)
+    {
+        this.textAlignment = textAlignment;
+    }
+
+    public double getTextScale()
+    {
+        return textScale;
+    }
+
+    public void setTextScale(final double textScale)
+    {
+        this.textScale = textScale;
+        recalcTextRendering();
+    }
+
+    /**
+     * Set all text colors to the same value.
+     *
+     * @param color new text colors.
+     */
+    public void setColors(final int color)
+    {
+        setColors(color, color, color);
+    }
+
+    /**
+     * Set all textContent colors.
+     *
+     * @param textColor         Standard textContent color.
+     * @param textDisabledColor Disabled textContent color.
+     * @param textHoverColor    Hover textContent color.
+     */
+    public void setColors(final int textColor, final int textDisabledColor, final int textHoverColor)
+    {
+        this.textColor = textColor;
+        this.textDisabledColor = textDisabledColor;
+        this.textHoverColor = textHoverColor;
+    }
+
+    public int getTextColor()
+    {
+        return textColor;
+    }
+
+    public void setTextColor(final int textColor)
+    {
+        this.textColor = textColor;
+    }
+
+    public int getTextHoverColor()
+    {
+        return textHoverColor;
+    }
+
+    public void setTextHoverColor(final int textHoverColor)
+    {
+        this.textHoverColor = textHoverColor;
+    }
+
+    public int getTextDisabledColor()
+    {
+        return textDisabledColor;
+    }
+
+    public void setTextDisabledColor(final int textDisabledColor)
+    {
+        this.textDisabledColor = textDisabledColor;
+    }
+
+    public int getTextLinespace()
+    {
+        return textLinespace;
+    }
+
+    public void setTextLinespace(final int textLinespace)
+    {
+        this.textLinespace = textLinespace;
+    }
+
+    public boolean isTextShadow()
+    {
+        return textShadow;
+    }
+
+    public void setTextShadow(final boolean textShadow)
+    {
+        this.textShadow = textShadow;
+    }
+
+    public boolean isTextWrap()
+    {
+        return textWrap;
+    }
+
+    public void setTextWrap(final boolean textWrap)
+    {
+        this.textWrap = textWrap;
+        recalcTextRendering();
+    }
+
+    @Nullable
+    public List<MutableComponent> getTextAsList()
+    {
+        return text;
+    }
+
+    /**
+     * @return null if empty, first line otherwise
+     */
+    @Nullable
+    public MutableComponent getText()
+    {
+        return isTextEmpty() ? null : text.get(0);
+    }
+
+    public void setTextOld(final List<Component> text)
+    {
+        setText(text.stream().map(c -> c instanceof MutableComponent m ? m : c.copy()).toList());
+    }
+
+    public void setText(final List<MutableComponent> text)
+    {
+        this.text = text;
+        recalcTextRendering();
+    }
+
+    public void setText(final Component text)
+    {
+        setText(text instanceof MutableComponent m ? m : text.copy());
+    }
+
+    public void setText(final MutableComponent text)
+    {
+        setText(Collections.singletonList(text));
+    }
+
+    /**
+     * Removes any text rendering the text element empty
+     */
+    public void clearText()
+    {
+        setText(Collections.emptyList());
+    }
+
+    /**
+     * @return null if empty, otherwise first line as string
+     */
+    @Nullable
+    public String getTextAsStringStrict()
+    {
+        return isTextEmpty() ? null : text.get(0).getString();
+    }
+
+    /**
+     * @return emptyString if empty, otherwise first line as string
+     */
+    public String getTextAsString()
+    {
+        return isTextEmpty() ? "" : text.get(0).getString();
+    }
+
+    /**
+     * @return true if has no text or all lines are empty strings, false otherwise
+     */
+    public boolean isTextEmpty()
+    {
+        return text == null || text.stream().allMatch(t -> t.getString().isEmpty());
+    }
+
+    public int getRenderedTextWidth()
+    {
+        return renderedTextWidth;
+    }
+
+    public int getRenderedTextHeight()
+    {
+        return renderedTextHeight;
+    }
+
+    public List<FormattedCharSequence> getPreparedText()
+    {
+        return preparedText;
+    }
+
+    @Override
+    public void setSize(final int w, final int h)
+    {
+        super.setSize(w, h);
+        this.setTextSize(w, h);
+    }
+
+    /**
+     * Set the text size.
+     * @param w the width.
+     * @param h the height.
+     */
+    public void setTextSize(final int w, final int h)
+    {
+        textWidth = width;
+        textHeight = height;
+        recalcTextRendering();
+    }
+}

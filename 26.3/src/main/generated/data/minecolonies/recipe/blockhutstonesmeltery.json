@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "minecraft:stone_bricks",
+    "F": "minecraft:furnace",
+    "T": "structurize:sceptergold",
+    "X": "#minecraft:planks"
+  },
+  "pattern": [
+    "XTX",
+    "AFA",
+    "XXX"
+  ],
+  "result": {
+    "id": "minecolonies:blockhutstonesmeltery"
+  }
+}

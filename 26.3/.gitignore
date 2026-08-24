@@ -1,0 +1,6 @@
+.staged-libs/
+
+# Item definitions and models are build output: 26.2 commits generated/data and
+# generated/.cache but never generated/assets, and a fresh checkout regenerates them
+# with runDatagen before build. Keeping that split.
+src/main/generated/assets/

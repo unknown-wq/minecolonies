@@ -1,0 +1,131 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:bell_pepper"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:cabbage"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:chickpea"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:durum"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:eggplant"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:garlic"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:onion"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:soybean"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:tomato"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:rice"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:corn"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:nether_pepper"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:peas"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:mint"
+        },
+        {
+          "type": "minecraft:item",
+          "condition": {
+            "type": "minecraft:random_chance",
+            "chance": 0.005
+          },
+          "name": "minecolonies:butternut_squash"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "minecolonies:crops/dungeon"
+}

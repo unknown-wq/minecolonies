@@ -1,0 +1,124 @@
+package com.ldtteam.domumornamentum.recipe.architectscutter;
+
+import com.ldtteam.domumornamentum.IDomumOrnamentumApi;
+import com.ldtteam.domumornamentum.block.IMateriallyTexturedBlock;
+import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
+import com.ldtteam.domumornamentum.util.DataComponentPatchBuilder;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementRequirements;
+import net.minecraft.advancements.AdvancementRewards;
+import net.minecraft.advancements.triggers.Criterion;
+import net.minecraft.advancements.triggers.RecipeUnlockedTrigger;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.recipes.RecipeBuilder;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.component.BlockItemStateProperties;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.Property;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * Inspired by {@link RecipeBuilder}
+ */
+public class ArchitectsCutterRecipeBuilder
+{
+    private final RecipeCategory category;
+    private final Map<String, Criterion<?>> criteria = new LinkedHashMap<>();
+
+    private final Block result;
+    private int count = 1;
+    private final DataComponentPatchBuilder components = new DataComponentPatchBuilder();
+
+    /**
+     * @param result main result block of recipe
+     * @param category recipe category as in {@link VanillaRecipeProvider}
+     */
+    public <T extends Block & IMateriallyTexturedBlock> ArchitectsCutterRecipeBuilder(final T result, final RecipeCategory category)
+    {
+        this.result = result;
+        this.category = category;
+    }
+
+    public <T extends Comparable<T>> ArchitectsCutterRecipeBuilder resultProperty(final Property<T> property, final T value)
+    {
+        components.update(DataComponents.BLOCK_STATE, BlockItemStateProperties.EMPTY, props -> props.with(property, value));
+        return this;
+    }
+
+    public ArchitectsCutterRecipeBuilder textureData(final MaterialTextureData textureData)
+    {
+        if (textureData.isEmpty())
+        {
+            return this;
+        }
+
+        components.set(IDomumOrnamentumApi.getInstance().getMaterialTextureComponentType(), textureData);
+
+        return this;
+    }
+
+    public ArchitectsCutterRecipeBuilder count(final int count)
+    {
+        this.count = count;
+        return this;
+    }
+
+    public ArchitectsCutterRecipeBuilder unlockedBy(final String criterionId, final Criterion<?> criterion)
+    {
+        this.criteria.put(criterionId, criterion);
+        return this;
+    }
+
+    public void save(final RecipeOutput output, final Identifier recipeId)
+    {
+        // 26.2: RecipeOutput#accept, RecipeUnlockedTrigger#unlocked and AdvancementRewards.Builder#recipe
+        // all take a ResourceKey<Recipe<?>> instead of a raw Identifier.
+        final ResourceKey<Recipe<?>> recipeKey = ResourceKey.create(Registries.RECIPE, recipeId);
+
+        final ArchitectsCutterRecipe recipe = new ArchitectsCutterRecipe(BuiltInRegistries.BLOCK.getKey(result),
+            count,
+            components.build());
+
+        if (criteria.isEmpty())
+        {
+            output.accept(recipeKey, recipe, null);
+            return;
+        }
+
+        // 26.3: RecipeUnlockedTrigger#unlocked takes Holder<Recipe<?>> / HolderSet<Recipe<?>> instead of the
+        // ResourceKey. Vanilla resolves the key through the recipe output's own lookup — see
+        // /opt/mc-src-26.3/net/minecraft/data/recipes/RecipeUnlockAdvancementBuilder.java:28.
+        final Advancement.Builder advancement = output.advancement()
+            .addCriterion("has_the_recipe",
+                RecipeUnlockedTrigger.unlocked(output.lookup(Registries.RECIPE).getOrThrow(recipeKey)))
+            .rewards(AdvancementRewards.Builder.recipe(recipeKey))
+            .requirements(AdvancementRequirements.Strategy.OR);
+        this.criteria.forEach(advancement::addCriterion);
+
+        output.accept(recipeKey, recipe, advancement.build(recipeId.withPrefix("recipes/" + category.getFolderName() + "/")));
+    }
+
+    public void saveSuffix(final RecipeOutput output, final String suffix)
+    {
+        save(output, BuiltInRegistries.BLOCK.getKey(result).withSuffix("_" + suffix));
+    }
+
+    public void save(final RecipeOutput output, final String name)
+    {
+        save(output, BuiltInRegistries.BLOCK.getKey(result).withPath(name));
+    }
+
+    public void save(final RecipeOutput output)
+    {
+        save(output, BuiltInRegistries.BLOCK.getKey(result));
+    }
+}

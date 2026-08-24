@@ -1,0 +1,61 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+}
+
+loom {
+	// Compile-time half of the access widener: Loom widens the vanilla classes before javac reads
+	// them. The runtime half is the "accessWidener" key in src/main/resources/fabric.mod.json —
+	// without it a dev run still works (the classes are already widened here) while a real client
+	// throws IllegalAccessError, so the two must always be changed together.
+	accessWidenerPath = file('src/main/resources/domum_ornamentum.accesswidener')
+}
+
+fabricApi {
+	configureDataGeneration {
+		client = true
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	// Minecraft 26.1+ is unobfuscated and Yarn is discontinued: no mappings line is needed.
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+	it.options.release = 25
+	it.options.compilerArgs += ["-Xmaxerrs", "5000", "-Xmaxwarns", "0"]
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}"}
+	}
+}

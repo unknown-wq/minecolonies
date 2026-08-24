@@ -1,0 +1,7 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/layer0",
+    "value": "minecolonies:block/item/scarecrow"
+  }
+]

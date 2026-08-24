@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "L": "minecraft:leather",
+    "P": "minecraft:paper",
+    "T": "structurize:sceptergold",
+    "X": "minecraft:stick"
+  },
+  "pattern": [
+    "XTX",
+    "LPL",
+    "XPX"
+  ],
+  "result": {
+    "id": "minecolonies:questlog"
+  }
+}

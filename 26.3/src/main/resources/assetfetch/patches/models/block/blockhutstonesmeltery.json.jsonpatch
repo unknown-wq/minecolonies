@@ -1,0 +1,17 @@
+[
+  {
+    "op": "replace",
+    "path": "/parent",
+    "value": "minecraft:block/block"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/11",
+    "value": "minecolonies:block/item/brick"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/12",
+    "value": "minecolonies:block/item/clay_ball"
+  }
+]

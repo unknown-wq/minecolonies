@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "cookingtime": 300,
+  "experience": 0.35,
+  "ingredient": "minecolonies:raw_pumpkin_pie",
+  "result": {
+    "id": "minecraft:pumpkin_pie"
+  }
+}

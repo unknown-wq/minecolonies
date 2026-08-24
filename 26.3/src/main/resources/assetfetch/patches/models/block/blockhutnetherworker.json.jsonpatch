@@ -1,0 +1,20 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/12",
+    "value": "minecolonies:block/entity/chest/normal"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/11",
+    "value": "minecolonies:block/item/iron_pickaxe"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/9",
+    "value": {
+      "sprite": "block/nether_portal",
+      "force_translucent": true
+    }
+  }
+]

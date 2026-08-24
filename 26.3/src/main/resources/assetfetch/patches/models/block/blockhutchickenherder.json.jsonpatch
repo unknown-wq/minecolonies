@@ -1,0 +1,22 @@
+[
+  {
+    "op": "replace",
+    "path": "/textures/6",
+    "value": "entity/chicken/chicken_temperate"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/7",
+    "value": "minecolonies:block/item/egg"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/15",
+    "value": "minecolonies:block/item/bucket"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/particle",
+    "value": "minecolonies:block/item/bucket"
+  }
+]

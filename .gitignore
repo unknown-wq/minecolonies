@@ -43,3 +43,4 @@ logs/
 # their process ids next to wherever they were started from, which is sometimes
 # a checkout rather than the stand's own directory.
 *.pid
+.cache/

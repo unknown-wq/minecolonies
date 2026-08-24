@@ -1,0 +1,14 @@
+{
+  "type": "minecolonies:composting",
+  "input": {
+    "fabric:type": "fabric:any",
+    "ingredients": [
+      {
+        "fabric:type": "minecolonies:food",
+        "min-saturation": 1.0
+      },
+      "#minecolonies:compostables_rich"
+    ]
+  },
+  "strength": 8
+}

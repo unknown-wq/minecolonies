@@ -1,0 +1,5 @@
+build/
+.gradle/
+.staged-libs/
+libs/structurize/26.3/libs/
+run/

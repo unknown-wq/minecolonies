@@ -1,0 +1,37 @@
+[
+  {
+    "op": "replace",
+    "path": "/parent",
+    "value": "minecraft:block/block"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/4",
+    "value": "minecolonies:block/entity/chest/normal"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/3",
+    "value": "block/red_concrete"
+  },
+  {
+    "op": "replace",
+    "path": "/textures/transp",
+    "value": "minecolonies:block/transparent"
+  },
+  {
+    "op": "add",
+    "path": "/textures/3_map1",
+    "value": "minecolonies:block/books/map1"
+  },
+  {
+    "op": "replace",
+    "path": "/elements/64/faces/up/texture",
+    "value": "#3_map1"
+  },
+  {
+    "op": "replace",
+    "path": "/elements/64/faces/down/texture",
+    "value": "#3_map1"
+  }
+]
