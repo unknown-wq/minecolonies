@@ -19,7 +19,7 @@ designed in parallel and are meant to compose: the second is the framework, the 
 consumer. **Neither was measured** — both cost estimates are inferences from loop shape, and both plans
 say so in their own last section.
 
-### [`plans/PLAN-AUTOBUILD.md`](../plans/PLAN-AUTOBUILD.md) — the colony builds housing by itself
+### The colony builds housing by itself
 
 Builds residences without the player, until every citizen has a bed. ~750 lines, 12 files, 2 new
 classes, no persistence. Off by default: a town-hall setting plus a server config, because research is
@@ -41,7 +41,7 @@ across levels 1–5 in every shipped pack, so a level-1 site is a level-5 site.
 registered building. Block-entity and natural-surface vetoes catch most of it and construction tape
 warns before the builder starts. This is why the default is off and every other choice is conservative.
 
-### [`plans/PLAN-COLONY-NEEDS.md`](../plans/PLAN-COLONY-NEEDS.md) — a ranked account of what the colony lacks
+### A ranked account of what the colony lacks
 
 A live list — housing, food, tools, materials, production, workers — that other systems read to decide
 what to build, craft, farm and research. A need is a **measured deficit, never an event**: recomputed
@@ -384,7 +384,7 @@ ground". The report's own cause is **fixed**; these are what the audit passed ov
 * **Nothing client-side is covered by any automated check.** There is no display in the build container
   and `runClient` does not start, so the boat renderer registration, and the GUI generally, are verified
   only by a person playing the built jar.
-* **`plans/PLAN-COLONY-NEEDS.md` §1 corrects two things this project believed.** The bed-shortage line
+* **The colony-needs design corrects two things this project believed.** The bed-shortage line
   comes from `/mc citizens fill`, not `/mc colony diagnose` — diagnose carries the same information only
   as the `current/max` ratio. And `BuildingResourcesModule` is the builder's current-work-order resource
   list, not the general "a building declares what it wants" mechanism; that is `MinimumStockModule`.

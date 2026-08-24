@@ -87,7 +87,7 @@ public class ColouredVertexConsumer implements VertexConsumer
 
     /**
      * 26.3: new abstract {@code VertexConsumer#setUv3(float, float)} — the decal/glint UV channel
-     * (AGENT-BRIEF-26.3.md §4.3). Plain pass-through like the other UV setters; the return type is
+     * used by the decal/glint pass. Plain pass-through like the other UV setters; the return type is
      * narrowed to keep this class' covariant chain intact.
      */
     @Override

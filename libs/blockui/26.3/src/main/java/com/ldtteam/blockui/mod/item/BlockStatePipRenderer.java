@@ -313,7 +313,7 @@ public class BlockStatePipRenderer extends PictureInPictureRenderer<BlockStateRe
         }
 
         // 26.3: VertexConsumer gained an abstract setUv3(float, float) — the decal/glint texture
-        // channel that SheetedDecalTextureGenerator now writes through (AGENT-BRIEF-26.3.md §4.3).
+        // channel that SheetedDecalTextureGenerator now writes through.
         @Override
         public VertexConsumer setUv3(final float u, final float v)
         {

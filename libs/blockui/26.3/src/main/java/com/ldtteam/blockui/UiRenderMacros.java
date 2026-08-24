@@ -3,7 +3,7 @@ package com.ldtteam.blockui;
 import com.ldtteam.blockui.mod.BlockUI;
 import com.ldtteam.blockui.util.color.IColour;
 // 26.3: the pipeline API moved out of blaze3d into the renderpearl library. Pure package move,
-// the builder/enum members are identical (libs/AGENT-BRIEF-26.3.md §4.1).
+// the builder and enum members are identical -- checked with javap against both versions.
 import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;

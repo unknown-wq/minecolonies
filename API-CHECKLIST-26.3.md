@@ -306,8 +306,7 @@ public record KeyEvent(int key, int keycode, int modifiers)
 Отсюда правило для всей работы по вводу: в 26.3 две параллельные семьи констант —
 `InputConstants.KEY_*` (115 штук, scancode) и `InputConstants.KEYCODE_*` (36 штук, keycode).
 Кейбинды и `isKeyDown` берут `KEY_*`; текстовое редактирование (Ctrl+C и подобное) берёт
-`KEYCODE_*` через `shortcutKey()`, как это делает ванильный `EditBox`. Подробности и образцы
-— в `libs/AGENT-BRIEF-26.3.md` §4.2.
+`KEYCODE_*` через `shortcutKey()`, как это делает ванильный `EditBox`.
 
 Из этого же семейства: кнопки мыши перенумерованы (GLFW левая = 0 → SDL левая = 1,
 правая = 1 → 3). Тоже молча.

@@ -133,7 +133,7 @@ from a ported mod" — these are they.
 
 ⚠️ **Blocker raised against BlockUI:** at `74651c8` two crashes in `com.ldtteam.common.language` are live,
 and they stop **every dependent mod** from starting — MineColonies and Structurize alike. Analysis and
-patch: `HANDOFF-TO-BLOCKUI-2.md` and `BLOCKUI-RUNTIME-FIXES.patch`. A PR is being prepared in BlockUI's
+patch: `BLOCKUI-RUNTIME-FIXES.patch`. A PR is being prepared in BlockUI's
 own repository (branch `claude/fix-mod-init-crashes`); until it merges our build needs the patch applied
 locally.
 
