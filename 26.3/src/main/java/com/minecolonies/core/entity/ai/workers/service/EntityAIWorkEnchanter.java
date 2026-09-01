@@ -10,10 +10,14 @@ import com.minecolonies.api.entity.ai.statemachine.AITarget;
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.citizen.Skill;
+import com.minecolonies.api.equipment.ModEquipmentTypes;
+import com.minecolonies.api.equipment.registry.EquipmentTypeEntry;
+import com.minecolonies.api.inventory.InventoryCitizen;
 import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.util.*;
 import com.minecolonies.core.colony.buildings.modules.BuildingModules;
 import com.minecolonies.core.colony.buildings.modules.EnchanterStationsModule;
+import com.minecolonies.core.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingEnchanter;
 import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.core.colony.jobs.JobEnchanter;
@@ -24,12 +28,12 @@ import com.minecolonies.core.util.WorkerUtil;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -65,9 +69,19 @@ public class EntityAIWorkEnchanter extends AbstractEntityAICrafting<JobEnchanter
     private static final Predicate<ItemStack> IS_BOOK = item -> !item.isEmpty() && item.getItem() == Items.BOOK;
 
     /**
-     * Min distance to drain from citizen.
+     * Predicate to define a finished book, which is what the enchanter spends on a worker's gear from hut level four.
      */
-    private static final long MIN_DISTANCE_TO_DRAIN = 10;
+    private static final Predicate<ItemStack> IS_ENCHANTED_BOOK = item -> !item.isEmpty() && item.getItem() == Items.ENCHANTED_BOOK;
+
+    /**
+     * Min distance to drain from citizen.
+     *
+     * <p>Ten was harmless while the target was always the enchanter itself, which is never further from itself than
+     * zero. Against a real worker it has to cover a citizen moving about its own hut, so it is a hut's width rather
+     * than a stride. A worker genuinely away on a job still times out after {@code MAX_WAITING_TICKS} and the station
+     * is left for another day.</p>
+     */
+    private static final long MIN_DISTANCE_TO_DRAIN = 20;
 
     /**
      * Max progress ticks until drainage is complete (per Level).
@@ -75,9 +89,20 @@ public class EntityAIWorkEnchanter extends AbstractEntityAICrafting<JobEnchanter
     private static final int MAX_PROGRESS_TICKS = 60;
 
     /**
-     * Max progress ticks until drainage is complete (per Level).
+     * Length of one enchanting cycle at hut level one, in AI ticks (the ENCHANT target runs once a second).
      */
     private static final int MAX_ENCHANTMENT_TICKS = 60 * 5;
+
+    /**
+     * How much each hut level above the first takes off that cycle.
+     *
+     * <p>This used to be a division -- 300 ticks at hut one down to 60 at hut five -- which made hut level worth a
+     * fivefold speed increase. Speed is the one thing the colony can never use: the only input is the ancient tome,
+     * which drops from raiders and nothing else, and raids come on average every fourteen nights, so even a level
+     * one enchanter spends nearly all of its day waiting for the next tome. Hut level now buys yield instead, in the
+     * loot tables, and the cycle merely shortens from five minutes to three across the five levels.</p>
+     */
+    private static final int ENCHANTMENT_TICKS_PER_LEVEL = 30;
 
     /**
      * Minimum mana requirement per level.
@@ -85,9 +110,28 @@ public class EntityAIWorkEnchanter extends AbstractEntityAICrafting<JobEnchanter
     private static final int MANA_REQ_PER_LEVEL = 10;
 
     /**
+     * Hut level from which the enchanter carries a finished book to the hut it visits and puts what is on it onto the
+     * worker's gear, instead of only playing the beam.
+     */
+    private static final int GEAR_SERVICE_MIN_LEVEL = 4;
+
+    /**
+     * Subtracted from the hut level to get the highest enchantment level the enchanter may apply: two at hut four,
+     * three at hut five. This is the enchanter's own ceiling; the target hut has one of its own, see
+     * {@link #enchantmentHeadroom}.
+     */
+    private static final int GEAR_LEVEL_OFFSET = 2;
+
+    /**
      * XP per drain
      */
     private static final double XP_PER_DRAIN = 10;
+
+    /**
+     * Base XP for finishing one book. The maximum stored enchantment level is added on top, so a better book is worth
+     * more, exactly as it costs more mana.
+     */
+    private static final double XP_PER_ENCHANT = 10;
 
     /**
      * The citizen entity to gather from.
@@ -128,8 +172,13 @@ public class EntityAIWorkEnchanter extends AbstractEntityAICrafting<JobEnchanter
             return START_WORKING;
         }
 
+        // getNextCraftingState() returns IDLE, INVENTORY_FULL, QUERY_ITEMS or GET_RECIPE -- never START_WORKING. The
+        // test used to be "!= START_WORKING", which is therefore always true, so from midday onwards a worker with no
+        // crafting order returned IDLE from here and stood still for the rest of the day. IDLE is the "nothing to
+        // craft" answer, so testing against that gives the intended split: player orders in the afternoon, books the
+        // rest of the time.
         final IAIState craftState = getNextCraftingState();
-        if (craftState != START_WORKING && !WorldUtil.isPastTime(world, 6000))
+        if (craftState != IDLE && !WorldUtil.isPastTime(world, 6000))
         {
             return craftState;
         }
@@ -140,40 +189,26 @@ public class EntityAIWorkEnchanter extends AbstractEntityAICrafting<JobEnchanter
             return getState();
         }
 
+        final boolean produceBooks = building.getSettingValueOrDefault(BuildingEnchanter.PRODUCE_BOOKS, true);
+        final boolean visitStations = building.getSettingValueOrDefault(BuildingEnchanter.VISIT_STATIONS, true);
+
         if (getPrimarySkillLevel() < building.getBuildingLevel() * MANA_REQ_PER_LEVEL)
         {
-            final BuildingEnchanter enchanterBuilding = building;
-            final EnchanterStationsModule module = enchanterBuilding.getModule(BuildingModules.ENCHANTER_STATIONS);
-            if (module.getBuildingsToGatherFrom().isEmpty())
+            if (!visitStations)
             {
-                if (worker.getCitizenData() != null)
-                {
-                    worker.getCitizenData()
-                      .triggerInteraction(new StandardInteraction(Component.translatableEscape(NO_WORKERS_TO_DRAIN_SET), ChatPriority.BLOCKING));
-                }
+                // Below the mana gate with visiting switched off there is nothing this worker can do but the player's
+                // crafting orders, which were handled above.
                 return IDLE;
             }
 
-            final int booksInInv = InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), IS_BOOK);
-            if (booksInInv <= 0)
-            {
-                final int numberOfBooksInBuilding = InventoryUtils.hasBuildingEnoughElseCount(building, IS_BOOK, 1);
-                if (numberOfBooksInBuilding > 0)
-                {
-                    needsCurrently = new Tuple<>(IS_BOOK, 1);
-                    return GATHERING_REQUIRED_MATERIALS;
-                }
-                checkIfRequestForItemExistOrCreateAsync(new ItemStack(Items.BOOK, 1));
-                return IDLE;
-            }
+            return visitStation(true);
+        }
 
-            final BlockPos posToDrainFrom = module.getRandomBuildingToDrainFrom();
-            if (posToDrainFrom == null)
-            {
-                return IDLE;
-            }
-            job.setBuildingToDrainFrom(posToDrainFrom);
-            return ENCHANTER_DRAIN;
+        if (!produceBooks)
+        {
+            // Books switched off. Keep visiting if that is switched on -- from hut level four the visit is a service
+            // in its own right, and it is the only thing left to do here.
+            return visitStations ? visitStation(false) : IDLE;
         }
 
         final BuildingEnchanter.CraftingModule craftingModule = building.getFirstModuleOccurance(BuildingEnchanter.CraftingModule.class);
@@ -187,23 +222,81 @@ public class EntityAIWorkEnchanter extends AbstractEntityAICrafting<JobEnchanter
             }
         }
 
-        if (!ancientTomeCraftingDisabled)
+        if (ancientTomeCraftingDisabled)
         {
-            final int ancientTomesInInv = InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), IS_ANCIENT_TOME);
-            if (ancientTomesInInv <= 0)
+            // Nothing to make: enchant() would find no fulfillable recipe and hand straight back to decide(), which
+            // would send it to ENCHANT again. Stop here instead of spinning between the two states forever.
+            return IDLE;
+        }
+
+        final int ancientTomesInInv = InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), IS_ANCIENT_TOME);
+        if (ancientTomesInInv <= 0)
+        {
+            final int amountOfAncientTomes = InventoryUtils.hasBuildingEnoughElseCount(building, IS_ANCIENT_TOME, 1);
+            if (amountOfAncientTomes > 0)
             {
-                final int amountOfAncientTomes = InventoryUtils.hasBuildingEnoughElseCount(building, IS_ANCIENT_TOME, 1);
-                if (amountOfAncientTomes > 0)
-                {
-                    needsCurrently = new Tuple<>(IS_ANCIENT_TOME, 1);
-                    return GATHERING_REQUIRED_MATERIALS;
-                }
-                checkIfRequestForItemExistOrCreateAsync(new ItemStack(ModItems.ancientTome, 1), 1, 1, false);
-                return IDLE;
+                needsCurrently = new Tuple<>(IS_ANCIENT_TOME, 1);
+                return GATHERING_REQUIRED_MATERIALS;
             }
+            checkIfRequestForItemExistOrCreateAsync(new ItemStack(ModItems.ancientTome, 1), 1, 1, false);
+            return IDLE;
         }
 
         return ENCHANT;
+    }
+
+    /**
+     * Set up a visit to one of the huts on the station list: check there is one, take a book along, and go.
+     *
+     * @param complainIfNoStations whether an empty station list should raise the blocking chat. It should when the
+     *                             worker is below its mana gate and cannot work without visiting; it should not when
+     *                             the player has merely left visiting switched on with nothing to visit.
+     * @return the next state to go to.
+     */
+    private IAIState visitStation(final boolean complainIfNoStations)
+    {
+        final EnchanterStationsModule module = building.getModule(BuildingModules.ENCHANTER_STATIONS);
+        if (module.getBuildingsToGatherFrom().isEmpty())
+        {
+            if (complainIfNoStations && worker.getCitizenData() != null)
+            {
+                worker.getCitizenData()
+                  .triggerInteraction(new StandardInteraction(Component.translatableEscape(NO_WORKERS_TO_DRAIN_SET), ChatPriority.BLOCKING));
+            }
+            return IDLE;
+        }
+
+        final BlockPos posToDrainFrom = module.getRandomBuildingToDrainFrom();
+        if (posToDrainFrom == null)
+        {
+            return IDLE;
+        }
+
+        // At hut four and up the visit spends a finished book on the visited worker's gear, so take one along if the
+        // building has any -- this is what turns the warehouse pile into something the colony uses. The plain book
+        // below is still required either way: it is what the visit falls back on when nothing the visited worker
+        // carries can take what the finished book offers, and without it a visit could end having spent nothing.
+        if (building.getBuildingLevel() >= GEAR_SERVICE_MIN_LEVEL
+              && InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), IS_ENCHANTED_BOOK) <= 0
+              && InventoryUtils.hasBuildingEnoughElseCount(building, IS_ENCHANTED_BOOK, 1) > 0)
+        {
+            needsCurrently = new Tuple<>(IS_ENCHANTED_BOOK, 1);
+            return GATHERING_REQUIRED_MATERIALS;
+        }
+
+        if (InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), IS_BOOK) <= 0)
+        {
+            if (InventoryUtils.hasBuildingEnoughElseCount(building, IS_BOOK, 1) > 0)
+            {
+                needsCurrently = new Tuple<>(IS_BOOK, 1);
+                return GATHERING_REQUIRED_MATERIALS;
+            }
+            checkIfRequestForItemExistOrCreateAsync(new ItemStack(Items.BOOK, 1));
+            return IDLE;
+        }
+
+        job.setBuildingToDrainFrom(posToDrainFrom);
+        return ENCHANTER_DRAIN;
     }
 
     @Override
@@ -230,10 +323,10 @@ public class EntityAIWorkEnchanter extends AbstractEntityAICrafting<JobEnchanter
         if (currentRecipeStorage == null)
         {
             progressTicks = 0;
-            return START_WORKING;
+            return IDLE;
         }
 
-        if (progressTicks++ < MAX_ENCHANTMENT_TICKS / building.getBuildingLevel())
+        if (progressTicks++ < MAX_ENCHANTMENT_TICKS - (building.getBuildingLevel() - 1) * ENCHANTMENT_TICKS_PER_LEVEL)
         {
             new CircleParticleEffectMessage(worker.position().add(0, 2, 0), ParticleTypes.ENCHANT, progressTicks)
                 .sendToTrackingEntity(worker);
@@ -269,6 +362,9 @@ public class EntityAIWorkEnchanter extends AbstractEntityAICrafting<JobEnchanter
 
                 //Decrement mana.
                 data.getCitizenSkillHandler().incrementLevel(Skill.Mana, -enchantmentLevel);
+                // A finished book is the enchanter's unit of work; without this the worker earned experience only from
+                // draining and its level froze the moment it cleared the mana gate.
+                worker.getCitizenExperienceHandler().addExperience(XP_PER_ENCHANT + enchantmentLevel);
                 recordEnchantmentStats(loot);
                 incrementActionsDoneAndDecSaturation();
             }
@@ -284,7 +380,11 @@ public class EntityAIWorkEnchanter extends AbstractEntityAICrafting<JobEnchanter
         if (stack.getItem().equals(Items.ENCHANTED_BOOK))
         {
             int level = 0;
-            for (Object2IntMap.Entry<Holder<Enchantment>> entry : stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY).entrySet())
+            // An enchanted book keeps its enchantments under STORED_ENCHANTMENTS, not ENCHANTMENTS. Reading the latter
+            // returned an empty map for every book ever made here, so the mana debit below was always zero and an
+            // enchanter that had once passed its level gate never drained again. getEnchantmentsForCrafting picks the
+            // component that matches the item.
+            for (Object2IntMap.Entry<Holder<Enchantment>> entry : EnchantmentHelper.getEnchantmentsForCrafting(stack).entrySet())
             {
                 level = Math.max(level, entry.getIntValue());
             }
@@ -320,10 +420,16 @@ public class EntityAIWorkEnchanter extends AbstractEntityAICrafting<JobEnchanter
 
         if (citizenToGatherFrom == null)
         {
+            // getModuleForJob() is the module of the enchanter's OWN job, not of the building it just walked to, so
+            // this picked the enchanter itself every time: the walk, the beam and everything that followed landed on
+            // the worker doing the visiting. The citizens to look at are the ones assigned to the building at hand.
             final List<AbstractEntityCitizen> workers = new ArrayList<>();
-            for (final Optional<AbstractEntityCitizen> citizen : getModuleForJob().getAssignedEntities())
+            for (final WorkerBuildingModule module : buildingWorker.getModulesByType(WorkerBuildingModule.class))
             {
-                citizen.ifPresent(workers::add);
+                for (final Optional<AbstractEntityCitizen> citizen : module.getAssignedEntities())
+                {
+                    citizen.filter(c -> c.getCitizenData() != worker.getCitizenData()).ifPresent(workers::add);
+                }
             }
 
             final AbstractEntityCitizen citizen;
@@ -391,31 +497,175 @@ public class EntityAIWorkEnchanter extends AbstractEntityAICrafting<JobEnchanter
             return getState();
         }
 
-        final int bookSlot = InventoryUtils.findFirstSlotInItemHandlerWith(worker.getInventoryCitizen(), Items.BOOK);
-        if (bookSlot != -1)
+        // From hut level four the visit is a service: the enchanter brings one of its own finished books and puts what
+        // is written on it onto this worker's tool or armour. Below that level, and whenever no book in stock fits
+        // anything this worker carries, it falls back to the cheap random enchantment the visit has always done.
+        int bookSlot = -1;
+        if (building.getBuildingLevel() >= GEAR_SERVICE_MIN_LEVEL)
         {
-            final int size = citizenToGatherFrom.getInventory().getSlots();
-            final int attempts = (int) (getSecondarySkillLevel() / 5.0);
-
-            for (int i = 0; i < attempts; i++)
+            final int stockedBook = InventoryUtils.findFirstSlotInItemHandlerWith(worker.getInventoryCitizen(), Items.ENCHANTED_BOOK);
+            if (stockedBook != -1 && applyBook(worker.getInventoryCitizen().getStackInSlot(stockedBook), buildingWorker))
             {
-                int randomSlot = worker.getRandom().nextInt(size);
-                final ItemStack stack = citizenToGatherFrom.getInventory().getStackInSlot(randomSlot);
-                if (!stack.isEmpty() && stack.isEnchantable())
+                bookSlot = stockedBook;
+            }
+        }
+
+        if (bookSlot == -1)
+        {
+            bookSlot = InventoryUtils.findFirstSlotInItemHandlerWith(worker.getInventoryCitizen(), Items.BOOK);
+            if (bookSlot != -1)
+            {
+                final int size = citizenToGatherFrom.getInventory().getSlots();
+                final int attempts = (int) (getSecondarySkillLevel() / 5.0);
+
+                for (int i = 0; i < attempts; i++)
                 {
-                    EnchantmentHelper.enchantItem(worker.getRandom(), stack, getSecondarySkillLevel() > 50 ? 2 : 1, world.registryAccess(), Optional.empty());
-                    break;
+                    int randomSlot = worker.getRandom().nextInt(size);
+                    final ItemStack stack = citizenToGatherFrom.getInventory().getStackInSlot(randomSlot);
+                    if (!stack.isEmpty() && stack.isEnchantable())
+                    {
+                        EnchantmentHelper.enchantItem(worker.getRandom(), stack, getSecondarySkillLevel() > 50 ? 2 : 1, world.registryAccess(), Optional.empty());
+                        break;
+                    }
                 }
             }
+        }
 
+        if (bookSlot != -1)
+        {
             worker.getInventoryCitizen().extractItem(bookSlot, 1, false);
             worker.getCitizenData().getCitizenSkillHandler().incrementLevel(Skill.Mana, 1);
             worker.getCitizenExperienceHandler().addExperience(XP_PER_DRAIN);
             worker.getCitizenData().markDirty(80);
+            citizenToGatherFrom.markDirty(80);
             StatsUtil.trackStat(building, CITIZENS_VISITED, 1);
         }
         resetDraining();
         return IDLE;
+    }
+
+    /**
+     * Put what is written on one enchanted book onto the best piece of gear the visited worker carries.
+     *
+     * <p>Each enchantment is applied only where vanilla would allow it -- the item has to be a legal target, and the
+     * enchantment has to be compatible with what is already on the item, unless it IS what is already on the item, in
+     * which case this is an upgrade. The level applied is the lowest of three ceilings: what the book says, what this
+     * enchanter's own hut level allows, and what the visited worker's hut will still accept. That last one matters:
+     * a hut refuses gear whose equipment level plus enchantment level exceeds its own ceiling, so an over-enthusiastic
+     * enchantment would leave the worker unable to hold its own tool.</p>
+     *
+     * @param book           the enchanted book to spend.
+     * @param targetBuilding the building the visited worker belongs to.
+     * @return true if anything was applied, in which case the book is spent.
+     */
+    private boolean applyBook(@NotNull final ItemStack book, @NotNull final IBuilding targetBuilding)
+    {
+        final ItemEnchantments stored = EnchantmentHelper.getEnchantmentsForCrafting(book);
+        if (stored.isEmpty())
+        {
+            return false;
+        }
+
+        final int enchanterCeiling = building.getBuildingLevel() - GEAR_LEVEL_OFFSET;
+        for (final ItemStack stack : enchantableGear(citizenToGatherFrom))
+        {
+
+            final int headroom = enchantmentHeadroom(targetBuilding, stack);
+            if (headroom <= 0)
+            {
+                continue;
+            }
+
+            final ItemEnchantments existing = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+            boolean applied = false;
+            for (final Object2IntMap.Entry<Holder<Enchantment>> entry : stored.entrySet())
+            {
+                final Holder<Enchantment> enchantment = entry.getKey();
+                final int current = existing.getLevel(enchantment);
+                if (!enchantment.value().canEnchant(stack)
+                      || (current == 0 && !EnchantmentHelper.isEnchantmentCompatible(existing.keySet(), enchantment)))
+                {
+                    continue;
+                }
+
+                final int level = Math.min(Math.min(entry.getIntValue(), enchanterCeiling), headroom);
+                if (level <= current)
+                {
+                    continue;
+                }
+
+                stack.enchant(enchantment, level);
+                StatsUtil.trackStatByName(building, ITEMS_ENCHANTED, Enchantment.getFullname(enchantment, level), 1);
+                applied = true;
+            }
+
+            if (applied)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Everything a citizen carries or wears that an enchantment could go on.
+     *
+     * <p>{@link InventoryCitizen#getSlots()} covers the main inventory only, so worn armour -- which for a guard is
+     * most of what is worth enchanting -- has to be collected separately.</p>
+     *
+     * @param citizen the citizen.
+     * @return the stacks, in the order they should be considered.
+     */
+    @NotNull
+    private static List<ItemStack> enchantableGear(@NotNull final ICitizenData citizen)
+    {
+        final List<ItemStack> gear = new ArrayList<>();
+        final InventoryCitizen inventory = citizen.getInventory();
+        for (final EquipmentSlot slot : EquipmentSlot.values())
+        {
+            if (slot.isArmor())
+            {
+                gear.add(inventory.getArmorInSlot(slot));
+            }
+        }
+        for (int slot = 0; slot < inventory.getSlots(); slot++)
+        {
+            gear.add(inventory.getStackInSlot(slot));
+        }
+        gear.removeIf(stack -> stack.isEmpty() || stack.is(Items.ENCHANTED_BOOK) || stack.is(Items.BOOK) || !stack.isEnchantable());
+        return gear;
+    }
+
+    /**
+     * The highest enchantment level the given hut will still let a worker hold the given item at.
+     *
+     * <p>{@code ItemStackUtils.verifyEquipmentLevel} accepts an item when its equipment level plus
+     * {@code max(maxEnchantmentLevel - 1, 0)} is within the hut's ceiling, so the answer is
+     * {@code ceiling - equipmentLevel + 1}. A hut at its own maximum level has no ceiling, and an item the colony
+     * does not grade as equipment cannot be refused for this reason either.</p>
+     *
+     * @param targetBuilding the hut that will have to accept the item.
+     * @param stack          the item.
+     * @return the highest level that may be applied, or a non-positive number if none may be.
+     */
+    private static int enchantmentHeadroom(@NotNull final IBuilding targetBuilding, @NotNull final ItemStack stack)
+    {
+        final int ceiling = targetBuilding.getMaxEquipmentLevel();
+        if (ceiling == Integer.MAX_VALUE)
+        {
+            return Integer.MAX_VALUE;
+        }
+
+        int equipmentLevel = Integer.MIN_VALUE;
+        for (final EquipmentTypeEntry type : ModEquipmentTypes.getRegistry())
+        {
+            if (type.checkIsEquipment(stack))
+            {
+                equipmentLevel = Math.max(equipmentLevel, type.getMiningLevel(stack));
+            }
+        }
+
+        return equipmentLevel == Integer.MIN_VALUE ? Integer.MAX_VALUE : ceiling - equipmentLevel + 1;
     }
 
     /**

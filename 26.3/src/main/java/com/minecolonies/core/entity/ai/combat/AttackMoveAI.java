@@ -16,6 +16,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 
 import static com.minecolonies.api.util.constant.Constants.HALF_ROTATION;
+import static com.minecolonies.api.util.constant.GuardConstants.RANGED_FLEE_SQDIST;
 
 /**
  * Moves the entity and triggers the attack
@@ -41,7 +42,7 @@ public class AttackMoveAI<T extends Mob & IThreatTableEntity> extends TargetAI<T
 
     public AttackMoveAI(final T owner, final ITickRateStateMachine stateMachine)
     {
-        super(owner, 80, stateMachine);
+        super(owner, SCAN_INTERVAL, stateMachine);
 
         stateMachine.addTransition(new TickingTransition<>(CombatAIStates.ATTACKING, () -> true, this::tryAttack, 5));
         stateMachine.addTransition(new TickingTransition<>(CombatAIStates.ATTACKING, () -> true, this::move, 10));
@@ -76,7 +77,7 @@ public class AttackMoveAI<T extends Mob & IThreatTableEntity> extends TargetAI<T
             return null;
         }
 
-        if (!isInAttackDistance(target) || !canSeeTarget)
+        if (!isInAttackDistance(target) || !canSeeTarget || !holdsGroundInAttackRange())
         {
             user.lookAt(target, (float) HALF_ROTATION, (float) HALF_ROTATION);
             user.getLookControl().setLookAt(target, (float) HALF_ROTATION, (float) HALF_ROTATION);
@@ -115,6 +116,22 @@ public class AttackMoveAI<T extends Mob & IThreatTableEntity> extends TargetAI<T
     }
 
     /**
+     * Whether this fighter holds its ground once the target is inside {@link #getAttackDistance()}.
+     * <p>
+     * Everything in this tree does, and always has: {@link #move()} stops issuing paths the moment the target is in
+     * range, which is what lets a guard plant himself and trade blows instead of shuffling on the spot. Answering
+     * false leaves the movement running through the whole engagement, which is only wanted by a fighter whose damage
+     * is a function of its speed. Cavalry is the only such fighter, and it is the only override; ranged guards,
+     * druids and raiders reach this default and are unaffected.
+     *
+     * @return true to stop moving once in range, false to keep moving through the engagement.
+     */
+    protected boolean holdsGroundInAttackRange()
+    {
+        return true;
+    }
+
+    /**
      * Whether the target is in attack distance
      *
      * @param target
@@ -137,7 +154,7 @@ public class AttackMoveAI<T extends Mob & IThreatTableEntity> extends TargetAI<T
             return CombatAIStates.NO_TARGET;
         }
 
-        if (nextAttackTime >= user.level().getGameTime() || !isInDistanceForAttack(target))
+        if (nextAttackTime >= user.level().getGameTime() || !isInDistanceForAttack(target) || !isReadyToAttack())
         {
             return null;
         }
@@ -159,6 +176,25 @@ public class AttackMoveAI<T extends Mob & IThreatTableEntity> extends TargetAI<T
      * @return
      */
     public boolean canAttack()
+    {
+        return true;
+    }
+
+    /**
+     * Whether the weapon itself is ready to be discharged this instant.
+     * <p>
+     * Distinct from {@link #canAttack()}, which asks whether the fighter is armed at all and is allowed to abandon
+     * the target when the answer is no. This one only defers: the fighter keeps his target and his place in the
+     * cycle, and is asked again on the next pass. It exists for a two-phase weapon -- a crossbow spends the first
+     * part of its cycle loading and can only be fired once it is charged -- so that {@link #doAttack} is never
+     * entered with an empty weapon and {@link #nextAttackTime} is not pushed forward by a shot that did not happen.
+     * <p>
+     * Everything with a one-phase weapon reaches this default and is unaffected: a bow, a sword, a spear and a
+     * druid's potion are ready whenever their owner is.
+     *
+     * @return true when the attack may be delivered now.
+     */
+    protected boolean isReadyToAttack()
     {
         return true;
     }
@@ -193,6 +229,24 @@ public class AttackMoveAI<T extends Mob & IThreatTableEntity> extends TargetAI<T
     protected double getAttackDistance()
     {
         return 5;
+    }
+
+    /**
+     * The distance, squared, at which a ranged attacker is close enough to his target to want to give ground.
+     * <p>
+     * One number for both halves of the manoeuvre. They used to disagree: an archer decided to disengage only inside
+     * {@code RANGED_FLEE_SQDIST} = 7, i.e. 2.65 blocks, so a raider four blocks away was simply shot point-blank,
+     * while {@code moveInAttackPosition} started backing away at 2 blocks and ran to a fixed 7. The druid's pair was
+     * worse: he retreated to 12 blocks with an attack distance of at most 8, so he yo-yoed in and out of range for
+     * ever. Derived from {@link #getAttackDistance()} so it stays right for both, floored at the old constant so a
+     * short-ranged thrower never becomes jumpier than he was.
+     *
+     * @return the squared kite distance.
+     */
+    protected double getKiteDistanceSq()
+    {
+        final double kite = Math.max(Math.sqrt(RANGED_FLEE_SQDIST), getAttackDistance() / 3.0);
+        return kite * kite;
     }
 
     /**

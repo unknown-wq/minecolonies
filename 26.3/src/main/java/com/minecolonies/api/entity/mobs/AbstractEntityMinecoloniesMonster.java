@@ -30,6 +30,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
@@ -286,7 +287,7 @@ public abstract class AbstractEntityMinecoloniesMonster extends AbstractFastMine
         {
             if (threatTable.getThreatFor(attacker) == -1)
             {
-                for (final AbstractEntityMinecoloniesMonster monster : level().getEntitiesOfClass(AbstractEntityMinecoloniesMonster.class, AABB.ofSize(position(), 20,5,20)))
+                for (final AbstractEntityMinecoloniesMonster monster : level().getEntitiesOfClass(AbstractEntityMinecoloniesMonster.class, getCallForHelpArea(attacker)))
                 {
                     monster.threatTable.addThreat(attacker, 0);
                 }
@@ -295,6 +296,35 @@ public abstract class AbstractEntityMinecoloniesMonster extends AbstractFastMine
         }
 
         return super.hurtServer(level, damageSource, damage);
+    }
+
+    /**
+     * The box a raider shouts into when something it had not yet noticed hits it.
+     * <p>
+     * Upstream used a flat <code>AABB.ofSize(position(), 20, 5, 20)</code> -- ten blocks horizontally and two and a
+     * half vertically -- which is smaller than most of the weapons that can hit a raider. A colony archer shooting
+     * from a tower thirty blocks away drew a reaction from precisely nobody: not from the raiders around the one it
+     * hit, because they were outside the box, and not from the raider it hit, whose own search box did not reach that
+     * far either until {@link com.minecolonies.core.entity.mobs.aitasks.RaiderRangedAI#getSearchRange()} was widened.
+     * <p>
+     * Scaled with the shot rather than made a bigger flat box, because the flat box has no relation to anything: what
+     * matters is that the raiders who could plausibly answer the shot hear about it, and that set grows with how far
+     * away the shooter is. Twice the attacker's distance, floored at the stock 20 so that a raider stabbed at melee
+     * range behaves exactly as before, and capped at 96 so that a sniper at the edge of render distance does not wake
+     * a whole horde spread over three chunks.
+     * <p>
+     * Cost is not a concern here and this is the one widening in the raider changes that is close to free: the caller
+     * only reaches it when {@code threatTable.getThreatFor(attacker) == -1}, i.e. once per raider per attacker it has
+     * never seen, not once per tick and not once per hit. The scan is also over
+     * {@link AbstractEntityMinecoloniesMonster} rather than every {@link LivingEntity}.
+     *
+     * @param attacker the entity that just landed the first blow this raider has noticed from it.
+     * @return the box to propagate the threat into.
+     */
+    private AABB getCallForHelpArea(final LivingEntity attacker)
+    {
+        final double size = Mth.clamp(2.0D * distanceTo(attacker), 20.0D, 96.0D);
+        return AABB.ofSize(position(), size, size, size);
     }
 
     /**

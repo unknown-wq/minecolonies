@@ -278,6 +278,17 @@ public interface IColonyView extends IColony
      */
     List<BlockPos> getLastSpawnPoints();
 
+    /**
+     * When the raid whose spawn points {@link #getLastSpawnPoints()} returns began, as a world game time.
+     *
+     * <p>Synced alongside the positions themselves, because a position with no time on it cannot be told apart from
+     * one left over from a raid several in-game days ago, and anything that draws it has to guess.</p>
+     *
+     * @return the game time the raid started at, or {@link com.minecolonies.api.colony.managers.interfaces.IRaiderManager#NO_RAID_TIME}
+     *     when the colony has no recorded raid.
+     */
+    long getLastRaidTime();
+
     @Override
     boolean isRemote();
 

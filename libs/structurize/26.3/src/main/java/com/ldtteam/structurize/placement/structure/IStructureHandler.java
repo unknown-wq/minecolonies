@@ -173,7 +173,17 @@ public interface IStructureHandler extends IPlacementContext
      */
     default BlockPos getProgressPosInWorld(final BlockPos localPos)
     {
-        return getCenterPos().subtract(getBluePrint().getPrimaryBlockOffset()).offset(localPos);
+        // `getCenterPos().subtract(offset).offset(localPos)` allocated an intermediate BlockPos for the
+        // anchor and threw it away again. This runs once per iterated position -- up to 10 000 per builder
+        // AI tick -- so the intermediate is worth folding out. Same arithmetic, one allocation instead of
+        // two. (The anchor itself is not cached: getPrimaryBlockOffset() changes under a blueprint rotation,
+        // which AbstractStructureHandler#getBluePrint performs lazily, so a memo here would need an
+        // invalidation hook the handler does not have.)
+        final BlockPos center = getCenterPos();
+        final BlockPos offset = getBluePrint().getPrimaryBlockOffset();
+        return new BlockPos(center.getX() - offset.getX() + localPos.getX(),
+            center.getY() - offset.getY() + localPos.getY(),
+            center.getZ() - offset.getZ() + localPos.getZ());
     }
 
     /**

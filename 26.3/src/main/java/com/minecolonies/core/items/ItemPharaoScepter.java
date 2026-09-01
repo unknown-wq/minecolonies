@@ -9,6 +9,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.BowItem;
@@ -91,19 +92,30 @@ public class ItemPharaoScepter extends BowItem
         return itemStack -> true;
     }
 
-    // TODO(port-26.2): DISABLED -- NeoForge's ProjectileWeaponItem#customArrow(AbstractArrow, ItemStack,
-    // ItemStack) hook, which let a bow swap the arrow entity it fires, has no counterpart in Fabric or vanilla
-    // 26.2 (0 hits for customArrow in /opt/mc-src). The Pharao Scepter therefore fires the player's own arrows
-    // instead of always converting them to burning fire arrows; the damage and the scepter's other behaviour
-    // are unchanged.
-    // Original NeoForge implementation:
-    //     public AbstractArrow customArrow(arrow, projectileStack, weaponStack)
-    //     {
-    //         if (arrow.getOwner() == null) { return arrow; }
-    //         AbstractArrow entity = ((ArrowItem) ModItems.firearrow).createArrow(
-    //             arrow.level(), new ItemStack(ModItems.firearrow, 1), (LivingEntity) arrow.getOwner(), weaponStack);
-    //         entity.pickup = AbstractArrow.Pickup.DISALLOWED;
-    //         entity.setRemainingFireTicks(3 * TICKS_PER_SECOND);
-    //         return entity;
-    //     }
+    /**
+     * Every shot leaves the scepter as a burning fire arrow, whatever was loaded as ammunition.
+     *
+     * <p>NeoForge exposed this as {@code ProjectileWeaponItem#customArrow}, which swapped the arrow entity after
+     * the bow had created it. Vanilla creates the entity in {@link #createProjectile}, which is the same seam
+     * one step earlier: the ammunition stack has already been drawn and consumed, and the entity returned here
+     * is the one {@code shoot} launches. {@link #getAllSupportedProjectiles} accepts any stack, so the
+     * conversion cannot defer to the ammunition's own item the way the vanilla body does -- that would fire a
+     * plain arrow for anything that is not an {@link ArrowItem}.</p>
+     */
+    @Override
+    protected Projectile createProjectile(@NotNull final Level level,
+                                          @NotNull final LivingEntity shooter,
+                                          @NotNull final ItemStack weapon,
+                                          @NotNull final ItemStack projectile,
+                                          final boolean isCrit)
+    {
+        final AbstractArrow arrow = ((ArrowItem) ModItems.firearrow).createArrow(level, new ItemStack(ModItems.firearrow, 1), shooter, weapon);
+        arrow.pickup = AbstractArrow.Pickup.DISALLOWED;
+        arrow.setRemainingFireTicks(3 * TICKS_PER_SECOND);
+        if (isCrit)
+        {
+            arrow.setCritArrow(true);
+        }
+        return arrow;
+    }
 }

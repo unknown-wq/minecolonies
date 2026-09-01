@@ -1,0 +1,109 @@
+{
+  "max-occurrences": 8,
+  "name": "minecolonies.quests.general.anothercamp",
+  "objectives": [
+    {
+      "type": "minecolonies:dialogue",
+      "options": [
+        {
+          "answer": "minecolonies.quests.general.anothercamp.obj0.answer0",
+          "result": {
+            "type": "minecolonies:advanceobjective",
+            "go-to": 1
+          }
+        },
+        {
+          "answer": "minecolonies.quests.general.anothercamp.obj0.answer1",
+          "result": {
+            "type": "minecolonies:return"
+          }
+        }
+      ],
+      "target": 0,
+      "text": "minecolonies.quests.general.anothercamp.obj0"
+    },
+    {
+      "type": "minecolonies:raidercamp",
+      "details": {
+        "entity-type": "minecolonies:campbarbarian",
+        "max-range": 220,
+        "min-range": 120,
+        "next-objective": 2,
+        "qty": 6,
+        "structure": "minecolonies:camps/small_barbarian_camp",
+        "target": 0
+      }
+    },
+    {
+      "type": "minecolonies:breakblock",
+      "details": {
+        "block": "minecraft:spawner",
+        "next-objective": 3,
+        "qty": 5,
+        "target": 0
+      }
+    },
+    {
+      "type": "minecolonies:dialogue",
+      "options": [
+        {
+          "answer": "minecolonies.quests.general.anothercamp.obj3.answer0",
+          "result": {
+            "type": "minecolonies:advanceobjective",
+            "go-to": 4
+          }
+        }
+      ],
+      "target": 0,
+      "text": "minecolonies.quests.general.anothercamp.obj3",
+      "unlocks-rewards": [
+        0,
+        1,
+        2
+      ]
+    }
+  ],
+  "parents": [
+    "minecolonies:general/thecampoverthehill"
+  ],
+  "rewards": [
+    {
+      "type": "minecolonies:raid",
+      "details": {
+        "change": -4
+      }
+    },
+    {
+      "type": "minecolonies:item",
+      "details": {
+        "item": {
+          "count": 8,
+          "id": "minecraft:iron_ingot"
+        }
+      }
+    },
+    {
+      "type": "minecolonies:questreputation",
+      "details": {
+        "qty": 0.5
+      }
+    }
+  ],
+  "triggerOrder": "1 && 2",
+  "triggers": [
+    {
+      "type": "minecolonies:random",
+      "rarity": 400000
+    },
+    {
+      "type": "minecolonies:citizen",
+      "state": {
+        "match": {
+          "job": {
+            "type": "minecolonies:knight"
+          }
+        }
+      }
+    }
+  ]
+}

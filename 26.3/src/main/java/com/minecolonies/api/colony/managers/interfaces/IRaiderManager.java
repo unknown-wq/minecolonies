@@ -88,6 +88,23 @@ public interface IRaiderManager
     List<BlockPos> getLastSpawnPoints();
 
     /**
+     * Returned by {@link #getLastRaidTime()} when the colony has no recorded raid to date.
+     */
+    long NO_RAID_TIME = Long.MIN_VALUE;
+
+    /**
+     * When the raid that {@link #getLastSpawnPoints()} reports the spawn points of began.
+     *
+     * <p>The manager has always known this -- it stamps every history entry with the world's game time as the raid is
+     * created -- but nothing outside the manager could read it, so every consumer of the spawn points had to present
+     * an undated position and hope it was recent. One raid is one history entry, so a single time covers every point
+     * in that list.</p>
+     *
+     * @return the world game time the raid started at, or {@link #NO_RAID_TIME} when no raid has been recorded.
+     */
+    long getLastRaidTime();
+
+    /**
      * Calculates the barbarian amount for raids
      *
      * @param raidLevel the colonies raidlevel

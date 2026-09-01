@@ -7,6 +7,7 @@ import com.ldtteam.structurize.tag.ModTags;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.BlockAttachedEntity;
@@ -75,6 +76,25 @@ public class BlueprintUtil
 
         final List<String> requiredMods = new ArrayList<>();
 
+        // The palette used to be searched twice per scanned position -- `pallete.contains(state)` and then
+        // `pallete.indexOf(state)`, two linear scans over a list that grows to hundreds of entries. With
+        // volume V and palette size P that is 2*V*P BlockState comparisons; a 100x50x100 scan with a
+        // 500-entry palette ran half a billion of them, on the server thread. An identity map answers the
+        // same question in one lookup: BlockState instances are interned by the block's state definition,
+        // which is the only reason List.contains found anything in the first place.
+        final Map<BlockState, Short> paletteIndex = new IdentityHashMap<>();
+        paletteIndex.put(Blocks.AIR.defaultBlockState(), (short) 0);
+
+        // Namespace of a block is a property of the block, not of the position: this used to do a registry
+        // reverse lookup, build a String and ask the loader whether a mod was present once per scanned
+        // block. Now once per distinct block.
+        final Map<Block, Boolean> blockAllowed = new IdentityHashMap<>();
+
+        // getChunkAt used to run per position rather than per chunk. betweenClosed walks x fastest, so
+        // consecutive positions share a chunk for runs of up to 16.
+        LevelChunk chunk = null;
+        int chunkX = Integer.MIN_VALUE, chunkZ = Integer.MIN_VALUE;
+
         for (final BlockPos mutablePos : BlockPos.betweenClosed(pos, pos.offset(sizeX - 1, sizeY - 1, sizeZ - 1)))
         {
             BlockState state = world.getBlockState(mutablePos);
@@ -82,25 +102,41 @@ public class BlueprintUtil
             {
                 continue;
             }
-            String modName = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getNamespace();
 
             short x = (short) (mutablePos.getX() - pos.getX()), y = (short) (mutablePos.getY() - pos.getY()),
               z = (short) (mutablePos.getZ() - pos.getZ());
 
-            if (!modName.equals("minecraft") && !modName.equals(MOD_ID))
+            Boolean allowed = blockAllowed.get(state.getBlock());
+            if (allowed == null)
             {
-                if (!FabricLoader.getInstance().isModLoaded(modName))
+                final String modName = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getNamespace();
+                if (modName.equals("minecraft") || modName.equals(MOD_ID))
                 {
-                    structure[y][z][x] = (short) pallete.indexOf(Blocks.AIR.defaultBlockState());
-                    continue;
+                    allowed = Boolean.TRUE;
                 }
-                if (!requiredMods.contains(modName))
+                else
                 {
-                    requiredMods.add(modName);
+                    allowed = FabricLoader.getInstance().isModLoaded(modName);
+                    if (allowed && !requiredMods.contains(modName))
+                    {
+                        requiredMods.add(modName);
+                    }
                 }
+                blockAllowed.put(state.getBlock(), allowed);
+            }
+            if (!allowed)
+            {
+                // air is always palette entry 0, which is what the old `pallete.indexOf(AIR)` resolved to
+                structure[y][z][x] = 0;
+                continue;
             }
 
-            final LevelChunk chunk = world.getChunkAt(mutablePos);
+            if (chunk == null || (mutablePos.getX() >> 4) != chunkX || (mutablePos.getZ() >> 4) != chunkZ)
+            {
+                chunk = world.getChunkAt(mutablePos);
+                chunkX = mutablePos.getX() >> 4;
+                chunkZ = mutablePos.getZ() >> 4;
+            }
             final BlockEntity te = chunk.getBlockEntities().containsKey(mutablePos) && !chunk.getBlockEntities().get(mutablePos).isRemoved() ? chunk.getBlockEntity(mutablePos) : world.getBlockEntity(mutablePos.immutable());
             if (te != null)
             {
@@ -110,11 +146,12 @@ public class BlueprintUtil
                 teTag.putShort("z", z);
                 tileEntities.add(teTag);
             }
-            if (!pallete.contains(state))
-            {
-                pallete.add(state);
-            }
-            structure[y][z][x] = (short) pallete.indexOf(state);
+
+            final BlockState paletteState = state;
+            structure[y][z][x] = paletteIndex.computeIfAbsent(paletteState, s -> {
+                pallete.add(s);
+                return (short) (pallete.size() - 1);
+            });
         }
 
         final CompoundTag[] tes = tileEntities.toArray(new CompoundTag[0]);

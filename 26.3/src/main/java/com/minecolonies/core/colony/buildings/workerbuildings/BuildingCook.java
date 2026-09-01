@@ -109,6 +109,17 @@ public class BuildingCook extends AbstractBuilding
 
         final int totalSize = sittingSize + sitInSize + (colony.getWorld().isRaining() ? 0 : sitOutSize);
 
+        if (totalSize <= 0)
+        {
+            // Rain plus a restaurant whose only tagged seats are outdoors leaves nothing to draw from, and
+            // MathUtils.RANDOM.nextInt(0) throws rather than returning anything. The throw surfaces inside the
+            // citizen's eating AI (EntityAIEatTask#findPlaceToEat), where the state machine's handler swallows it
+            // into the log and the citizen simply never sits down.
+            // Returning null is the answer the caller already understands - it is what the no-seats-at-all branch
+            // above returns - and the citizen then eats standing up after its usual wait.
+            return null;
+        }
+
         // Three attempts
         for (int i = 0; i < 3; i++)
         {
@@ -292,6 +303,10 @@ public class BuildingCook extends AbstractBuilding
         public void deserialize(final @NotNull RegistryFriendlyByteBuf buf)
         {
             super.deserialize(buf);
+            // The server sends the whole set every sync, so it has to replace the old one rather than be merged
+            // into it: without the clear a citizen that moved to another restaurant stayed on this one's client
+            // side list until the player reconnected, and the menu window's customer count kept growing.
+            customerList.clear();
             final int size = buf.readInt();
             for (int i = 0; i < size; i++)
             {

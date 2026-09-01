@@ -4,12 +4,28 @@
 этот список **получен из компилятора**: неизменённое дерево `26.2/src/main/java` (2176 файлов)
 собрано против 26.3-snapshot-9, и каждая строка ниже стоит на конкретной ошибке javac.
 
+> **Это исторический замер, а не описание того, что мы собираем сегодня.** Порт переехал на
+> **26.3-snapshot-10** (коммит «Move the port to 26.3-snapshot-10»), и `minecraft_version` во
+> всех пяти модулях — `26.3-snapshot-10`. Список ниже не переснимался под snapshot-10:
+> к нему добавились ещё несколько переименований (`PoseStack#mulPose(Quaternionfc)` →
+> `#rotate`, `ServerLevel#getStructureManager` → `#getStructureTemplateManager`,
+> `ItemStack#hurtAndBreak` отдаёт колбэку `ItemStack`, `LevelChunk#replaceWithPacketData`) и
+> одна настоящая переделка — snapshot-10 удалил `SurfaceRules` и схлопнул статусы чанка
+> `NOISE`/`SURFACE`/`CARVERS` в один `TERRAIN`. Подробности — в `dist/README.md` (запись 0.0.60)
+> и в `docs/studies/worldmap-chunk-generation.md` §1.4.
+>
+> **И главное про дерево сверки:** `/opt/mc-src-26.3`, на которое ссылаются строки ниже, —
+> это **snapshot-9** (`SharedConstants.WORLD_VERSION = 5011`), несмотря на имя; snapshot-10
+> это 5015. Вопросы «существует ли и с какой сигнатурой» решать только по байткоду, который
+> резолвит сборка: `~/.gradle/caches/fabric-loom/26.3-snapshot-10/minecraft-merged.jar`
+> (`unzip -l`, `javap -p`).
+
 Порт идёт **по одной оси** — только ваниль. Лоадер тот же (Fabric), Java та же (25),
 обфускации по-прежнему нет.
 
 | | |
 |---|---|
-| Целевая версия | `26.3-snapshot-9`, выпущена 2026-08-17 (последняя в `version_manifest_v2.json`) |
+| Версия, против которой сделан замер | `26.3-snapshot-9`, выпущена 2026-08-17 (на тот момент последняя в `version_manifest_v2.json`). **Целевая версия с тех пор — `26.3-snapshot-10`**, см. врезку выше |
 | Loom | `1.17.19` (в 26.2 — 1.17.13) |
 | fabric-loader | `0.19.3` — **не менялся** |
 | fabric-api | `0.158.0+26.3` (в 26.2 — 0.154.2+26.2); `depends.minecraft` = `~26.3-` |
@@ -19,7 +35,10 @@
 Разбивка по слоям: **231** ошибка в рантайме/клиенте/api, **61** в датагене (`**/generation/**`).
 
 **Как пользоваться:** пункт → grep из строки → правишь → галочка. Ни одну новую сигнатуру не писать
-по памяти: сверяться с `/opt/mc-src-26.3` (7201 файл, `genSources` Vineflower).
+по памяти: сверяться с snapshot-10 jar-ом (`javap -p` по
+`~/.gradle/caches/fabric-loom/26.3-snapshot-10/minecraft-merged.jar`). Дерево `/opt/mc-src-26.3`
+(7201 файл, `genSources` Vineflower) — это snapshot-9, годится читать логику, но не решать
+вопросы существования и сигнатур.
 
 Категории местами пересекаются: один корень даёт два разных сообщения javac (у блоков — и
 «cannot find symbol: simpleCodec», и «does not override» на `codec()`).
@@ -375,7 +394,10 @@ unzip -o dist/minecolonies-26.2-0.0.55.jar 'META-INF/jars/*' -d /tmp/jij
 Контрольный прогон того же пробника под 26.2 обязателен: он отделяет поломки 26.3 от артефактов
 самого пробника. Здесь он дал 7 ошибок, все — про отсутствующий Simple Planes.
 
-Декомпилированная ваниль 26.3 (`gradle genSources`, Vineflower, 7201 файл) — в `/opt/mc-src-26.3`.
+Декомпилированная ваниль (`gradle genSources`, Vineflower, 7201 файл) — в `/opt/mc-src-26.3`.
+**Это snapshot-9** (`SharedConstants.WORLD_VERSION = 5011`), несмотря на имя каталога. Сверять
+существование и сигнатуры по нему нельзя — только по jar-у, который резолвит сборка:
+`~/.gradle/caches/fabric-loom/26.3-snapshot-10/minecraft-merged.jar`.
 
 ## Побочная находка про сборку 26.2
 

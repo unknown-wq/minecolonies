@@ -1,0 +1,73 @@
+{
+  "key.category.worldmap.general": "World Map",
+  "key.worldmap.open": "Open world map",
+
+  "gui.worldmap.title": "World Map",
+  "gui.worldmap.hint": "drag to pan   scroll or +/- to zoom   right-click for the menu   space to recentre   esc to close",
+  "gui.worldmap.scale": "%s blocks",
+  "gui.worldmap.not_paused": "not single player - the world keeps running while this is open",
+
+  "gui.worldmap.menu.teleport_here": "Teleport here",
+  "gui.worldmap.menu.teleport_to": "Teleport to %s, %s, %s",
+  "gui.worldmap.menu.teleport_no_world": "no world",
+  "gui.worldmap.menu.teleport_guessed_height": "nothing mapped here - dropping you at y %s, which may be inside the ground",
+  "gui.worldmap.menu.teleport_no_permission": "the server has not given you /tp",
+  "gui.worldmap.menu.save_png": "Save this view as PNG",
+  "gui.worldmap.menu.forget_colony": "Forget %s",
+
+  "gui.worldmap.export.saved": "World map written to %s",
+  "gui.worldmap.export.trimmed": "The view was wider than %s blocks, so the export was trimmed to that, centred.",
+  "gui.worldmap.export.failed": "Could not write the map: %s",
+
+  "gui.worldmap.layer.borders": "Your colony borders",
+  "gui.worldmap.layer.other_colonies": "Other colonies",
+  "gui.worldmap.layer.buildings": "Huts",
+  "gui.worldmap.layer.labels": "Colony names",
+  "gui.worldmap.layer.deaths": "Graves",
+  "gui.worldmap.layer.waypoints": "Waypoints",
+  "gui.worldmap.layer.raids": "Raids",
+  "gui.worldmap.layer.fields": "Fields",
+  "gui.worldmap.layer.patrols": "Guard patrol routes",
+  "gui.worldmap.layer.remembered": "Remembered colonies",
+
+  "gui.worldmap.colony.level": "Level %s of %s",
+  "gui.worldmap.colony.building_in_progress": "under construction",
+  "gui.worldmap.colony.no_worker": "no worker assigned",
+  "gui.worldmap.colony.grave": "Grave - %s",
+  "gui.worldmap.colony.waypoint": "Waypoint - %s",
+
+  "gui.worldmap.colony.raid_tag": "[raid]",
+  "gui.worldmap.colony.raider_spawn": "Raider spawn - %s, %s blocks %s of the centre",
+  "gui.worldmap.colony.raider_spawn_at_centre": "Raider spawn - %s, at the colony centre",
+  "gui.worldmap.colony.raider_spawn_live": "raid in progress",
+  "gui.worldmap.colony.raider_spawn_live_since": "raid in progress - started %s ago",
+  "gui.worldmap.colony.raider_spawn_ago": "last raid - %s ago",
+  "gui.worldmap.colony.raider_spawn_note": "last recorded spawn - it carries no date and may be old",
+
+  "gui.worldmap.compass.n": "north",
+  "gui.worldmap.compass.ne": "north-east",
+  "gui.worldmap.compass.e": "east",
+  "gui.worldmap.compass.se": "south-east",
+  "gui.worldmap.compass.s": "south",
+  "gui.worldmap.compass.sw": "south-west",
+  "gui.worldmap.compass.w": "west",
+  "gui.worldmap.compass.nw": "north-west",
+
+  "gui.worldmap.colony.field": "Field",
+  "gui.worldmap.colony.field_worked": "worked",
+  "gui.worldmap.colony.field_unassigned": "no worker assigned",
+
+  "gui.worldmap.colony.remembered": "remembered - not seen live this session",
+  "gui.worldmap.colony.last_seen": "last seen %s ago",
+  "gui.worldmap.colony.last_seen_now": "seen just now",
+  "gui.worldmap.colony.last_seen_unknown": "last seen: not recorded",
+  "gui.worldmap.colony.forget_hint": "right-click to forget it",
+
+  "gui.worldmap.time.days": "%sd",
+  "gui.worldmap.time.hours": "%sh",
+  "gui.worldmap.time.minutes": "%sm",
+
+  "gui.worldmap.time.game_days": "%s in-game days",
+  "gui.worldmap.time.game_hours": "%s in-game hours",
+  "gui.worldmap.time.game_minutes": "%s in-game minutes"
+}

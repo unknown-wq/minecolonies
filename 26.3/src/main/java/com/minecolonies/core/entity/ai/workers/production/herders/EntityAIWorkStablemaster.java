@@ -668,10 +668,14 @@ public class EntityAIWorkStablemaster extends AbstractEntityAIHerder<JobStablema
         // If already leashed to this citizen, nothing to do.
         if (horse.isLeashed() && worker.equals(horse.getLeashHolder())) return true;
 
-        // If leashed to somebody else, drop that leash first
+        // If leashed to somebody else - a fence it was tied to for the night, most often - take that leash off
+        // rather than dropping it. dropLeash spawns an Items#LEAD on the assumption that one was spent to put the
+        // leash on, which is not true of a fence hitch (see Hitch), and this worker is about to conjure itself a
+        // fresh lead for its own offhand anyway. removeLeash still notifies the old holder, so the fence knot is
+        // discarded exactly as it would have been.
         if (horse.isLeashed())
         {
-            horse.dropLeash();
+            horse.removeLeash();
         }
 
         if (worker.getOffhandItem().isEmpty())

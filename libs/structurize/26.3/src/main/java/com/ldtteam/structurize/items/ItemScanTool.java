@@ -620,9 +620,11 @@ public class ItemScanTool extends AbstractItemWithPosSelector implements IScroll
 
             // 26.2: the numeric permission level became a PermissionSet
             // (/opt/mc-src/net/minecraft/commands/CommandSourceStack.java:70)
+            // 26.3-snapshot-10: the (textName, displayName) pair was dropped from the constructor; the
+            // entity overload derives both from the source entity, which is the player we already pass.
             final CommandSourceStack source = new CommandSourceStack(CommandSource.NULL, player.position(), Vec2.ZERO, serverLevel,
                     LevelBasedPermissionSet.GAMEMASTER,
-                    player.getName().getString(), stack.getDisplayName(), serverLevel.getServer(), player);
+                    serverLevel.getServer(), player);
             final CommandDispatcher<CommandSourceStack> dispatcher = serverLevel.getServer().getCommands().getDispatcher();
             try
             {

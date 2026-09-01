@@ -15,7 +15,6 @@ import com.minecolonies.core.debug.FreeMode;
 import com.minecolonies.core.entity.ai.workers.AbstractEntityAIInteract;
 import com.minecolonies.core.util.citizenutils.CitizenItemUtils;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
@@ -51,11 +50,6 @@ public abstract class AbstractEntityAIFight<J extends AbstractJobGuard<J>, B ext
     public final List<List<GuardGear>> itemsNeeded = new ArrayList<>();
 
     /**
-     * The current target for our guard.
-     */
-    protected LivingEntity target = null;
-
-    /**
      * The value of the speed which the guard will move.
      */
     private static final double COMBAT_SPEED = 1.0;
@@ -80,7 +74,7 @@ public abstract class AbstractEntityAIFight<J extends AbstractJobGuard<J>, B ext
         );
         worker.setCanPickUpLoot(true);
 
-        itemsNeeded.add(GuardGearBuilder.buildGearForLevel(ARMOR_LEVEL_LEATHER, ARMOR_LEVEL_GOLD, LEATHER_BUILDING_LEVEL_RANGE, GOLD_BUILDING_LEVEL_RANGE));
+        itemsNeeded.add(GuardGearBuilder.buildGearForLevel(ARMOR_LEVEL_LEATHER, ARMOR_LEVEL_COPPER, LEATHER_BUILDING_LEVEL_RANGE, COPPER_BUILDING_LEVEL_RANGE));
         itemsNeeded.add(GuardGearBuilder.buildGearForLevel(ARMOR_LEVEL_LEATHER, ARMOR_LEVEL_CHAIN, LEATHER_BUILDING_LEVEL_RANGE, CHAIN_BUILDING_LEVEL_RANGE));
         itemsNeeded.add(GuardGearBuilder.buildGearForLevel(ARMOR_LEVEL_LEATHER, ARMOR_LEVEL_IRON, LEATHER_BUILDING_LEVEL_RANGE, IRON_BUILDING_LEVEL_RANGE));
         itemsNeeded.add(GuardGearBuilder.buildGearForLevel(ARMOR_LEVEL_CHAIN, ARMOR_LEVEL_DIAMOND, LEATHER_BUILDING_LEVEL_RANGE, DIA_BUILDING_LEVEL_RANGE));
@@ -150,9 +144,17 @@ public abstract class AbstractEntityAIFight<J extends AbstractJobGuard<J>, B ext
 
             // Arrows gate nothing, but a bow without them shoots for less damage and nothing in the colony ever asks
             // for them, so free mode hands them over here rather than leaving the archer permanently under-armed.
-            if (tool == ModEquipmentTypes.bow.get()
+            // The crossbow is included without the research condition, for the reason EntityAIRange#needsArrows
+            // gives: loading it is what puts a bolt in it, so the marksman wants arrows from the day he is hired.
+            final boolean wantsArrows = tool == ModEquipmentTypes.crossbow.get()
+                                          || (tool == ModEquipmentTypes.bow.get()
+                                                && worker.getCitizenColonyHandler()
+                                                     .getColonyOrRegister()
+                                                     .getResearchManager()
+                                                     .getResearchEffects()
+                                                     .getEffectStrength(ARCHER_USE_ARROWS) > 0);
+            if (wantsArrows
                   && FreeMode.isOn(building)
-                  && worker.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(ARCHER_USE_ARROWS) > 0
                   && !InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), stack -> stack.getItem() instanceof ArrowItem))
             {
                 FreeMode.supply(worker.getInventoryCitizen(), new ItemStack(Items.ARROW), Items.ARROW.getDefaultMaxStackSize());
@@ -190,20 +192,33 @@ public abstract class AbstractEntityAIFight<J extends AbstractJobGuard<J>, B ext
 
             int bestSlot = -1;
             int bestLevel = -1;
+            // Material level alone cannot separate an enchanted diamond chestplate from a plain one -- for armour that
+            // level is Compatibility.getItemLevel, which does not look at enchantments -- so the guard kept whichever
+            // he found first and the Enchanter's work sat in the rack. This is the tie-break, in the same units the
+            // acceptance test already uses: GuardGear#test goes through verifyEquipmentLevel, which adds exactly this
+            // term to the material level before comparing against the band. Everything reached below has therefore
+            // already been accepted at its enchanted level, so preferring by it cannot pick a piece the hut will then
+            // refuse. It does mean a level one enchantment scores as plain, since that is what the acceptance term
+            // does with it.
+            int bestEnchantment = -1;
             IItemHandler bestHandler = null;
 
             if (item.getType().isArmor())
             {
                 if (!ItemStackUtils.isEmpty(worker.getInventoryCitizen().getArmorInSlot(item.getType())))
                 {
-                    bestLevel = item.getItemNeeded().getMiningLevel(worker.getInventoryCitizen().getArmorInSlot(item.getType()));
+                    final ItemStack worn = worker.getInventoryCitizen().getArmorInSlot(item.getType());
+                    bestLevel = item.getItemNeeded().getMiningLevel(worn);
+                    bestEnchantment = ItemStackUtils.getMaxEnchantmentLevel(worn);
                 }
             }
             else
             {
                 if (!ItemStackUtils.isEmpty(worker.getItemBySlot(item.getType())))
                 {
-                    bestLevel = item.getItemNeeded().getMiningLevel(worker.getItemBySlot(item.getType()));
+                    final ItemStack held = worker.getItemBySlot(item.getType());
+                    bestLevel = item.getItemNeeded().getMiningLevel(held);
+                    bestEnchantment = ItemStackUtils.getMaxEnchantmentLevel(held);
                 }
             }
 
@@ -211,10 +226,16 @@ public abstract class AbstractEntityAIFight<J extends AbstractJobGuard<J>, B ext
             final Map<IItemHandler, List<Integer>> items = InventoryUtils.findAllSlotsInProviderWith(building, item);
             if (items.isEmpty())
             {
-                // None found, check for equipped
-                if ((item.getType().isArmor() && ItemStackUtils.isEmpty(worker.getInventoryCitizen().getArmorInSlot(item.getType()))) || (!item.getType().isArmor()
-                                                                                                                                            && ItemStackUtils.isEmpty(worker.getItemBySlot(
-                  item.getType()))))
+                // The hut holds nothing that fits this band. Ask for a piece whenever what the guard already carries
+                // is below the band his hut licenses -- bestLevel is still the level of the worn/held piece here, and
+                // -1 when the slot is empty, so the old "only if the slot is empty" case is contained in this one.
+                //
+                // That old condition was the whole of it, which meant a guard issued leather on his first day in a
+                // level-one tower never asked for anything again: his slots were no longer empty, so no request was
+                // ever created, and upgrading the tower to level five left him in the same leather -- 7 armour points
+                // where the gear bands plainly intend 20. The only route to better armour was the player stocking the
+                // rack by hand, which the branch below then handled correctly.
+                if (bestLevel < item.getMinArmorLevel())
                 {
                     // create request
                     checkForToolOrWeaponAsync(item.getItemNeeded(), item.getMinArmorLevel(), item.getMaxArmorLevel());
@@ -233,11 +254,13 @@ public abstract class AbstractEntityAIFight<J extends AbstractJobGuard<J>, B ext
                             continue;
                         }
 
-                        int currentLevel = item.getItemNeeded().getMiningLevel(stack);
+                        final int currentLevel = item.getItemNeeded().getMiningLevel(stack);
+                        final int currentEnchantment = ItemStackUtils.getMaxEnchantmentLevel(stack);
 
-                        if (currentLevel > bestLevel)
+                        if (currentLevel > bestLevel || (currentLevel == bestLevel && currentEnchantment > bestEnchantment))
                         {
                             bestLevel = currentLevel;
+                            bestEnchantment = currentEnchantment;
                             bestSlot = slot;
                             bestHandler = entry.getKey();
                         }
@@ -325,9 +348,14 @@ public abstract class AbstractEntityAIFight<J extends AbstractJobGuard<J>, B ext
                     final ItemStack current = worker.getInventoryCitizen().getArmorInSlot(item.getType());
                     if (!current.isEmpty() && current.has(DataComponents.EQUIPPABLE))
                     {
+                        final ItemStack candidate = worker.getInventoryCitizen().getStackInSlot(slot);
                         final int currentLevel = item.getItemNeeded().getMiningLevel(current);
-                        final int newLevel = item.getItemNeeded().getMiningLevel(worker.getInventoryCitizen().getStackInSlot(slot));
-                        if (currentLevel > newLevel)
+                        final int newLevel = item.getItemNeeded().getMiningLevel(candidate);
+                        // The same tie-break as in atBuildingActions, and it also stops a pointless swap between two
+                        // identical pieces, which the old "keep only if strictly better" test allowed.
+                        if (currentLevel > newLevel
+                              || (currentLevel == newLevel
+                                    && ItemStackUtils.getMaxEnchantmentLevel(current) >= ItemStackUtils.getMaxEnchantmentLevel(candidate)))
                         {
                             continue;
                         }

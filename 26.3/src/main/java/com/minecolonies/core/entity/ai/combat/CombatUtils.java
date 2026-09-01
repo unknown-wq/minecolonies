@@ -2,6 +2,7 @@ package com.minecolonies.core.entity.ai.combat;
 
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.buildings.IBuilding;
+import com.minecolonies.api.colony.buildings.IGuardBuilding;
 import com.minecolonies.api.entity.ModEntities;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.mobs.AbstractEntityMinecoloniesRaider;
@@ -9,6 +10,8 @@ import com.minecolonies.core.colony.buildings.AbstractBuildingGuards;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
 import com.minecolonies.core.items.ItemSpear;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -38,6 +41,14 @@ public class CombatUtils
     private static final double ARROW_SPEED                    = 1.4D;
     private static final double AIM_SLIGHTLY_HIGHER_MULTIPLIER = 0.18;
     private static final double SPEED_FOR_DIST                 = 35;
+
+    /**
+     * Crossbow shooting constants, both taken from {@code CrossbowItem#shootProjectile}: vanilla aims a third of
+     * the way up a target it was handed rather than half way, and answers gravity with a fifth of the horizontal
+     * range rather than {@link #AIM_SLIGHTLY_HIGHER_MULTIPLIER}.
+     */
+    private static final double CROSSBOW_AIM_HEIGHT_FRACTION    = 1.0 / 3.0;
+    private static final double CROSSBOW_AIM_HIGHER_MULTIPLIER  = 0.2;
 
     /**
      * Get an arrow entity for the given shooter
@@ -108,6 +119,82 @@ public class CombatUtils
     }
 
     /**
+     * Shoots a loaded crossbow bolt at the given target with a hit chance.
+     *
+     * <p>The same shot as {@link #shootArrow}, aimed and announced the way a crossbow's is rather than a
+     * bow's. Vanilla resolves a crossbow fired at a target through {@code CrossbowItem#shootProjectile}
+     * with a target override, and three things there differ from the bow path above: it aims a third of
+     * the way up the target rather than half, it compensates for drop with {@code 0.2} times the
+     * horizontal range rather than {@code 0.18}, and it makes the bolt land with {@code CROSSBOW_HIT}
+     * instead of {@code ARROW_HIT}. The shot itself is announced with {@code CROSSBOW_SHOOT} at the
+     * shooter, which is where vanilla plays it and where a listener expects a crossbow to go off; the
+     * bow path plays {@code ARROW_SHOOT} at the target instead, which is left exactly as it was.
+     *
+     * <p>Launch speed and spread are deliberately the mod's, not vanilla's. Vanilla fires a crossbow at a
+     * flat 3.15 blocks per tick from a player and 1.6 from a mob, against the guard's
+     * {@code ARROW_SPEED + range / SPEED_FOR_DIST}; adopting either would move every marksman's time of
+     * flight and therefore his hit rate against anything that moves. That is a balance decision and does
+     * not belong in a fix to how he loads and fires.
+     *
+     * <p>Vanilla's own {@code performShooting} is not used, for one reason: it builds its projectile from
+     * the ammunition item through {@code ArrowItem#createArrow}, which yields a plain vanilla arrow. The
+     * mod's whole ranged model rides on {@code CustomArrowEntity} -- the armour-bypassing share of a
+     * marksman's damage, the arrow-piercing research and the arrow-consumption callback are all on the
+     * on-hit hook it carries -- and there is no hook in that path to substitute the entity. Loading stays
+     * vanilla's, because that is where the bug was; the launch is the mod's arrow on vanilla's arc.
+     *
+     * @param bolt      the bolt entity to be shot.
+     * @param target    the target to be shot at.
+     * @param hitChance the chance the target will be hit.
+     * @param index     which bolt of the volley this is, which is all vanilla varies the report's pitch by.
+     */
+    public static void shootBolt(final AbstractArrow bolt, final LivingEntity target, final float hitChance, final int index)
+    {
+        final double xVector = target.getX() - bolt.getX();
+        final double zVector = target.getZ() - bolt.getZ();
+        final double distance = Mth.sqrt((float) (xVector * xVector + zVector * zVector));
+        final double yVector = target.getY(CROSSBOW_AIM_HEIGHT_FRACTION) - bolt.getY() + distance * CROSSBOW_AIM_HIGHER_MULTIPLIER;
+        final double dist3d = Mth.sqrt((float) (yVector * yVector + xVector * xVector + zVector * zVector));
+
+        bolt.setSoundEvent(SoundEvents.CROSSBOW_HIT);
+        bolt.shoot(xVector, yVector, zVector, (float) (ARROW_SPEED * 1 + (dist3d / SPEED_FOR_DIST)), hitChance);
+
+        final Entity shooter = bolt.getOwner();
+        final LivingEntity source = shooter instanceof LivingEntity living ? living : target;
+        source.level()
+          .playSound(null,
+            source.getX(),
+            source.getY(),
+            source.getZ(),
+            SoundEvents.CROSSBOW_SHOOT,
+            source.getSoundSource(),
+            1.0F,
+            getShotPitch(source.getRandom(), index));
+
+        bolt.level().addFreshEntity(bolt);
+    }
+
+    /**
+     * The report pitch vanilla gives the {@code index}-th bolt of a volley ({@code CrossbowItem#getShotPitch},
+     * which is private). The first bolt is always flat; the rest are scattered so a multi-bolt volley does not
+     * sound like one very loud bolt.
+     *
+     * @param random the shooter's random source.
+     * @param index  the bolt's place in the volley.
+     * @return the pitch to play the report at.
+     */
+    private static float getShotPitch(final RandomSource random, final int index)
+    {
+        if (index == 0)
+        {
+            return 1.0F;
+        }
+
+        final float rangeDecider = (index & 1) == 1 ? 0.63F : 0.43F;
+        return 1.0F / (random.nextFloat() * 0.5F + 1.8F) + rangeDecider;
+    }
+
+    /**
      * Launches an arrow along a velocity that has already been solved for, rather than at an entity.
      *
      * <p>{@link #shootArrow} cannot be used for anything that is not a {@link LivingEntity}, and more
@@ -146,12 +233,15 @@ public class CombatUtils
 
         if (target instanceof AbstractEntityMinecoloniesRaider)
         {
-            for (final Map.Entry<BlockPos, IBuilding> entry : user.getCitizenColonyHandler().getColonyOrRegister().getServerBuildingManager().getBuildings().entrySet())
+            // The cached guard-building list, not the whole building map. This runs on every target change to a
+            // raider -- up to once per five ticks per guard during a raid -- and it exists to set one BlockPos on the
+            // handful of guard buildings within forty blocks, so walking every hut in the colony to find them was
+            // the largest avoidable number on the guard path. Buildings whose task does not walk a patrol never read
+            // the point, so they are skipped too.
+            for (final IGuardBuilding building : user.getCitizenColonyHandler().getColonyOrRegister().getServerBuildingManager().getGuardBuildings())
             {
-                if (entry.getValue() instanceof AbstractBuildingGuards &&
-                      user.blockPosition().distSqr(entry.getKey()) < callRange)
+                if (building.walksAPatrol() && user.blockPosition().distSqr(building.getID()) < callRange)
                 {
-                    final AbstractBuildingGuards building = (AbstractBuildingGuards) entry.getValue();
                     building.setTempNextPatrolPoint(target.blockPosition());
                 }
             }

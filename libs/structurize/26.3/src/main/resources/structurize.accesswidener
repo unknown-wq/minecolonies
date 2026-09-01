@@ -14,13 +14,13 @@ mutable	field	net/minecraft/client/KeyMapping	clickCount	I
 accessible	field	net/minecraft/world/level/block/state/BlockBehaviour	hasCollision	Z
 
 # --- world gen settings -------------------------------------------------------------------------
-# util/BlockUtils: asks the chunk generator what the natural surface block at a position would be.
-accessible	method	net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator	createNoiseChunk	(Lnet/minecraft/world/level/chunk/ChunkAccess;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/levelgen/blending/Blender;Lnet/minecraft/world/level/levelgen/RandomState;)Lnet/minecraft/world/level/levelgen/NoiseChunk;
-accessible	class	net/minecraft/world/level/levelgen/SurfaceRules$Context
-accessible	method	net/minecraft/world/level/levelgen/SurfaceRules$Context	<init>	(Lnet/minecraft/world/level/levelgen/SurfaceSystem;Lnet/minecraft/world/level/levelgen/RandomState;Lnet/minecraft/world/level/chunk/ChunkAccess;Lnet/minecraft/world/level/levelgen/NoiseChunk;Ljava/util/function/Function;Lnet/minecraft/world/level/levelgen/WorldGenerationContext;Ljava/util/Set;)V
-accessible	method	net/minecraft/world/level/levelgen/SurfaceRules$Context	updateXZ	(II)V
-accessible	method	net/minecraft/world/level/levelgen/SurfaceRules$Context	updateY	(IIII)V
-accessible	class	net/minecraft/world/level/levelgen/SurfaceRules$SurfaceRule
+# Dropped in 26.3-snapshot-10, which deleted SurfaceRules along with the NoiseChunk overload these six
+# lines widened. util/BlockUtils now asks MaterialSystem#topMaterial, which is public, so nothing here
+# has to be reopened. What blocks the inline is not the arguments -- DensityVolume is a public record
+# with public constructors, and a DensitySamplerSet comes out of the public
+# RandomState#samplersWithContext(SamplerContext), which BlockUtils itself calls. It is MaterialRuleContext:
+# the class is public, but its constructor and its updateXZ/updateY are package-private, so one can be
+# neither built nor stepped from outside net.minecraft.world.level.levelgen.material.
 
 # --- 1.12.2 blueprint fixer ---------------------------------------------------------------------
 # blueprints/v1/BlueprintUtil#fixCross1343: the flower pot / note block block-entity -> block-state maps.

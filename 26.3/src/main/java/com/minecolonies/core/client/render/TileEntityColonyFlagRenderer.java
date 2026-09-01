@@ -157,13 +157,13 @@ public class TileEntityColonyFlagRenderer implements BlockEntityRenderer<TileEnt
         if (state.wall)
         {
             poseStack.translate(0.5D, -0.16666667F, 0.5D);
-            poseStack.mulPose(Axis.YP.rotationDegrees(state.rotation));
+            poseStack.rotate(Axis.YP.rotationDegrees(state.rotation));
             poseStack.translate(0.0D, -0.3125D, -0.4375D);
         }
         else
         {
             poseStack.translate(0.5D, 0.5D, 0.5D);
-            poseStack.mulPose(Axis.YP.rotationDegrees(state.rotation));
+            poseStack.rotate(Axis.YP.rotationDegrees(state.rotation));
         }
 
         if (state.placeholder != null)

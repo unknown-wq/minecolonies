@@ -100,7 +100,12 @@ public class BuildingSawmill extends AbstractBuilding
                 {
                     if (stack.is(ItemTags.PLANKS) || stack.is(ItemTags.LOGS))
                     {
+                        // These used to skip the running total below, which left the test reading
+                        // valid / (total - valid): an effective threshold of 43%, not the 75% named. The sawmill
+                        // accepted beds, bookshelves, cartography tables and beehives, and at hut level one those
+                        // filled half the recipe list.
                         amountOfValidBlocks += stack.getCount();
+                        blocks += stack.getCount();
                         continue;
                     }
                     for (final TagKey<Item> tag : stack.typeHolder().tags().toList())

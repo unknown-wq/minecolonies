@@ -1058,7 +1058,7 @@ public abstract class WorldRenderMacros
 
             poseStack.pushPose();
             poseStack.translate(renderPos.getX() + 0.5d, renderPos.getY() + 0.6d, renderPos.getZ() + 0.5d);
-            poseStack.mulPose(cameraRenderState.orientation);
+            poseStack.rotate(cameraRenderState.orientation);
             poseStack.scale(0.014f, -0.014f, 0.014f);
 
             final float backgroundTextOpacity = Minecraft.getInstance().options.getBackgroundOpacity(0.25F);

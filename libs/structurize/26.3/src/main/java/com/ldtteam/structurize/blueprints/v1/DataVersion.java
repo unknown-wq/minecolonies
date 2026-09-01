@@ -12,14 +12,14 @@ public enum DataVersion
      * - successors match
      * - upcoming has data version = (latest data version + 1)
      */
-    UPCOMING(5011 + 1, null, null),
+    UPCOMING(5015 + 1, null, null),
 
-    // TODO(port-26.3): 26.3-snapshot-9 carries world_version 5011 (version.json in the client jar, matching
+    // TODO(port-26.3): 26.3-snapshot-10 carries world_version 5015 (version.json in the client jar, matching
     // DetectedVersion#createBuiltIn). Without this entry the chain ended at v26_2 -> UPCOMING(4904), so
     // DataFixerUtils#runDataFixerCascade walked past the last known version and NPE'd on a null successor
     // (BlueprintUtilTileEntityFixTest#ordinaryBlockEntitiesStillSurvive), and Structurize#checkDataFixer threw
     // "Missing some newest data versions" in any dev run because CURRENT resolved to UPCOMING.
-    v26_3(5011, "26.3", UPCOMING),
+    v26_3(5015, "26.3", UPCOMING),
 
     // 26.2 data version, /opt/mc-src/net/minecraft/DetectedVersion.java:28. The releases between 1.21.1 and
     // 26.2 (1.21.2 ... 1.21.11, 26.1.x) are deliberately not listed: this chain only drives the step-by-step

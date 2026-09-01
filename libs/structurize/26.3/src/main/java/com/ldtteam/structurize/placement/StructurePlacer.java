@@ -506,7 +506,12 @@ public class StructurePlacer
             requiredItems.addAll(result.getRequiredItems());
         }
 
-        if (IPlacementHandler.doesWorldStateMatchBlueprintState(new BlockInfo(localPos, localState, handler.getBluePrint().getTileEntityData(worldPos, localPos)), worldPos, this.handler))
+        // tileEntityData is exactly `handler.getBluePrint().getTileEntityData(worldPos, localPos)` -- the sole
+        // caller passes that expression. Re-evaluating it here cost three getBlockInfoAsMap() lookups and a
+        // deep CompoundTag.copy() per position of the resource pass, for a tag nobody mutates: every
+        // doesWorldStateMatchBlueprintState implementation in Structurize ignores the block-entity tuple, and
+        // the two MineColonies ones that read it (DoBlock/DoDoorBlock) only compare texture data.
+        if (IPlacementHandler.doesWorldStateMatchBlueprintState(new BlockInfo(localPos, localState, tileEntityData), worldPos, this.handler))
         {
             if (requiredItems.isEmpty())
             {

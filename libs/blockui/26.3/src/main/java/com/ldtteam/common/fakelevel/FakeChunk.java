@@ -6,7 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.BlockEntityTagOutput;
+import net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData;
 import net.minecraft.server.level.FullChunkStatus;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -259,7 +259,7 @@ public class FakeChunk extends LevelChunk
     }
 
     @Override
-    public void replaceWithPacketData(FriendlyByteBuf p_187972_, Map<Types, long[]> p_187973_, Consumer<BlockEntityTagOutput> p_187974_)
+    public void replaceWithPacketData(int p_187971_, int p_187972_, ClientboundLevelChunkPacketData p_187973_)
     {
         // Noop
     }

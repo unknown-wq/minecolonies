@@ -1,0 +1,105 @@
+{
+  "name": "Another Camp",
+  "max-occurrences": 8,
+  "parents": [
+    "minecolonies:general/thecampoverthehill"
+  ],
+  "triggers": [
+    {
+      "type": "minecolonies:random",
+      "rarity": 400000
+    },
+    {
+      "type": "minecolonies:citizen",
+      "state": {
+        "match": {
+          "job": {
+            "type": "minecolonies:knight"
+          }
+        }
+      }
+    }
+  ],
+  "triggerOrder": "1 && 2",
+  "objectives": [
+    {
+      "type": "minecolonies:dialogue",
+      "target": 0,
+      "text": "Another one. Same banners, same fires, different hill. They will keep putting them up as long as we keep letting them stand - and the next raid comes out of whichever one we ignore.",
+      "options": [
+        {
+          "answer": "Then we go again.",
+          "result": {
+            "type": "minecolonies:advanceobjective",
+            "go-to": 1
+          }
+        },
+        {
+          "answer": "Not this time.",
+          "result": {
+            "type": "minecolonies:return"
+          }
+        }
+      ]
+    },
+    {
+      "type": "minecolonies:raidercamp",
+      "details": {
+        "target": 0,
+        "entity-type": "minecolonies:campbarbarian",
+        "qty": 6,
+        "structure": "minecolonies:camps/small_barbarian_camp",
+        "min-range": 120,
+        "max-range": 220,
+        "next-objective": 2
+      }
+    },
+    {
+      "type": "minecolonies:breakblock",
+      "details": {
+        "target": 0,
+        "block": "minecraft:spawner",
+        "qty": 5,
+        "next-objective": 3
+      }
+    },
+    {
+      "unlocks-rewards": [0, 1, 2],
+      "type": "minecolonies:dialogue",
+      "target": 0,
+      "text": "Cleared. Word gets around, you know - fewer of them come the further they have to walk to find a hill we have not taken. Here, the smiths owe you this much.",
+      "options": [
+        {
+          "answer": "Keep the scouts out.",
+          "result": {
+            "type": "minecolonies:advanceobjective",
+            "go-to": 4
+          }
+        }
+      ]
+    }
+  ],
+  "rewards": [
+    {
+      "type": "minecolonies:raid",
+      "details": {
+        "change": -4
+      }
+    },
+    {
+      "type": "minecolonies:item",
+      "details": {
+        "item": {
+          "id": "minecraft:iron_ingot",
+          "count": 8
+        }
+      }
+    },
+    {
+      "type": "minecolonies:questreputation",
+      "details": {
+        "qty": 0.5
+      }
+    }
+  ]
+}

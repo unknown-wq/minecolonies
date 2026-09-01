@@ -263,9 +263,12 @@ public class ReturnToStableGoal extends Goal
      */
     private boolean canStillRun()
     {
+        // Not while leashed. A horse tied to a fence for the night, or on the Stablemaster's rope, is already being
+        // held somewhere on purpose; walking it home from under the rope only snaps the rope.
         return !horse.level().isClientSide()
                  && horse.getControllingPassenger() == null
                  && !horse.hasReservation()
+                 && !horse.isLeashed()
                  && horse.getAnimalData() != null;
     }
 

@@ -454,7 +454,7 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
             case REMOVE:
                 placer.getIterator().setRemoving();
                 result = placer.executeStructureStep(world, null, progress, StructurePlacer.Operation.BLOCK_REMOVAL,
-                  () -> placer.getIterator().decrement(this::skipRemoval), true);
+                  () -> placer.getIterator().decrement(AbstractEntityAIStructure::skipRemoval), true);
                 break;
             case CLEAR:
             default:
@@ -621,13 +621,18 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
 
     /**
      * Checks which blocks are skipped on removal on building upgrade
+     * <p>
+     * Static and public because the deconstruction rule is the deconstruction rule wherever the blocks come down:
+     * {@code /mc colony buildnow} takes a REMOVE work order apart in one call rather than over a builder's working
+     * day, and a second copy of this predicate over there would be a second answer to "what does the builder leave
+     * standing" waiting to drift from this one. It reads nothing off the AI.
      *
      * @param info
      * @param pos
      * @param handler
      * @return
      */
-    private boolean skipRemoval(final BlueprintPositionInfo info, final BlockPos pos, final IStructureHandler handler)
+    public static boolean skipRemoval(final BlueprintPositionInfo info, final BlockPos pos, final IStructureHandler handler)
     {
         final BlockState infoBlockState = info.getBlockInfo().getState();
         final Block infoBlock = infoBlockState.getBlock();

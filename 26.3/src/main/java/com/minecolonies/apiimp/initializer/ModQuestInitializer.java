@@ -42,6 +42,8 @@ public final class ModQuestInitializer
           BuildBuildingObjectiveTemplate::createObjective));
         QuestRegistries.researchObjective = registerObjective(RESEARCH_OBJECTIVE_ID.getPath(), () -> new QuestRegistries.ObjectiveEntry(
           ResearchObjectiveTemplate::createObjective));
+        QuestRegistries.raiderCampObjective = registerObjective(RAIDER_CAMP_OBJECTIVE_ID.getPath(), () -> new QuestRegistries.ObjectiveEntry(
+          RaiderCampObjectiveTemplate::createObjective));
 
         QuestRegistries.randomTrigger = registerTrigger(RANDOM_TRIGGER_ID.getPath(), () -> new QuestRegistries.TriggerEntry(RandomQuestTriggerTemplate::createStateTrigger));
         QuestRegistries.stateTrigger = registerTrigger(STATE_TRIGGER_ID.getPath(), () -> new QuestRegistries.TriggerEntry(StateQuestTriggerTemplate::createStateTrigger));

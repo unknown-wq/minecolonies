@@ -613,7 +613,7 @@ public class RaidManager implements IRaiderManager
         final PathJobRaiderPathing job =
             new PathJobRaiderPathing(new ArrayList<>(colony.getServerBuildingManager().getBuildings().values()), colony.getWorld(), closestBuildingPos, targetSpawnPoint);
         job.getPathingOptions().withWalkUnderWater(underwater);
-        job.getResult().startJob(Pathfinding.getExecutor());
+        Pathfinding.submit(job.getResult());
         return job.getResult();
     }
 
@@ -835,6 +835,12 @@ public class RaidManager implements IRaiderManager
 
         final RaidHistory last = raidHistories.getLast();
         return last.spawnData.stream().map(raidSpawnInfo -> raidSpawnInfo.spawnpos).collect(Collectors.toList());
+    }
+
+    @Override
+    public long getLastRaidTime()
+    {
+        return raidHistories.isEmpty() ? NO_RAID_TIME : raidHistories.getLast().raidTime;
     }
 
     /**

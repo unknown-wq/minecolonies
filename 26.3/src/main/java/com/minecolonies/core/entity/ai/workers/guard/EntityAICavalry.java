@@ -13,8 +13,11 @@ import com.minecolonies.core.colony.buildings.workerbuildings.BuildingStable;
 import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.core.colony.jobs.guard.JobCavalry;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
+import com.minecolonies.core.entity.other.SittingEntity;
 import com.minecolonies.core.entity.other.cavalry.CavalryHorseEntity;
+import com.minecolonies.core.entity.other.cavalry.Hitch;
 import com.minecolonies.core.entity.pathfinding.navigation.EntityNavigationUtils;
+import com.minecolonies.api.util.WorldUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -48,8 +51,14 @@ public class EntityAICavalry extends AbstractEntityAIGuard<JobCavalry, AbstractB
 
     /**
      * Tick interval for mount lookup and stable lookup AI targets.
+     * <p>
+     * This used to be 50, and it was one of the three waits that added up to a rider taking fifteen seconds to
+     * respond to a Follow order: up to 5 s for decide() to notice the task, then this interval on every leg of
+     * find-horse, walk-to-horse, mount. The expensive part of a lookup only runs while the rider has no valid
+     * mount reserved -- the walking legs re-check a cheap reservation and a deduplicated walk order -- so ticking
+     * it five times as often costs next to nothing and takes whole seconds off getting into the saddle.
      */
-    private static final int GUARD_MOUNT_INTERVAL = 50;
+    private static final int GUARD_MOUNT_INTERVAL = 10;
 
     /**
      * Horizontal search radius used when looking for an available cavalry horse.
@@ -70,13 +79,27 @@ public class EntityAICavalry extends AbstractEntityAIGuard<JobCavalry, AbstractB
     protected BlockPos stablePos = null;
     protected boolean stableChecked = false;
 
+    /**
+     * The mount this unit tied to a fence when it stopped for the night, or null if it did not tie one up.
+     * <p>
+     * Held rather than looked up again on waking because the horse the guard got off is the horse it tied, and by
+     * the time it wakes {@code job.getMount()} may name a different one: a colleague can have taken the horse in the
+     * meantime, and the untie has to reach the animal that is actually wearing the rope.
+     */
+    private CavalryHorseEntity hitchedMount = null;
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     public EntityAICavalry(@NotNull final JobCavalry job)
     {
         super(job);
         super.registerTargets(
             new AITarget(CombatAIStates.FIND_MOUNT, this::findMount, GUARD_MOUNT_INTERVAL),
-            new AITarget(CombatAIStates.FIND_STABLE, this::findStable, GUARD_MOUNT_INTERVAL)
+            new AITarget(CombatAIStates.FIND_STABLE, this::findStable, GUARD_MOUNT_INTERVAL),
+            // A cavalryman in NO_TARGET belongs in the saddle. decide() already says so, but decide() runs once
+            // per five seconds; this notices a dismount -- a ladder on the path, a nap's end, a spawn -- within
+            // half a second. Registered after the parent's targets, so a due sleep or flee check still wins the
+            // tick, and the states those lead to are not NO_TARGET, so this cannot pull a sleeper off his bench.
+            new AITarget(CombatAIStates.NO_TARGET, () -> !worker.isPassenger(), () -> CombatAIStates.FIND_MOUNT, GUARD_MOUNT_INTERVAL)
         );
 
         toolsNeeded.add(JobCavalry.getWeaponType());
@@ -93,6 +116,23 @@ public class EntityAICavalry extends AbstractEntityAIGuard<JobCavalry, AbstractB
 
         new CavalryCombatAI((EntityCitizen) worker, getStateAI(), this);
     }
+
+    /**
+     * The waypoint this rider is currently riding to on his own patrol line, so that the leg below can be told
+     * apart from a point that came from somewhere else.
+     */
+    private BlockPos ownLeg = null;
+
+    /**
+     * The game time the current leg was handed out.
+     */
+    private long ownLegSince = 0;
+
+    /**
+     * How long one leg may take before it is written off, in game ticks. Two minutes, which is about what the
+     * building's own patrol timer allows an ordinary leg.
+     */
+    private static final int OWN_LEG_TIMEOUT_TICKS = 2400;
 
     /**
      * Decides the AI state the citizen should be in, and transitions as necessary.
@@ -115,17 +155,52 @@ public class EntityAICavalry extends AbstractEntityAIGuard<JobCavalry, AbstractB
      * Sleep activity
      *
      * If the guard is mounted, dismounts and clears the horse of the guard's reservation.
+     * <p>
+     * The horse, and only the horse. A guard that nodded off on foot is sitting on a {@code SittingEntity} - that is
+     * what {@code shouldSleep} put it on, and it is the nap's posture, not a mount. Standing the guard back up off
+     * it on every tick of the nap left a cavalryman sleeping bolt upright and leaked the seat.
+     * <p>
+     * The horse is tied to the nearest fence as it is let go, if there is one within reach; see {@link Hitch}. If
+     * there is not, it simply stands where it was left, exactly as it did before.
      *
      * @return the next state to go into
      */
     protected IAIState sleep()
     {
-        if (worker.isPassenger())
+        if (worker.isPassenger() && !(worker.getVehicle() instanceof SittingEntity))
         {
+            final Entity mount = worker.getVehicle();
             worker.stopRiding();
+
+            // This branch is the dismount, and it is reached exactly once per nap. SittingEntity#sitDown, which is
+            // what puts an ordinary guard on its seat, returns early without making one for a citizen that is
+            // already riding something - so a cavalryman enters GUARD_SLEEP still in the saddle and gets off here,
+            // on the first tick of the nap. Every tick after that he is on foot and the branch is skipped, which is
+            // why the fence search below costs one scan a night and not one a tick.
+            if (mount instanceof final CavalryHorseEntity horse && Hitch.tieUp(horse))
+            {
+                hitchedMount = horse;
+            }
         }
 
         return super.sleep();
+    }
+
+    /**
+     * Untie the mount when the guard gets up.
+     * <p>
+     * Every way out of the nap goes through here - the timer running out and the water check in
+     * {@code AbstractEntityAIGuard#sleep}, and a call for help through {@link #canHelp} - so this is where the rope
+     * comes off. It is not the only place it can come off: mounting the horse again drops the leash on its own
+     * ({@code CavalryHorseEntity#addPassenger}), which is what recovers a horse whose rider was killed in its sleep.
+     */
+    @Override
+    protected void stopSleeping()
+    {
+        super.stopSleeping();
+
+        Hitch.untie(hitchedMount);
+        hitchedMount = null;
     }
 
     /**
@@ -255,6 +330,11 @@ public class EntityAICavalry extends AbstractEntityAIGuard<JobCavalry, AbstractB
         if (mounted)
         {
             targetMount.clearFor(worker);
+
+            // CavalryHorseEntity#addPassenger has already taken the leash off, knot and all. This only drops the
+            // reference, so that a later wake-up does not try to untie a horse somebody else is riding.
+            hitchedMount = null;
+
             return CombatAIStates.NO_TARGET;
         }
         else
@@ -265,21 +345,111 @@ public class EntityAICavalry extends AbstractEntityAIGuard<JobCavalry, AbstractB
 
     /**
      * Patrol between a list of patrol points.
+     * <p>
+     * Between sorties a cavalry unit waits at its stable rather than standing on the last patrol point, so the whole
+     * troop is in one place when the next one is dispatched. Whether it is between sorties at all is the stable's
+     * decision ({@link BuildingStable#restingAtStable()}), not a second timestamp comparison of this AI's own; a unit
+     * set to a permanent patrol is never between sorties and falls straight through to the route.
+     *
+     * <h2>Why a stable patrol does not go through the building's patrol point</h2>
+     * Because there is only one of it. {@code AbstractBuildingGuards} holds a single {@code lastPatrolPoint} for the
+     * whole hut and advances it only once every assigned guard has reported arrival -- with a fallback timer of five
+     * colony ticks, about two minutes -- which is exactly right for a building whose garrison is meant to move as
+     * one and exactly wrong for cavalry: one point, everybody walks to it, and one rider asleep or off catching his
+     * horse parks the rest of the troop at that point for the whole of the timer. Every rider therefore keeps his
+     * own cursor here - {@code currentPatrolPoint}, which is per worker already - and takes each leg from his own
+     * line: his arc of the border when the task is a border patrol, his own walk of the ordinary route otherwise
+     * ({@link BuildingStable#getPatrolTargetFor}). The building is still told about every arrival, because that is
+     * also the clock the Stable's rest window runs on; it just no longer decides where anybody is going.
      *
      * @return the next patrol point to go to.
      */
     @Override
     public IAIState patrol()
     {
-        if (building instanceof BuildingStable stable && stable.minutesSinceLastPatrol() < building.getSetting(BuildingStable.PATROL_INTERVAL).getValue())
+        if (building instanceof final BuildingStable stable)
         {
-            currentPatrolPoint = null;
-            EntityNavigationUtils.walkToRandomPosAround(worker, getStableRestCenter(), STABLE_REST_WANDER_RANGE, 0.6D);
+            if (stable.restingAtStable())
+            {
+                currentPatrolPoint = null;
+                EntityNavigationUtils.walkToRandomPosAround(worker, getStableRestCenter(), STABLE_REST_WANDER_RANGE, 0.6D);
 
-            return null;
+                return null;
+            }
+
+            if (patrolOwnLeg(stable))
+            {
+                return null;
+            }
         }
 
         return super.patrol();
+    }
+
+    /**
+     * Walk this rider's own patrol line.
+     *
+     * @param stable the stable that dispatched him.
+     * @return true when the line supplied a point, false to fall back to the building's shared patrol.
+     */
+    private boolean patrolOwnLeg(@NotNull final BuildingStable stable)
+    {
+        if (currentPatrolPoint == null || !currentPatrolPoint.equals(ownLeg))
+        {
+            currentPatrolPoint = nextOwnPatrolPoint(stable);
+            if (currentPatrolPoint == null)
+            {
+                ownLeg = null;
+                return false;
+            }
+            beginOwnLeg();
+        }
+
+        // An unloaded waypoint counts as reached, the same way the ordinary patrol treats one: a stretch that runs
+        // out into ground nobody is standing near must not stall the rider on its first unloaded chunk.
+        //
+        // The timeout is the second way a leg ends, and it is not optional. An ordinary patrol gets one for free
+        // because the building hands out its next point on a timer whether anybody arrived or not; a rider holding
+        // his own cursor has no such thing, and a waypoint on the far side of a ravine would otherwise be walked at
+        // for the rest of the save.
+        if (!WorldUtil.isEntityBlockLoaded(world, currentPatrolPoint)
+              || walkToSafePos(currentPatrolPoint)
+              || world.getGameTime() - ownLegSince > OWN_LEG_TIMEOUT_TICKS)
+        {
+            setCurrentDelay(10);
+            building.arrivedAtPatrolPoint(worker);
+            currentPatrolPoint = nextOwnPatrolPoint(stable);
+            beginOwnLeg();
+        }
+
+        return true;
+    }
+
+    /**
+     * The next waypoint of this rider's own line: his arc of the border while the task is a border patrol with a
+     * reachable border, his own cursor over the ordinary route otherwise.
+     *
+     * @param stable the stable that dispatched him.
+     * @return the waypoint, or null to fall back to the building's shared patrol.
+     */
+    @Nullable
+    private BlockPos nextOwnPatrolPoint(@NotNull final BuildingStable stable)
+    {
+        final BlockPos border = stable.getBorderPatrolTarget(worker.getCitizenData(), worker.blockPosition());
+        if (border != null)
+        {
+            return border;
+        }
+        return stable.getPatrolTargetFor(worker.getCitizenData(), worker.blockPosition());
+    }
+
+    /**
+     * Start the clock on the leg the rider has just been given.
+     */
+    private void beginOwnLeg()
+    {
+        ownLeg = currentPatrolPoint;
+        ownLegSince = world.getGameTime();
     }
 
     /**

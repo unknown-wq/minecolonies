@@ -4,6 +4,7 @@ import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.buildingextensions.registry.BuildingExtensionRegistries;
 import com.minecolonies.api.colony.buildings.IBuilding;
+import com.minecolonies.api.colony.buildings.IGuardBuilding;
 import com.minecolonies.api.colony.buildings.IMysticalSite;
 import com.minecolonies.api.colony.buildings.workerbuildings.ITownHall;
 import com.minecolonies.api.colony.buildings.workerbuildings.IWareHouse;
@@ -160,6 +161,14 @@ public interface IRegisteredStructureManager extends ICommonRegisteredStructureM
      * @param newLevel      the level of it.
      */
     void guardBuildingChangedAt(IBuilding guardBuilding, int newLevel);
+
+    /**
+     * The colony's guard buildings, cached rather than filtered out of {@link #getBuildings()} on every call.
+     *
+     * @return an immutable view of the guard buildings.
+     */
+    @NotNull
+    List<IGuardBuilding> getGuardBuildings();
 
     /**
      * Set the townhall building.

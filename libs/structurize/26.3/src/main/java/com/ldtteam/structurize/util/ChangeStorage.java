@@ -17,6 +17,8 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -83,7 +85,8 @@ public class ChangeStorage
      */
     public void addPreviousDataFor(final BlockPos place, final Level world)
     {
-        blocks.computeIfAbsent(place, p -> new BlockChangeData()).withPreState(world.getBlockState(place)).withPreTE(world.getBlockEntity(place));
+        final BlockState state = world.getBlockState(place);
+        blocks.computeIfAbsent(place, p -> new BlockChangeData()).withPreState(state).withPreTE(blockEntityOf(state, place, world));
     }
 
     /**
@@ -94,7 +97,30 @@ public class ChangeStorage
      */
     public void addPostDataFor(final BlockPos place, final Level world)
     {
-        blocks.computeIfAbsent(place, p -> new BlockChangeData()).withPostState(world.getBlockState(place)).withPostTE(world.getBlockEntity(place));
+        final BlockState state = world.getBlockState(place);
+        blocks.computeIfAbsent(place, p -> new BlockChangeData()).withPostState(state).withPostTE(blockEntityOf(state, place, world));
+    }
+
+    /**
+     * The block entity at a position, or null when the state there cannot carry one.
+     *
+     * <p>Both of the methods above run on every position of a paste -- 1000 per tick at the default
+     * {@code maxOperationsPerTick} -- and almost none of those positions hold a block entity.
+     * {@link Level#getBlockEntity} is not a plain map read: on a miss it consults the chunk's pending
+     * block-entity tags and can deserialise one into a live block entity. Gating it on
+     * {@link BlockState#hasBlockEntity()} skips that for the ordinary case and returns the same answer,
+     * because {@code LevelChunk#setBlockState} drops the block entity whenever the state at a position
+     * stops having one -- a live block entity cannot outlive a state that does not declare it.</p>
+     *
+     * @param state the state already read at that position.
+     * @param place the position.
+     * @param world the world.
+     * @return the block entity, or null.
+     */
+    @Nullable
+    private static BlockEntity blockEntityOf(final BlockState state, final BlockPos place, final Level world)
+    {
+        return state.hasBlockEntity() ? world.getBlockEntity(place) : null;
     }
 
     /**

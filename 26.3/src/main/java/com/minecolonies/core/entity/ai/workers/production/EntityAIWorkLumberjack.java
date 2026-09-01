@@ -175,6 +175,31 @@ public class EntityAIWorkLumberjack extends AbstractEntityAICrafting<JobLumberja
      */
     private PathResult<?> pathToTree;
 
+    /**
+     * How many consecutive checks without any progress count as being stuck.
+     */
+    private static final int STUCK_CHECKS_BEFORE_UNSTUCK = 2;
+
+    /**
+     * The path node the worker was heading for the last time he was checked for being stuck.
+     */
+    private int stuckAtNode = -1;
+
+    /**
+     * The block the worker stood in the last time he was checked for being stuck.
+     */
+    private BlockPos stuckAtPos;
+
+    /**
+     * Consecutive checks in which the worker made no progress along its path.
+     */
+    private int stuckChecks = 0;
+
+    /**
+     * How many saplings of a species to ask the colony for when he has run out of them.
+     */
+    private static final int SAPLINGS_TO_REQUEST = 16;
+
     @Override
     protected int getActionRewardForCraftingSuccess()
     {
@@ -467,6 +492,10 @@ public class EntityAIWorkLumberjack extends AbstractEntityAICrafting<JobLumberja
             // Check if tree creation was successful
             if (job.getTree().isTree())
             {
+                // Once widened, the radius was never narrowed again: a lumberjack who had to reach 150 blocks once
+                // kept running A* over that whole area for the rest of the colony's life, even after a forest grew
+                // back next door. Start from the hut again now that there is something to cut nearby.
+                searchIncrement = 0;
                 job.getTree().findLogs(world, building.shouldRestrict() ? null : building.getColony());
                 return LUMBERJACK_CHOP_TREE;
             }
@@ -513,6 +542,8 @@ public class EntityAIWorkLumberjack extends AbstractEntityAICrafting<JobLumberja
         {
             job.setTree(null);
             pathResult = null;
+            checkedInHut = false;
+            workFrom = null;
             return START_WORKING;
         }
 
@@ -702,23 +733,37 @@ public class EntityAIWorkLumberjack extends AbstractEntityAICrafting<JobLumberja
      */
     private boolean checkIfStuck()
     {
-        if (!worker.getNavigation().isDone())
+        if (worker.getNavigation().isDone())
         {
-            final Path path = worker.getNavigation().getPath();
-            if (path != null)
-            {
-                if (path.getNodeCount() > path.getNextNodeIndex())
-                {
-                    return true;
-                }
-                return path.getNodeCount() == 0;
-            }
-            else
-            {
-                return true;
-            }
+            stuckAtNode = -1;
+            stuckAtPos = null;
+            stuckChecks = 0;
+            return false;
         }
-        return false;
+
+        final Path path = worker.getNavigation().getPath();
+        if (path == null || path.getNodeCount() == 0)
+        {
+            // Navigating with nothing to follow.
+            return true;
+        }
+
+        // This used to answer "nodeCount > nextNodeIndex", which is the plain negation of Path#isDone(): it was true
+        // for every step of every journey, so tryUnstuck() -- "break the leaves in front of you" -- ran the whole way
+        // to work and the lumberjack ate other people's foliage on the way there. Ask instead whether he has stopped
+        // making progress: neither the node he is heading for nor the block he stands in has changed since the last
+        // look, twice running.
+        final BlockPos current = worker.blockPosition();
+        if (path.getNextNodeIndex() != stuckAtNode || !current.equals(stuckAtPos))
+        {
+            stuckAtNode = path.getNextNodeIndex();
+            stuckAtPos = current;
+            stuckChecks = 0;
+            return false;
+        }
+
+        stuckChecks++;
+        return stuckChecks >= STUCK_CHECKS_BEFORE_UNSTUCK;
     }
 
     /**
@@ -873,6 +918,15 @@ public class EntityAIWorkLumberjack extends AbstractEntityAICrafting<JobLumberja
         {
             checkAndTransferFromHut(job.getTree().getSapling());
             checkedInHut = true;
+
+            // He has now looked in his own hut and found nothing. Nobody was ever asking for saplings on his behalf:
+            // with the hut's defoliate setting off he breaks no leaves at all and so gains almost none, and the ones
+            // a felled tree drops of its own accord land minutes after he has walked away. So he simply stopped
+            // replanting, silently. Ask the colony for some instead.
+            if (findSaplingSlot() == -1 && !ItemStackUtils.isEmpty(job.getTree().getSapling()))
+            {
+                checkIfRequestForItemExistOrCreateAsync(job.getTree().getSapling().copyWithCount(1), SAPLINGS_TO_REQUEST, 1);
+            }
         }
 
         if (job.getTree().getStumpLocations().isEmpty() || timeWaited >= MAX_WAITING_TIME)
@@ -929,6 +983,13 @@ public class EntityAIWorkLumberjack extends AbstractEntityAICrafting<JobLumberja
         {
             final BlockPos pos = job.getTree().getStumpLocations().get(0);
             final ItemStack sapling = getInventory().getStackInSlot(saplingSlot);
+            if (ItemStackUtils.isEmpty(sapling))
+            {
+                // The last sapling of the stack went into the previous stump. The block used to be placed first and
+                // the stack checked afterwards, so the run that emptied the slot planted one more for free.
+                return;
+            }
+
             if (sapling.is(ConventionalItemTags.MUSHROOMS))
             {
                 building.addNetherTree(pos);
@@ -949,7 +1010,7 @@ public class EntityAIWorkLumberjack extends AbstractEntityAICrafting<JobLumberja
                 continue;
             }
             
-            if (world.setBlockAndUpdate(pos, block.defaultBlockState()) && !ItemStackUtils.isEmpty(getInventory().getStackInSlot(saplingSlot)))
+            if (world.setBlockAndUpdate(pos, block.defaultBlockState()))
             {
                 getInventory().extractItem(saplingSlot, 1, false);
                 job.getTree().removeStump(pos);

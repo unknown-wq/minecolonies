@@ -60,6 +60,12 @@ public class Blueprint implements IFakeLevelBlockGetter
     private static final String ENTITY_POS = "Pos";
 
     /**
+     * The answer for every blueprint position that carries no entity, which is nearly all of them. A
+     * zero-length array has nothing to write, so one shared instance is safe to hand out everywhere.
+     */
+    private static final CompoundTag[] NO_ENTITIES = new CompoundTag[0];
+
+    /**
      * Serialised id of {@link ModBlockEntities#TAG_SUBSTITUTION}, compared against the {@code id} of every block
      * entity tag the rotation loop walks.
      * <p>
@@ -580,7 +586,8 @@ public class Blueprint implements IFakeLevelBlockGetter
     {
         cacheBlockInfo = new ArrayList<>(getVolume());
         cacheBlockInfoMap = new HashMap<>(getVolume());
-        cacheEntitiesMap = new HashMap<>(getEntities().length);
+        cacheEntitiesMap = buildEntitiesByPos();
+
         for (short y = 0; y < this.sizeY; y++)
         {
             for (short z = 0; z < this.sizeZ; z++)
@@ -591,13 +598,65 @@ public class Blueprint implements IFakeLevelBlockGetter
                     final BlockInfo blockInfo = new BlockInfo(tempPos, palette.get(structure[y][z][x] & 0xFFFF), tileEntities[y][z][x]);
                     cacheBlockInfo.add(blockInfo);
                     cacheBlockInfoMap.put(tempPos, blockInfo);
-                    cacheEntitiesMap.put(tempPos,
-                        Arrays.stream(this.getEntities())
-                            .filter(data -> data != null && isAtPos(data, tempPos))
-                            .toArray(CompoundTag[]::new));
                 }
             }
         }
+    }
+
+    /**
+     * Bucket the entities by the blueprint position they sit at, in one pass over the entity array.
+     *
+     * <p>This used to happen inside the triple loop above: every one of the {@code sizeX * sizeY * sizeZ}
+     * positions ran a stream over the whole entity array, allocating a {@code BlockPos} per comparison
+     * (in {@code isAtPos}) and an array per position -- {@code volume * entities} comparisons and
+     * {@code volume} arrays, nearly all of them empty, to answer a question one pass over the entities
+     * answers. A 50x30x50 blueprint with 20 entities paid 1.5M throwaway {@code BlockPos} objects.</p>
+     *
+     * <p>The resulting map is <b>sparse</b>: it holds an entry only for positions that actually carry an
+     * entity, where the old one held an empty array for every position in the volume. The only reader,
+     * {@link #getBluePrintPositionInfo(BlockPos, boolean)}, already goes through {@code getOrDefault} and
+     * gets the same empty array back, so nothing in either tree can tell the difference -- and the map
+     * stops costing a {@code BlockPos} key, a hash node and an array per position of every loaded
+     * blueprint. Positions outside the blueprint are dropped, exactly as the old loop dropped them by
+     * never visiting them.</p>
+     *
+     * @return entity data grouped by blueprint-local position.
+     */
+    private Map<BlockPos, CompoundTag[]> buildEntitiesByPos()
+    {
+        final Map<BlockPos, List<CompoundTag>> byPos = new HashMap<>();
+        for (final CompoundTag data : this.getEntities())
+        {
+            if (data == null)
+            {
+                continue;
+            }
+            final BlockPos pos = posOf(data);
+            if (pos.getX() < 0 || pos.getX() >= this.sizeX
+                || pos.getY() < 0 || pos.getY() >= this.sizeY
+                || pos.getZ() < 0 || pos.getZ() >= this.sizeZ)
+            {
+                continue;
+            }
+            byPos.computeIfAbsent(pos, k -> new ArrayList<>(1)).add(data);
+        }
+
+        final Map<BlockPos, CompoundTag[]> result = new HashMap<>(byPos.size());
+        byPos.forEach((pos, list) -> result.put(pos, list.toArray(NO_ENTITIES)));
+        return result;
+    }
+
+    /**
+     * The blueprint position an entity's data sits at, read exactly the way the old per-position
+     * {@code isAtPos} check read it: three doubles truncated towards zero.
+     *
+     * @param entityData the data object.
+     * @return the position.
+     */
+    private static BlockPos posOf(final CompoundTag entityData)
+    {
+        final ListTag list = entityData.getListOrEmpty(ENTITY_POS);
+        return new BlockPos((int) list.getDoubleOr(0, 0), (int) list.getDoubleOr(1, 0), (int) list.getDoubleOr(2, 0));
     }
 
     /**
@@ -909,25 +968,12 @@ public class Blueprint implements IFakeLevelBlockGetter
      */
     public BlueprintPositionInfo getBluePrintPositionInfo(final BlockPos pos, final boolean includeEntities)
     {
+        // Both arms used to allocate their own empty array, on a method called once per iterated position --
+        // up to 10 000 per builder AI tick, plus one wasted allocation for the getOrDefault fallback that
+        // is never returned when the position does have entities.
         return new BlueprintPositionInfo(pos,
             getBlockInfoAsMap().get(pos),
-            includeEntities ? getCachedEntitiesAsMap().getOrDefault(pos, new CompoundTag[0]) : new CompoundTag[0]);
-    }
-
-    /**
-     * Check if an entityData object is at the local position.
-     * 
-     * @param entityData the data object to check.
-     * @param pos        the pos to check.
-     * @return true if so.
-     */
-    private static boolean isAtPos(final CompoundTag entityData, final BlockPos pos)
-    {
-        final ListTag list = entityData.getListOrEmpty(ENTITY_POS);
-        final int x = (int) list.getDoubleOr(0, 0);
-        final int y = (int) list.getDoubleOr(1, 0);
-        final int z = (int) list.getDoubleOr(2, 0);
-        return new BlockPos(x, y, z).equals(pos);
+            includeEntities ? getCachedEntitiesAsMap().getOrDefault(pos, NO_ENTITIES) : NO_ENTITIES);
     }
 
     /**

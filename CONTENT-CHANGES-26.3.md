@@ -8,6 +8,14 @@
 jar-ам обеих версий**, потому что патчноуты называют вещи по-человечески, а моду нужны
 идентификаторы. Где сверка разошлась со списком — это отмечено.
 
+> **Осторожно с деревом сверки.** `/opt/mc-src-26.3` — это **snapshot-9**
+> (`SharedConstants.WORLD_VERSION = 5011`), а мод собирается против **snapshot-10** (5015).
+> Часть имён между этими снапшотами переехала, и первая редакция файла унаследовала имена
+> snapshot-9 — см. §2, §4 и §5. Перепроверено по байткоду, который резолвит сборка:
+> `~/.gradle/caches/fabric-loom/26.3-snapshot-10/minecraft-merged.jar`. Любой вопрос
+> «существует ли и с какой сигнатурой» решать `unzip -l`/`javap -p` по этому jar-у, а дерево
+> snapshot-9 использовать только для чтения логики.
+
 ---
 
 ## 1. Соломенная кровать — и почему она молчаливо сломает расселение ⬜
@@ -62,8 +70,12 @@ POPLAR_PRESSURE_PLATE POPLAR_SIGN              POPLAR_WALL_SIGN
 POPLAR_HANGING_SIGN   POPLAR_WALL_HANGING_SIGN POPLAR_SHELF      POPLAR_SAPLING
 ```
 
-**Листьев не три, а четыре блока:** `POPLAR_LEAVES`, `ORANGE_POPLAR_LEAVES`,
-`RED_POPLAR_LEAVES`, `YELLOW_POPLAR_LEAVES`. Плюс отдельный `POPLAR_LEAVES_AMBIENT`.
+**Листьев ровно три блока:** `ORANGE_POPLAR_LEAVES`, `RED_POPLAR_LEAVES`,
+`YELLOW_POPLAR_LEAVES` — бесцветного `POPLAR_LEAVES` в `Blocks` нет ни в snapshot-9, ни в
+snapshot-10 (проверено `javap` по `Blocks` и по `BlockItemIds`: три поля, три id). Первая
+редакция насчитала четыре и заодно записала в блоки `POPLAR_LEAVES_AMBIENT` — это не блок, а
+звук, `SoundEvents.POPLAR_LEAVES_AMBIENT`, который вешается на все три вида листьев через
+`AmbientLeavesBlockSoundPlayer` и тег `BlockTags.REQUIRED_FOR_POPLAR_LEAF_AMBIENCE`.
 
 **`POPLAR_SHELF`** — в патчноутах его не было, и это не тополиная особенность: полки
 (`*_SHELF`) появились у всех пород дерева, включая `OAK_SHELF`, `BAMBOO_SHELF` и остальные.
@@ -74,8 +86,8 @@ POPLAR_HANGING_SIGN   POPLAR_WALL_HANGING_SIGN POPLAR_SHELF      POPLAR_SAPLING
 * **Лесоруб — бесплатно на уровне тегов.** Мод ищет древесину через `BlockTags.LOGS` /
   `ItemTags.LOGS`, а не по списку пород (единственный хардкод — `Items.OAK_LOG` в
   `DefaultMechanicCraftingProvider:45`, и он про конкретный рецепт, не про распознавание).
-  Тополь попадёт в теги ванилью. **Но** алгоритм обхода дерева у лесоруба свой, и четыре
-  вида листьев на одной кроне он раньше не встречал — проверить, что срубание считает
+  Тополь попадёт в теги ванилью. **Но** алгоритм обхода дерева у лесоруба свой, и три
+  разных вида листьев на одной кроне он раньше не встречал — проверить, что срубание считает
   крону целиком. ⬜
 * **Лесопилка — руками.** `DefaultSawmillCraftingProvider` перечисляет рецепты; тополь
   туда надо добавить явно, вместе с новыми `SHELF` у всех пород. ⬜
@@ -152,8 +164,17 @@ public static final ColorCollection<Block> WOOL_STAIRS;
 
 * **`DensityFunction` переехал и сменил точность.** Проверено:
   `net.minecraft.world.level.levelgen.DensityFunction` →
-  `net.minecraft.world.level.levelgen.densityfunction.DensityFunction`, и
-  `double compute(...)` → **`float compute(...)`**. Патчноуты про single-precision верны.
+  `net.minecraft.world.level.levelgen.densityfunction.DensityFunction`. Патчноуты про
+  single-precision верны.
+
+  **Поправка по snapshot-10.** Первая редакция писала «`double compute(...)` →
+  `float compute(...)`» — это состояние snapshot-9. В snapshot-10 метода `compute` у
+  `DensityFunction` нет вообще, как нет и `DensityFunction.FunctionContext`: функция теперь
+  сначала компилируется — `compileSampler(DensityFunction.CompileContext)` → `DensitySampler` —
+  и уже сэмплер считает, либо поточечно `float sampleValue(SamplerContext, int, int, int)`,
+  либо пачкой `void sampleVolume(SamplerContext, DensityBuffer, DensityVolume)`. Точность
+  осталась одинарной; изменилась именно форма вычисления. Проверено `javap -p` по
+  snapshot-10 jar-у.
 * **Захардкоженные feature types убраны в пользу конфигурируемых.**
 
 **Мод генерацией не пользуется вообще:** grep по `26.2/src/main/java` даёт **0** попаданий
@@ -170,16 +191,31 @@ public static final ColorCollection<Block> WOOL_STAIRS;
 Подтверждено: вместо переименованного `filled_map` теперь самостоятельные предметы, и их много:
 
 ```
-ABANDONED_CAMP_MAP      BURIED_ANCIENT_CITY_MAP  BURIED_MINESHAFT_MAP
-BURIED_TREASURE_MAP     DESERT_PYRAMID_MAP       DESERT_VILLAGE_MAP
-JUNGLE_EXPLORER_MAP     OCEAN_EXPLORER_MAP       PLAINS_VILLAGE_MAP
-SAVANNA_VILLAGE_MAP     SNOWY_VILLAGE_MAP        SWAMP_EXPLORER_MAP
-TAIGA_VILLAGE_MAP       TRIAL_EXPLORER_MAP       WARM_OCEAN_RUINS_MAP
-WOODLAND_EXPLORER_MAP
+ABANDONED_CAMP_MAP         BURIED_ANCIENT_CITY_MAP    BURIED_MINESHAFT_MAP
+BURIED_TREASURE_MAP        BURIED_TRIAL_CHAMBERS_MAP  DESERT_PYRAMID_MAP
+DESERT_VILLAGE_MAP         JUNGLE_PYRAMID_MAP         OCEAN_MONUMENT_MAP
+PLAINS_VILLAGE_MAP         SAVANNA_VILLAGE_MAP        SNOWY_VILLAGE_MAP
+SWAMP_HUT_MAP              TAIGA_VILLAGE_MAP          WARM_OCEAN_RUINS_MAP
+WOODLAND_MANSION_MAP
 ```
 
+**Пять имён в первой редакции были из snapshot-9 — snapshot-10 их переименовал.** Карта
+теперь называется по тому, что на ней, а не «карта исследователя»:
+
+| snapshot-9 | snapshot-10 | id для датапаков |
+|---|---|---|
+| `JUNGLE_EXPLORER_MAP` | `JUNGLE_PYRAMID_MAP` | `jungle_pyramid_map` |
+| `OCEAN_EXPLORER_MAP` | `OCEAN_MONUMENT_MAP` | `ocean_monument_map` |
+| `SWAMP_EXPLORER_MAP` | `SWAMP_HUT_MAP` | `swamp_hut_map` |
+| `TRIAL_EXPLORER_MAP` | `BURIED_TRIAL_CHAMBERS_MAP` | `buried_trial_chambers_map` |
+| `WOODLAND_EXPLORER_MAP` | `WOODLAND_MANSION_MAP` | `woodland_mansion_map` |
+
+Остальные одиннадцать имён совпадают в обоих снапшотах. Проверено `javap -p` по
+`Items`/`BlockItemIds` и по строкам id в `references.ItemIds` snapshot-10 jar-а. Кода мода это
+не касается — он не упоминает ни одного из этих предметов, только `FILLED_MAP`.
+
 `FILLED_MAP` при этом остался. Зум работает только для тега `ItemTags.EXTENDABLE_MAPS`
-(`ItemTags.java:164`, подтверждено).
+(`ItemTags.java:164`, подтверждено — тег есть и в snapshot-10).
 
 Что проверить в моде:
 

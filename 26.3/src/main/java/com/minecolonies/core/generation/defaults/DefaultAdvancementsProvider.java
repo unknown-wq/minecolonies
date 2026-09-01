@@ -386,6 +386,14 @@ public class DefaultAdvancementsProvider extends FabricAdvancementProvider
             .addCriterion("enchanter", completeBuildRequest(ModBuildings.enchanter.get(), 1))
             .save(consumer, Identifier.fromNamespaceAndPath(MOD_ID, GROUP + "build_enchanter"));
 
+        // Hangs off the enchanter: the alchemist hut is unlocked by technology/alchemist, whose branch starts at
+        // technology/morescrolls and so needs a level 3 enchanter before it can be researched at all.
+        final AdvancementHolder buildAlchemist = Advancement.Builder.advancement()
+            .parent(buildEnchanter)
+            .display(make(AdvancementType.TASK, ModBlocks.blockHutAlchemist, "build.alchemist"))
+            .addCriterion("alchemist", completeBuildRequest(ModBuildings.alchemist.get(), 1))
+            .save(consumer, Identifier.fromNamespaceAndPath(MOD_ID, GROUP + "build_alchemist"));
+
         // --- crafting ---
 
         final AdvancementHolder buildSawmill = Advancement.Builder.advancement()

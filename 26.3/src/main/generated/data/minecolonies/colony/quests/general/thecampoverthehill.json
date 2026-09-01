@@ -1,0 +1,141 @@
+{
+  "max-occurrences": 1,
+  "name": "minecolonies.quests.general.thecampoverthehill",
+  "objectives": [
+    {
+      "type": "minecolonies:dialogue",
+      "options": [
+        {
+          "answer": "minecolonies.quests.general.thecampoverthehill.obj0.answer0",
+          "result": {
+            "type": "minecolonies:dialogue",
+            "options": [
+              {
+                "answer": "minecolonies.quests.general.thecampoverthehill.obj0.answer0.reply.answer0",
+                "result": {
+                  "type": "minecolonies:advanceobjective",
+                  "go-to": 1
+                }
+              }
+            ],
+            "text": "minecolonies.quests.general.thecampoverthehill.obj0.answer0.reply"
+          }
+        },
+        {
+          "answer": "minecolonies.quests.general.thecampoverthehill.obj0.answer1",
+          "result": {
+            "type": "minecolonies:return"
+          }
+        }
+      ],
+      "target": 0,
+      "text": "minecolonies.quests.general.thecampoverthehill.obj0"
+    },
+    {
+      "type": "minecolonies:raidercamp",
+      "details": {
+        "entity-type": "minecolonies:campbarbarian",
+        "max-range": 220,
+        "min-range": 120,
+        "next-objective": 2,
+        "qty": 8,
+        "structure": "minecolonies:camps/small_barbarian_camp",
+        "target": 0
+      }
+    },
+    {
+      "type": "minecolonies:breakblock",
+      "details": {
+        "block": "minecraft:spawner",
+        "next-objective": 3,
+        "qty": 5,
+        "target": 0
+      }
+    },
+    {
+      "type": "minecolonies:dialogue",
+      "options": [
+        {
+          "answer": "minecolonies.quests.general.thecampoverthehill.obj3.answer0",
+          "result": {
+            "type": "minecolonies:advanceobjective",
+            "go-to": 4
+          }
+        }
+      ],
+      "target": 0,
+      "text": "minecolonies.quests.general.thecampoverthehill.obj3",
+      "unlocks-rewards": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ],
+  "parents": [],
+  "rewards": [
+    {
+      "type": "minecolonies:raid",
+      "details": {
+        "change": -6
+      }
+    },
+    {
+      "type": "minecolonies:item",
+      "details": {
+        "item": {
+          "count": 2,
+          "id": "minecolonies:ancienttome"
+        }
+      }
+    },
+    {
+      "type": "minecolonies:item",
+      "details": {
+        "item": {
+          "count": 16,
+          "id": "minecraft:iron_ingot"
+        }
+      }
+    },
+    {
+      "type": "minecolonies:happiness",
+      "details": {
+        "days": 14,
+        "qty": 2,
+        "target": 0
+      }
+    },
+    {
+      "type": "minecolonies:questreputation",
+      "details": {
+        "qty": 1.0
+      }
+    }
+  ],
+  "triggerOrder": "1 && 2",
+  "triggers": [
+    {
+      "type": "minecolonies:state",
+      "state": {
+        "match": {
+          "type": "minecolonies:guardtower",
+          "level": 2
+        },
+        "path": "buildingManager/buildings"
+      }
+    },
+    {
+      "type": "minecolonies:citizen",
+      "state": {
+        "match": {
+          "job": {
+            "type": "minecolonies:knight"
+          }
+        }
+      }
+    }
+  ]
+}

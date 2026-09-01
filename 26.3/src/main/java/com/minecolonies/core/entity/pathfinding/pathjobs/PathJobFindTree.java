@@ -129,6 +129,11 @@ public class PathJobFindTree extends AbstractPathJob implements ISearchPathJob
         return (TreePathResult) super.getResult();
     }
 
+    /**
+     * The tree found next to the node currently being tested, published to the result only once that node is accepted.
+     */
+    private BlockPos candidateTree;
+
     @Override
     protected double computeHeuristic(final int x, final int y, final int z)
     {
@@ -143,9 +148,21 @@ public class PathJobFindTree extends AbstractPathJob implements ISearchPathJob
             return false;
         }
 
-        return n.parent != null && isNearTree(n)
-                 && SurfaceType.getSurfaceType(world, cachedBlockLookup.getBlockState(n.x, n.y - 1, n.z), tempWorldPos.set(n.x, n.y - 1, n.z), getPathingOptions())
-                      == SurfaceType.WALKABLE;
+        // isTree() used to publish its find straight into the result, so a node that was near a tree but failed the
+        // surface check below still overwrote treeLocation. The lumberjack was then sent to a tree the path does not
+        // end at -- whichever candidate happened to be examined last. Hold the find until the node is accepted.
+        candidateTree = null;
+        final boolean atDestination = n.parent != null && isNearTree(n)
+                                        && SurfaceType.getSurfaceType(world,
+          cachedBlockLookup.getBlockState(n.x, n.y - 1, n.z),
+          tempWorldPos.set(n.x, n.y - 1, n.z),
+          getPathingOptions()) == SurfaceType.WALKABLE;
+
+        if (atDestination && candidateTree != null)
+        {
+            getResult().treeLocation = candidateTree;
+        }
+        return atDestination;
     }
 
     private boolean isNearTree(@NotNull final MNode n)
@@ -172,7 +189,7 @@ public class PathJobFindTree extends AbstractPathJob implements ISearchPathJob
     {
         if (Tree.checkTree(world, pos, excludedTrees, dyntreesize) && Tree.checkIfInColony(pos, colony, world, restrictionBox != null))
         {
-            getResult().treeLocation = pos.immutable();
+            candidateTree = pos.immutable();
             return true;
         }
 

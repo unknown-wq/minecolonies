@@ -8,7 +8,6 @@ import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.ITickRat
 import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickingTransition;
 import com.minecolonies.core.MineColonies;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Enemy;
@@ -17,8 +16,9 @@ import net.fabricmc.fabric.api.entity.FakePlayer;
 
 import java.util.List;
 
+import com.minecolonies.api.util.constant.GuardConstants;
+
 import static com.minecolonies.api.util.constant.GuardConstants.DEFAULT_VISION;
-import static com.minecolonies.api.util.constant.GuardConstants.Y_VISION;
 
 /**
  * Target search AI
@@ -36,11 +36,33 @@ public class TargetAI<T extends Mob & IThreatTableEntity> implements IStateAI
     protected LivingEntity target;
 
     /**
-     * Which of the four horizontal directions {@link #getSearchArea()} will stretch the search box towards next.
-     * Advanced once per scan so the four are covered in turn. Seeded at random so guards standing next to each
-     * other do not all sweep in lockstep.
+     * Scan counter for {@link #getSearchArea()}: every {@link #FULL_SCAN_EVERY}-th scan covers the fighter's whole
+     * {@link #getSearchRange()}, the ones between only the near cube. Seeded at random so fighters standing next to
+     * each other do not all pay for their full-range scan on the same tick.
      */
-    private int searchDirectionIndex = -1;
+    private int scanCounter = -1;
+
+    /**
+     * Every this-many scans the search box covers {@link #getSearchRange()} in every horizontal direction at once;
+     * the scans in between cover only the near cube of {@link GuardConstants#DEFAULT_VISION}. With
+     * {@link #SCAN_INTERVAL} at 20 ticks this lands the full-range sweep on the 80 tick cadence the whole scan used
+     * to run at, so the big box costs what it always cost -- what the near scans add is a small fixed box, and what
+     * they buy is that an enemy walking up to the fighter is seen within a second instead of within sixteen.
+     */
+    private static final int FULL_SCAN_EVERY = 4;
+
+    /**
+     * Ticks between target scans.
+     * <p>
+     * This used to be 80, passed in by {@link AttackMoveAI}, and 80 ticks was the whole of the asymmetry the player
+     * sees between his guards and vanilla monsters: a vanilla {@code NearestAttackableTargetGoal} rolls a 1-in-10
+     * every other tick and sweeps its entire follow range as a full cube, so a creeper acquires a citizen in about
+     * half a second, while the citizen's guard scanned one direction once every four seconds. 20 is not vanilla's
+     * half second, deliberately: a colony fields dozens of these fighters at once where vanilla prices its goal per
+     * lone monster, and the response to being hit is not gated on this number anyway -- the threat table transition
+     * above runs every 5 ticks. What this bounds is how long an unprovoked enemy stays unseen.
+     */
+    public static final int SCAN_INTERVAL = 20;
 
     /**
      * Constructor method for AI
@@ -222,30 +244,21 @@ public class TargetAI<T extends Mob & IThreatTableEntity> implements IStateAI
      */
     protected AABB getSearchArea()
     {
-        final BlockPos raiderPos = user.blockPosition();
-        // Upstream picked one of the four horizontal directions at random per scan and only stretched the box that
-        // way. With a scan every 80 ticks that gives no upper bound on how long a raider can stand behind a guard
-        // unnoticed — four heads in a row is 16 seconds, and "never" has non-zero probability. Cycling through the
-        // four instead costs exactly the same (one box, one getEntitiesOfClass) and caps the worst case at four
-        // scans. The starting index is still random, so neighbouring guards stay out of phase.
-        if (searchDirectionIndex < 0)
+        // Two tiers instead of the old rotating arm. Upstream stretched the box towards one horizontal direction
+        // per scan (originally a random one, then cycled), which meant the *shape* of what a fighter could see
+        // depended on the phase of its scan counter: an enemy standing still behind it was invisible for up to
+        // three scans in a row. The full box is now swept in one piece, every FULL_SCAN_EVERY-th scan, and the
+        // scans between cover the near cube on all sides -- a smaller box than any the arm ever made, so the added
+        // per-scan cost is bounded by the cheap tier, and no direction is ever blind.
+        if (scanCounter < 0)
         {
-            searchDirectionIndex = user.getRandom().nextInt(4);
+            scanCounter = user.getRandom().nextInt(FULL_SCAN_EVERY);
         }
-        else
-        {
-            searchDirectionIndex = (searchDirectionIndex + 1) % 4;
-        }
-        final Direction randomDirection = Direction.from3DDataValue(searchDirectionIndex + 2);
-        final int searchRange = getSearchRange();
-        final double x1 = raiderPos.getX() + (Math.max(searchRange * randomDirection.getStepX() + DEFAULT_VISION, DEFAULT_VISION));
-        final double x2 = raiderPos.getX() + (Math.min(searchRange * randomDirection.getStepX() - DEFAULT_VISION, -DEFAULT_VISION));
-        final double y1 = raiderPos.getY() + (getYSearchRange());
-        final double y2 = raiderPos.getY() - (getYSearchRange());
-        final double z1 = raiderPos.getZ() + (Math.max(searchRange * randomDirection.getStepZ() + DEFAULT_VISION, DEFAULT_VISION));
-        final double z2 = raiderPos.getZ() + (Math.min(searchRange * randomDirection.getStepZ() - DEFAULT_VISION, -DEFAULT_VISION));
+        scanCounter = (scanCounter + 1) % FULL_SCAN_EVERY;
 
-        return new AABB(x1, y1, z1, x2, y2, z2);
+        final int horizontal = scanCounter == 0 ? Math.max(getSearchRange(), DEFAULT_VISION) : DEFAULT_VISION;
+        final BlockPos pos = user.blockPosition();
+        return new AABB(pos).inflate(horizontal, getYSearchRange(), horizontal);
     }
 
     /**

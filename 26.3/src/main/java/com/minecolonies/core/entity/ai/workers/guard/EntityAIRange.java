@@ -1,5 +1,6 @@
 package com.minecolonies.core.entity.ai.workers.guard;
 
+import com.minecolonies.api.equipment.ModEquipmentTypes;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.core.colony.buildings.AbstractBuildingGuards;
@@ -42,12 +43,30 @@ public class EntityAIRange extends AbstractEntityAIGuard<JobRanger, AbstractBuil
         worker.setRenderMetadata(renderMeta);
     }
 
+    /**
+     * Whether this guard has to leave the hut carrying arrows.
+     * <p>
+     * For the archer that has always been a research question: his bow needs no ammunition, and
+     * {@code ARCHER_USE_ARROWS} is what turns an arrow in his pack into two points of damage, so before the research
+     * there was nothing to fetch. A crossbow does not ask. Loading it is what puts a bolt in it, and a marksman with
+     * an empty pack loads the issue bolt vanilla hands an empty-quivered mob -- he still shoots, but he is firing
+     * the colony's charity rather than its fletcher's work, and never collects the bonus either. So he stocks up
+     * whether or not the research is in.
+     *
+     * @return true if the guard should collect and request arrows at his hut.
+     */
+    private boolean needsArrows()
+    {
+        return job.getEquipmentType() == ModEquipmentTypes.crossbow.get()
+                 || worker.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(ARCHER_USE_ARROWS) > 0;
+    }
+
     @Override
     protected void atBuildingActions()
     {
         super.atBuildingActions();
 
-        if (worker.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(ARCHER_USE_ARROWS) > 0)
+        if (needsArrows())
         {
             // Pickup arrows and request arrows
             InventoryUtils.transferXOfFirstSlotInProviderWithIntoNextFreeSlotInItemHandler(building,

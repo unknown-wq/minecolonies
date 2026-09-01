@@ -46,11 +46,17 @@ public final class IOPool
      *
      * @return the threadpool executor.
      */
-    public static ThreadPoolExecutor getExecutor()
+    public static synchronized ThreadPoolExecutor getExecutor()
     {
         if (executor == null)
         {
-            executor = new ThreadPoolExecutor(1, 2, 10, TimeUnit.SECONDS, ioQueue, new StructurizeThreadFactory());
+            // Core size 2, not 1. A ThreadPoolExecutor only starts a thread beyond corePoolSize when the
+            // queue refuses an offer, and ioQueue is an unbounded LinkedBlockingDeque, which never does --
+            // so with a core of 1 the maximumPoolSize of 2 was unreachable and every blueprint load in the
+            // game queued behind a single thread. allowCoreThreadTimeOut keeps the old idle behaviour: both
+            // threads still retire after the same 10 seconds without work.
+            executor = new ThreadPoolExecutor(2, 2, 10, TimeUnit.SECONDS, ioQueue, new StructurizeThreadFactory());
+            executor.allowCoreThreadTimeOut(true);
         }
         return executor;
     }
@@ -58,7 +64,7 @@ public final class IOPool
     /**
      * Stops all running threads in this thread pool
      */
-    public static void shutdown()
+    public static synchronized void shutdown()
     {
         getExecutor().shutdownNow();
         ioQueue.clear();

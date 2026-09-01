@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Boot a dedicated Fabric server for 26.3-snapshot-9 with the given mod jars and say
-# whether it came up clean.
+# Boot a dedicated Fabric server for the Minecraft version 26.3/gradle.properties pins, with the
+# given mod jars, and say whether it came up clean.
 #
 #   tools/run-server.sh <mod.jar> [more.jar ...]
 #   tools/run-server.sh libs/blockui/26.3/build/libs/blockui-0.0.1.jar
@@ -17,14 +17,25 @@
 # The run directory is scratch, outside the repository, one per invocation set:
 #   ${MC_SERVER_DIR:-/tmp/mc-server-26.3}
 # Delete it to start from a fresh world.
+#
+# Worldgen, in rising order of what it proves and what it costs:
+#   (default)          minecraft:flat -- generates instantly, exercises no worldgen code
+#   MC_LEVEL_TYPE=minecraft:normal    -- a real world, terrain and all
+#   MC_FLAT_NOISE=1                   -- a real world with the surface flattened to one height
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUN="${MC_SERVER_DIR:-/tmp/mc-server-26.3}"
-MCVER=26.3-snapshot-9
-LOADER=0.19.3
+# Read straight out of the build's own pins, so bumping a snapshot in gradle.properties does not
+# leave the boot harness testing the previous one.
+prop() { sed -n "s/^$1=//p" "$REPO/26.3/gradle.properties" | head -1; }
+MCVER="$(prop minecraft_version)"
+LOADER="$(prop loader_version)"
+FABRIC_API_VERSION="$(prop fabric_version)"
 INSTALLER=1.1.2
-FABRIC_API="$REPO/.cache/fabric-api-0.158.0+26.3.jar"
+FABRIC_API="$REPO/.cache/fabric-api-$FABRIC_API_VERSION.jar"
+[ -n "$MCVER" ] && [ -n "$LOADER" ] && [ -n "$FABRIC_API_VERSION" ] || {
+	echo "could not read the version pins out of 26.3/gradle.properties" >&2; exit 1; }
 BOOT_TIMEOUT="${BOOT_TIMEOUT:-300}"
 
 if [ "$#" -lt 1 ]; then
@@ -50,8 +61,9 @@ if [ ! -f "$RUN/fabric-server-launch.jar" ]; then
 fi
 if [ ! -f "$FABRIC_API" ]; then
 	echo "[server] fetching fabric-api"
+	encoded="${FABRIC_API_VERSION/+/%2B}"
 	curl -sSL -o "$FABRIC_API" \
-		"https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/0.158.0%2B26.3/fabric-api-0.158.0%2B26.3.jar"
+		"https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/$encoded/fabric-api-$encoded.jar"
 fi
 
 # --- mods ----------------------------------------------------------------------------
@@ -79,9 +91,65 @@ echo "eula=true" > "$RUN/eula.txt"
 # not one. Pair MC_SERVER_PORT with MC_SERVER_DIR so the runs do not share a directory either.
 PORT="${MC_SERVER_PORT:-25565}"
 
+# Flat by default because it generates in a second and most boot tests do not care what the
+# ground is made of. It is not free, though: a flat world uses FlatLevelSource, and whole code
+# paths that only exist for noise worlds -- surface rules, NoiseChunk, WorldGenRegion -- are
+# never entered. A crash living in one of those survives every green boot here. Set
+# MC_LEVEL_TYPE=minecraft:normal to generate a real world when the thing under test reads
+# worldgen.
+LEVEL_TYPE="${MC_LEVEL_TYPE:-minecraft\\:flat}"
+LEVEL=boottest
+
+# MC_FLAT_NOISE=1 is the third option, and the one to use for anything about a colony rather
+# than about booting: a real noise world -- caves, ore, aquifers, lava, structures, biomes --
+# whose surface has been flattened to one height by tools/flat-noise. A colony needs ground to
+# build on and a world it can be finished in, and neither a flat world nor a normal one gives
+# both. Measured over 361 generated chunks: 80-86% of columns top out at y=66, 5.5% of the volume
+# below y=48 is cave, coal, copper, iron, gold, redstone, lapis and diamond all generate, the lava
+# sea sits at y=-56 and rivers run at y=52 with water up to 62. Details in tools/flat-noise.
+#
+# The biome is the only thing left varying, so the seed matters more than usual -- on a snowy seed
+# the rivers freeze and a fisherman cannot fish through ice. MC_LEVEL_SEED pins it.
+FLAT_NOISE="${MC_FLAT_NOISE:-0}"
+if [ "$FLAT_NOISE" = 1 ]; then
+	LEVEL_TYPE=minecraft:normal
+	MODE=flatnoise
+else
+	MODE="$LEVEL_TYPE"
+fi
+
+# Worldgen settings only apply to chunks generated under them, so a world left over from a run
+# in a different mode would silently answer with the old terrain. Cheaper to notice here than
+# in the results.
+if [ -d "$RUN/$LEVEL" ] && [ "$(cat "$RUN/$LEVEL/.worldgen-mode" 2>/dev/null)" != "$MODE" ]; then
+	echo "[server] world was generated in a different mode -- regenerating $RUN/$LEVEL"
+	rm -rf "${RUN:?}/$LEVEL"
+fi
+mkdir -p "$RUN/$LEVEL"
+echo "$MODE" > "$RUN/$LEVEL/.worldgen-mode"
+
+rm -rf "$RUN/$LEVEL/datapacks/flat-noise"
+if [ "$FLAT_NOISE" = 1 ]; then
+	mkdir -p "$RUN/$LEVEL/datapacks"
+	cp -r "$REPO/tools/flat-noise" "$RUN/$LEVEL/datapacks/flat-noise"
+	echo "[server] worldgen: noise world, surface flattened by tools/flat-noise"
+fi
+
+# The flat preset's codec wants an explicit "layers" list, and an empty generator-settings makes it
+# log "No key layers in MapLike[{}]" and fall back. Not new in snapshot 10 -- snapshot 9 runs printed
+# it too, and dist/README.md wrote it off as an artefact of the flat test world. It is cheap to stop
+# printing: write out the layers the default preset would have supplied.
+if [ "$LEVEL_TYPE" = "minecraft\\:flat" ]; then
+	GENERATOR_SETTINGS='{"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:dirt","height":2},{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}'
+else
+	GENERATOR_SETTINGS=
+fi
+
 cat > "$RUN/server.properties" <<PROPS
-level-type=minecraft\\:flat
-level-name=boottest
+level-type=$LEVEL_TYPE
+generator-settings=$GENERATOR_SETTINGS
+level-name=$LEVEL
+level-seed=${MC_LEVEL_SEED:-}
 online-mode=false
 spawn-protection=0
 max-players=1

@@ -1,0 +1,73 @@
+{
+  "key.category.worldmap.general": "Карта мира",
+  "key.worldmap.open": "Открыть карту мира",
+
+  "gui.worldmap.title": "Карта мира",
+  "gui.worldmap.hint": "тянуть — двигать   колесо или +/- — масштаб   правый клик — меню   пробел — к игроку   esc — закрыть",
+  "gui.worldmap.scale": "%s блоков",
+  "gui.worldmap.not_paused": "это не одиночная игра — мир продолжает идти, пока карта открыта",
+
+  "gui.worldmap.menu.teleport_here": "Телепорт сюда",
+  "gui.worldmap.menu.teleport_to": "Телепорт в %s, %s, %s",
+  "gui.worldmap.menu.teleport_no_world": "нет мира",
+  "gui.worldmap.menu.teleport_guessed_height": "здесь ничего не разведано - высадит на высоте %s, возможно внутри породы",
+  "gui.worldmap.menu.teleport_no_permission": "сервер не дал вам /tp",
+  "gui.worldmap.menu.save_png": "Сохранить этот вид в PNG",
+  "gui.worldmap.menu.forget_colony": "Забыть %s",
+
+  "gui.worldmap.export.saved": "Карта мира записана в %s",
+  "gui.worldmap.export.trimmed": "Вид был шире %s блоков, поэтому снимок обрезан до этого размера по центру.",
+  "gui.worldmap.export.failed": "Не удалось записать карту: %s",
+
+  "gui.worldmap.layer.borders": "Границы ваших колоний",
+  "gui.worldmap.layer.other_colonies": "Чужие колонии",
+  "gui.worldmap.layer.buildings": "Хижины",
+  "gui.worldmap.layer.labels": "Названия колоний",
+  "gui.worldmap.layer.deaths": "Могилы",
+  "gui.worldmap.layer.waypoints": "Путевые точки",
+  "gui.worldmap.layer.raids": "Рейды",
+  "gui.worldmap.layer.fields": "Поля",
+  "gui.worldmap.layer.patrols": "Маршруты патрулей",
+  "gui.worldmap.layer.remembered": "Запомненные колонии",
+
+  "gui.worldmap.colony.level": "Уровень %s из %s",
+  "gui.worldmap.colony.building_in_progress": "строится",
+  "gui.worldmap.colony.no_worker": "работник не назначен",
+  "gui.worldmap.colony.grave": "Могила — %s",
+  "gui.worldmap.colony.waypoint": "Путевая точка — %s",
+
+  "gui.worldmap.colony.raid_tag": "[рейд]",
+  "gui.worldmap.colony.raider_spawn": "Место высадки рейдеров — %s, %s блоков к %s от центра",
+  "gui.worldmap.colony.raider_spawn_at_centre": "Место высадки рейдеров — %s, в самом центре колонии",
+  "gui.worldmap.colony.raider_spawn_live": "рейд идёт прямо сейчас",
+  "gui.worldmap.colony.raider_spawn_live_since": "рейд идёт прямо сейчас — начался %s назад",
+  "gui.worldmap.colony.raider_spawn_ago": "прошлый рейд — %s назад",
+  "gui.worldmap.colony.raider_spawn_note": "последнее записанное место высадки — даты у него нет, оно может быть старым",
+
+  "gui.worldmap.compass.n": "северу",
+  "gui.worldmap.compass.ne": "северо-востоку",
+  "gui.worldmap.compass.e": "востоку",
+  "gui.worldmap.compass.se": "юго-востоку",
+  "gui.worldmap.compass.s": "югу",
+  "gui.worldmap.compass.sw": "юго-западу",
+  "gui.worldmap.compass.w": "западу",
+  "gui.worldmap.compass.nw": "северо-западу",
+
+  "gui.worldmap.colony.field": "Поле",
+  "gui.worldmap.colony.field_worked": "обрабатывается",
+  "gui.worldmap.colony.field_unassigned": "работник не назначен",
+
+  "gui.worldmap.colony.remembered": "запомнена — в этой сессии вживую не видели",
+  "gui.worldmap.colony.last_seen": "видели %s назад",
+  "gui.worldmap.colony.last_seen_now": "видели только что",
+  "gui.worldmap.colony.last_seen_unknown": "когда видели: не записано",
+  "gui.worldmap.colony.forget_hint": "правый клик — забыть её",
+
+  "gui.worldmap.time.days": "%s д",
+  "gui.worldmap.time.hours": "%s ч",
+  "gui.worldmap.time.minutes": "%s мин",
+
+  "gui.worldmap.time.game_days": "%s игровых суток",
+  "gui.worldmap.time.game_hours": "%s игровых часов",
+  "gui.worldmap.time.game_minutes": "%s игровых минут"
+}

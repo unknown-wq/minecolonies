@@ -36,6 +36,12 @@ are my patrols and what are they doing", including the one that has ended up
 somewhere odd. Colonies with no barracks, or a barracks with the setting off, add
 nothing to the report and pay one string compare for it.
 
+A **Stable** set to the `Border Patrol` task appears in the same section, but per rider
+rather than per tower: a Stable is one building with a whole troop in it, so the report
+names each cavalryman, the arc of the line he holds, and where he is standing relative to
+it. Two riders sharing an arc is the failure that route is built to make impossible, and
+this is where you would see it.
+
 **Run it twice, a minute apart.** The mod does not record how long a citizen has
 been in an AI state anywhere, so the command remembers what it saw last time and
 compares. The first run prints `held=new` for everything.
@@ -86,6 +92,51 @@ Running `fill children` just does it immediately instead of within 25 seconds.
 
 They grow up normally, on the game's own child timer, so this is a slow-motion
 start and not a permanent kindergarten.
+
+### `/mc citizens hire <colony> <citizen> <pos> <job>` and `/mc citizens fire <colony> <citizen>`
+
+Puts one named citizen into one named job slot, and takes him out again.
+
+```
+/mc citizens fire 1 3                          #3 gives up whatever he holds
+/mc citizens hire 1 6 20 -60 0 marksman        #6 becomes the marksman of the tower at 20, -60, 0
+```
+
+**Every other way into a job goes through the hiring queue.** A hut's assignment
+module hires on the colony tick, out of the colony's jobless list, and only when
+the hut's hiring mode allows it and the module has room; the hut GUI's hire button
+is the same call reached through a packet, and needs a client. On a server with
+nobody connected there is no third way — so *which* of a guard tower's four jobs
+gets filled, knight, ranger, marksman or huscarl, is a coin toss on a colony tick,
+and a test that needs a **marksman** can only wait and hope. That is what this is
+for.
+
+It is the same assignment the GUI makes, with two gates opened around it:
+
+* **The citizen's current job is given up first.** A job refuses a module whose
+  job entry is not the one it already holds, so a knight can never become a ranger
+  through the ordinary path — the GUI never offers it one, because it only lists
+  jobless citizens. Here the old post is vacated and the new job is made fresh.
+* **The hiring mode is not consulted.** Automatic hiring is a policy for who the
+  colony picks on its own; an operator naming a citizen has already picked.
+
+**The slot count is not stepped over.** A guard tower holds one guard, and its
+four job modules share that one slot, so hiring a ranger into a tower that already
+has a knight is refused and the occupant named. Emptying it is a separate decision
+with its own command, and a hire that silently sacked somebody would be a poor
+thing to type by accident. `fire` is therefore usually the first half of moving a
+guard from one weapon to another.
+
+`<job>` is the job's registry path — `knight`, `ranger`, `marksman`, `huscarl`,
+`builder` and so on. Tab completion at that argument lists exactly the jobs the
+building at `<pos>` offers, because the position has already been parsed by then.
+
+A fired citizen keeps living in the colony and goes back on the jobless list,
+which is where automatic hiring draws from, so a colony left to itself will
+eventually re-employ him somewhere.
+
+Operator only. Unlike `buildnow` it does not need free mode: hiring is something a
+colony does anyway, and this only decides who and where.
 
 ### `/mc colony growChildren <colony>`
 
@@ -247,6 +298,33 @@ Calls the raids off: every unfinished raid event of the colony is finished, its
 raiders discarded and anything it built put back. It also sweeps 500 blocks around
 the colony for raiders that outlived their event, which is what a raid bar that
 never empties is made of.
+
+### `/mc colony camp <colony> [<min range> <max range>]`
+
+Puts a raider camp on the ground near a colony — the same camp world generation
+places, the same one the camp-clearing quests send you to, placed now instead of at
+world generation. Without a range it looks in a band 120 to 220 blocks from the
+colony centre; with two numbers it looks in the band you name.
+
+It either says where the camp went or says why it could not put one anywhere, and
+the second is the point of the command. The quest that places these camps cancels
+itself with a one-line apology when it cannot find a site, and this is how you find
+out what the site search actually objected to. The reasons are counted over 192
+candidate positions and reported together, for example
+`NO_SITE -- sloped 26, fluid 17, built_surface 149`:
+
+| reason | what it means |
+|---|---|
+| `unloaded` | the chunks are not loaded. The search never loads or generates a chunk itself, so a band nobody has been to has no sites in it by definition |
+| `claimed` | the ground belongs to a colony — this one or another |
+| `too_close_to_building` | inside the same minimum distances a raid uses to decide it is not spawning in your walls |
+| `sloped` | more than five blocks of height difference across the 27x26 footprint |
+| `fluid` | water or lava on the ground |
+| `built_surface` | the surface is not a material the search recognises as natural ground — planks, bricks, concrete, wool and everything else somebody lays a floor out of. It is deliberately conservative and will refuse ground it is not sure about |
+| `block_entity` | there is a chest, barrel, furnace, sign, bed, banner or hut block inside the footprint or within four blocks of it |
+
+The camp is **permanent**. Clearing it clears it: the spawners are ordinary vanilla
+blocks, the mobs are persistent, and nothing in the mod ever puts either back.
 
 ### `/mc boatspeed [blocks per second]`
 
@@ -946,10 +1024,17 @@ reports from the same place, so the two can never drift apart.
 How long path searches wait before anyone gets to them, how long they then take,
 and how many were never going to arrive.
 
-This answers "why do my workers stand about". The pathfinding pool is a **single
-thread** shared by every citizen, raider and animal in every colony on the
-server, so when it saturates, workers wait for a path they have already asked
-for — and that wait is invisible from inside the game without this.
+This answers "why do my workers stand about". The pathfinding pool is **one
+thread by default**, shared by every citizen, raider and animal in every colony
+on the server, so when it saturates, workers wait for a path they have already
+asked for — and that wait is invisible from inside the game without this.
+`/mc debug maxpool` below changes the size of that pool without a restart.
+
+While a pool that has just been replaced is still finishing its backlog, the
+report says so on a line of its own. The thread count and the backlog it prints
+are the live pool's own, so neither is inflated by the drain; the occupancy is
+the one number the drain makes approximate, because the searches in the window
+ran across a number of threads that was changing.
 
 Per-job measuring is off until `/mc pathstats on`, and switching it on clears the
 counters, so the window is always "since you asked". A lifetime average would
@@ -960,6 +1045,154 @@ Worker-side waiting — a citizen idling for want of a tool or a delivery — is
 deliberately *not* here. `/mc colony diagnose` already reports every worker's AI
 state and how long it has held it, which is the same question answered better,
 and collecting it twice would cost server-thread time every tick.
+
+### `/mc debug maxpool [<1-8>]`
+
+How many worker threads the pathfinding pool runs, changed on a live server. With
+no argument it reports the size, the backlog, and anything a previous switch has
+left unfinished.
+
+The counterpart of the `pathfindingthreads` config setting below, which is read
+only when a pool is built and therefore only takes effect on a restart. This is
+the same number, changed now — the knob to turn while watching `/mc pathstats`,
+which is the command that says whether the queue is your bottleneck in the first
+place. It is deliberately **not** written back to the config: what a server
+should come back up with is a separate decision from what it needs this minute.
+
+**A switch loses nothing.** A new pool of the size asked for is built and
+published first, so every search from that moment on goes to it; only then is the
+old pool told to shut down, which for a thread pool means "take nothing further,
+finish what is queued, then let the threads exit". Searches that were running go
+on running on the threads they started on, searches that were waiting are still
+taken by the workers that were going to take them, and nothing is cancelled,
+moved or submitted twice. The old pool disappears by itself once it is empty.
+That is true in both directions: dropping from four threads to one does not
+throw a four-thread backlog away.
+
+Because submissions and switches take the same lock, a search can never be handed
+to a pool that has already been shut down, which is the one way a switch could
+otherwise have thrown `RejectedExecutionException` out of an entity tick.
+
+Measured on a live server: fifteen switches in both directions under load, with
+15 to 18 searches in flight at each one; every replaced pool finished every job
+it held and then terminated, and the count of searches submitted matched the
+count completed plus the count cancelled by their own callers, exactly, at every
+observation.
+
+### `/mc debug headless [on|off]`
+
+Lets the colonies on this server run with nobody logged in to watch them. With no
+argument it reports whether the mode is on.
+
+**On an ordinary install this command does not exist.** The literal is added to
+the command tree only when the server JVM was started with
+`-Dminecolonies.headless=true`; without that property `/mc debug headless` is an
+unknown command, there is nothing to tab-complete, and the mode cannot be
+reached by any other route — there is no config key for it and no packet that
+sets it.
+
+#### What it changes
+
+`Colony#updateState` decides whether a colony ticks by asking whether anybody can
+see it: a close subscriber, or a loaded claim plus an important colony player.
+Those are two different questions — *should this colony run* and *is somebody
+looking at it* — and answering the first with the second is right for a server
+people play on and wrong for one nobody is logged into. There, every colony sits
+at `INACTIVE`: the work manager never runs, so a work order is never handed to a
+builder, and the force-load timer is never refreshed, so the ground the colony
+stands on stops ticking and its citizens stop existing.
+
+The mode answers the first question on its own merits. Three things follow from
+it, and nothing else does:
+
+* `updateState` returns `ACTIVE`, so the whole colony state machine runs — work
+  manager, citizen ticks, requests, raids, the slow tick;
+* `updateChunkLoadTimer` refreshes the force-load timer as an officer standing in
+  the colony would;
+* one chunk ticket per colony keeps its dimension awake.
+
+**Why the third.** A colony that ticks is no use in a level whose entities do
+not. `ServerLevel#tick` counts up an empty timer and, past 300 ticks, stops
+walking the entity tick list and the block entities altogether; the only things
+that reset it are a player and a chunk ticket whose type carries
+`TicketType.FLAG_KEEP_DIMENSION_ACTIVE` — vanilla's `FORCED`, the one
+`/forceload` registers, is such a type. The colony's own force-load tickets are
+loading-and-simulation only, so fifteen seconds after the last player leaves, a
+colony's citizens stand exactly where they were: the colony ticks, its chunks are
+held, and nothing in them moves. Measured on a dedicated server before this was
+added: 81 of 81 claimed chunks force-loaded and reported entity-ticking, four
+citizens spawned, a work order raised and claimed, and every citizen still at the
+same coordinates, to fifteen decimal places, four minutes later; a summoned arrow
+did not fall. So while the mode is on, one ticket carrying that flag is held per
+colony, registered with radius 0 — enough to load its own chunk and no more,
+because its whole purpose is the flag. It is given back the moment the mode goes
+off, and it is not a persistent ticket type, so it cannot survive a restart.
+
+The colony's own ticket type is deliberately left alone: giving it the flag would
+keep a dimension awake for every install that force-loads a colony, which is a
+change to make on its own merits and not as a side effect of this.
+
+**It is not a fake player.** The other way to reach `ACTIVE` is to hand the
+package manager a subscriber, and `ColonyPackageManager#addCloseSubscriber`
+refuses a `FakePlayer` for a good reason: a close subscriber is an address that
+colony view, permission and work-order packets are serialised and sent to on
+every update interval. A fake subscriber would mean re-serialising the whole
+colony several times a second into a connection that throws it away, and it would
+mean weakening a guard that protects every install in order to help the one case
+that wants this. Under headless mode the subscriber sets stay empty, every send
+path in `ColonyPackageManager` is already conditional on them, and **no packet is
+produced at all**.
+
+**It does not force-load anything by itself.** Refreshing the timer is what an
+officer's presence buys; which chunks a running timer then tickets is still
+decided by `colonyloadstrictness`, or by the whole claim where
+`forceloadallclaims` / `/mc colony forceloadclaims <colony> on` is on. A colony
+that would not have been force-loaded with a player standing in it is not
+force-loaded here either — so on a server with genuinely nobody in the world,
+**pair this with `/mc colony forceloadclaims <colony> on`** or the citizens will
+have nothing ticking under them. The command says so when you switch it on.
+
+#### The chain before any of this runs
+
+Five things, and a normal player does none of them:
+
+1. the mod is installed on a **dedicated** server — an integrated server
+   (singleplayer, or a world opened to LAN) is refused even with everything else
+   in place;
+2. the server JVM is started with **`-Dminecolonies.headless=true`**. It is read
+   once at class initialisation. There is no config key, no command and no packet
+   that can set it, and no launcher, modpack or host adds it on its own;
+3. the sender is an **operator** (`IMCOPCommand`, full command permissions);
+4. somebody runs **`/mc debug headless on`** explicitly. Off is the state the
+   server comes up in;
+5. and it lasts **only until the server stops**. Nothing about the mode is
+   written to a colony's NBT, to the server config, or to any other file.
+
+The last point is deliberate, and it is the point. A flag persisted in a colony's
+saved data would travel with a world backup into somebody else's server and
+quietly keep their colonies ticking, which is exactly the failure worth designing
+against; re-arming a test run costs one command.
+
+#### It says so
+
+A server in this mode is doing something no ordinary server does, so it is never
+quiet about it:
+
+* a `WARN` at startup whenever the JVM is armed, whether or not the mode is on,
+  so an operator who inherited a start script finds out from the log;
+* a `WARN` when the mode is switched, in either direction, and when the server
+  stops with it on;
+* a `WARN` repeated every ten minutes for as long as it is on;
+* a line at the top of `/mc colony diagnose <colony>`, because the mode changes
+  how every number under it should be read.
+
+#### What it is not for
+
+Every colony on the server ticks under it, and none of them will ever have been
+ticked by somebody looking at them, which is the state the mod's timings assume.
+It is a switch for a server being measured or driven from a console — with
+`/mc colony found`, `/mc colony hut` and the rest — not a way to keep a colony
+running while its owner is away.
 
 ### `/mc citizens info <colony> <citizen>` — the age line
 
@@ -1011,6 +1244,141 @@ the healthy case. The added line says which, and counts the homeless one by one
 rather than deriving them. A fourth line appears only when children are homeless
 too — that means their parents are, and it is the one case the birth rule cannot
 house a child.
+
+### `/mc colony found <name> [<pos>]`
+
+Founds an ordinary colony from the server console: places a town hall at the
+position given, or where the sender is, and builds the colony around it.
+
+There was no way to do this without a game client. Founding a colony goes through
+a player right-clicking a town hall with the build tool, and every step of that
+assumes a `ServerPlayer` — the message, the permission owner, the packet sent
+back. `territory create` below reaches the same save data from the console but
+deliberately makes a *hostile territory*, which has no town hall, no citizens and
+a tick path that does nothing but repaint a border.
+
+It runs the three steps `ColonyManager#createColony` runs, minus the player:
+create the colony in the world's save data, claim the usual square of chunks,
+register the town hall as the first building. The owner is left `[abandoned]`,
+as a territory's is, because there is nobody to be the owner. The colony is given
+the `Colonial` pack and the town hall its level 1 blueprint.
+
+It builds nothing — the town hall is placed at level 0 with a blueprint recorded
+but not raised, exactly as a freshly placed hut is.
+
+**A colony founded this way does not build on its own, and neither does one
+founded by a player who then logs off.** `Colony#updateState` only reaches
+`ACTIVE` while the colony has a subscriber, and a subscriber is a connected
+`ServerPlayer` — `ColonyPackageManager#addCloseSubscriber` refuses a Fabric
+`FakePlayer` outright. An `INACTIVE` colony runs no work manager, so a work order
+is never handed to a builder. Citizen entities in loaded chunks still tick and
+still walk, which is what makes this useful for pathfinding and AI load.
+
+For construction with no client attached, `/mc debug headless on` above is what
+lifts that — on a server started with `-Dminecolonies.headless=true`, and nowhere
+else.
+
+### `/mc colony hut <colony> "<hut block>" <pos> "<blueprint>" [<level>]`
+
+Adds a hut to a colony from the console, and with a level, asks for it to be
+built.
+
+```
+/mc colony hut 1 "minecolonies:blockhutbuilder" -20 67 0 "fundamentals/builder1.blueprint" 5
+```
+
+The companion to `found`, and it exists for the same reason: a hut becomes a
+building through `AbstractColonyBlock#setPlacedBy`, and `/setblock` does not call
+that, so a hut block dropped in by command is one the colony has never heard of.
+This gives the block entity the colony's pack and a blueprint inside it, then
+registers it.
+
+The blueprint path has to be given because nothing derives it: the Colonial pack
+calls the farmer's hut `farm1.blueprint`, not `farmer1.blueprint`, and a building
+with no path cannot have a work order made for it at all.
+
+The level argument goes through `requestUpgradeTo`, so **free mode must be on for
+the colony** — `/mc colony freemode <colony> on` — both for the direct jump to a
+level and for the materials.
+
+Run it twice over the same hut to lay a town out and then build it: the first hut
+of all is refused a work order, because the colony has no builder's hut within
+reach of the site yet. The second call finds the building already there and only
+files the order. `buildnow` below has no such gate, and is how the first hut of a
+console-raised colony gets built at all.
+
+### `/mc colony buildnow <colony> [order <id> | at <pos> [<level>]]`
+
+Finishes the colony's open work orders on the spot — no builder, no walking, no
+materials. A builder takes something like twenty minutes of server time to raise
+a level one hut, which is time every test that needs a *built* colony has to
+spend before it can begin.
+
+```
+/mc colony buildnow 1                              every open work order
+/mc colony buildnow 1 order 7                      just that one
+/mc colony buildnow 1 at 20 67 20                  that hut, one level up
+/mc colony buildnow 1 at 20 67 20 5                that hut, straight to level 5
+/mc colony buildnow 1 at 20 67 20 0                take that hut down
+/mc colony buildnow 1 at -50 67 -30                that decoration controller
+```
+
+**Operator, and free mode must be on for the colony.** Operator rights alone
+would be the wrong bar: free mode
+(`/mc colony freemode <colony> on`, above) is already the colony-wide "this
+colony is a test fixture, not an economy" switch — it is what the level argument
+on `hut` needs, and what conjures the materials a build would otherwise consume.
+Building for nothing is precisely a free-mode act, and requiring the switch means
+one mistyped colony id cannot flatten twenty minutes of somebody else's work on a
+server carrying real colonies.
+
+**It is the builder's own construction with the waiting taken out**, not a second
+one. The blocks go down through `PlaceStructureOperation` over
+`CreativeBuildingStructureHandler` — Structurize's instant-paste operation and
+MineColonies' own handler for it, the pair the build tool uses to paste a hut in
+creative — driven to the end of its last phase instead of one tick's worth per
+tick, so the whole structure is standing when the command returns. A `REMOVE`
+order runs the two removal stages of `AbstractEntityAIStructure` instead, with
+the builder's own `skipRemoval` deciding what is left standing (the hut block
+and anything else `IBuilderUndestroyable` stays, as it does for a builder).
+
+Closing the order is the other half, and it goes through the same calls
+`AbstractBuildingStructureBuilder#complete` makes: the decoration controllers get
+their schematic data, the order leaves the work manager — which unassigns
+whichever builder had claimed it and stops its AI mid-order — the construction
+tape comes down, the colony statistics and the event log are written, and
+`BuildingConstructionModEvent` is posted. The building's level rides in on the
+anchor's schematic data exactly as it does for a builder, and is set by hand if
+the blueprint did not carry it.
+
+All four work order types are handled — `BUILD`, `UPGRADE`, `REPAIR`, `REMOVE` —
+and all four work order classes: buildings (the town hall included), decorations,
+plantation fields and mine nodes. The last three have no `IBuilding` at their
+location, so for them the controller's own schematic data is the whole of their
+state, exactly as it is when a builder finishes one.
+
+**`at <pos>` files the order itself when there is none**, and that is not a
+convenience. A colony's *first* work order can never be created through the
+ordinary path: `requestWorkOrder` refuses one while no builder's hut with a
+builder in it stands within `maxbuilderdistance` of the site, and a builder is
+only hired into a hut that has been built. A colony raised with `found` is
+therefore deadlocked — no town hall, no builder's hut, nothing. `at` goes
+straight to `WorkOrderBuilding#create` and steps over that gate, and only that
+gate: an order whose footprint reaches onto ground the colony has not claimed is
+still refused.
+
+A position holding a decoration controller rather than a hut is answered the same
+way, with a `WorkOrderDecoration`. It takes no level: a decoration's level, where
+it has one, is already part of the path its controller records.
+
+**What it does not do.** It does not tidy up after a deconstruction any more than
+the builder does: `REMOVE` flags the building deconstructed and leaves its level
+where it was, which is what `AbstractEntityAIStructureWithWorkOrder` leaves too —
+so `/mc colony diagnose` reports "flagged as deconstructed but still at level N"
+afterwards, for a builder's deconstruction and for this one alike. A structure
+whose placement does not finish inside its step budget is reported as failed and
+its **work order is left open** on purpose: half a structure a builder can still
+be sent at is better than half a structure with its order closed.
 
 ### `/mc colony territory [create <name> [<pos>] [<colour>] | colour <colony> <colour> | grow <colony> <radius> | bind <colony> | delete <colony>]`
 
@@ -1281,6 +1649,36 @@ placing is far enough out that you are really outside altogether.
 
 Turn it off for upstream behaviour.
 
+`raiderverticalvision` (new, **default 16**, range 3 to 64) and `raiderarchervision`
+(new, **default 40**, range 16 to 64) are how far a raider looks for something to
+attack. They are the raider side only; `guardverticalvision` is unchanged and this
+does not touch it.
+
+Both defaults are changes in behaviour and both old values are the range minimum, so
+`3` and `16` together restore exactly what raiders did before.
+
+**Vertical.** A raider looked three blocks up and three blocks down, because it
+inherited the guard default and nobody ever overrode it. Its box sideways is sixteen.
+So a defender standing on a four-block wall was not a target and the horde walked
+underneath him. The default of 16 makes the box a cube of the sideways range it
+already had. This is read off the box arithmetic; it has not been watched happening,
+because there is no client here and summoned camp mobs die to the pathing stuck
+handler inside a minute, which is too short to stage the fight.
+
+**Archer.** A raider archer's bow opens fire at forty blocks and its eyes reached
+thirty-two along one axis and sixteen along the other, so it could never use its own
+range. The default of 40 matches the bow; the maximum of 64 is where the far corner
+of the search box reaches the eighty blocks past which a raider drops the target
+anyway.
+
+**What it costs.** This search is the largest per-raider cost in a raid and the
+defaults multiply the box volume of an average horde by about six. Measured on a
+dedicated server with eighty-one raider archers spread over three levels plus eighty
+mobs to scan: mean tick time 4.1-4.9 ms at the old values, 4.6-4.9 ms at the
+defaults, 4.0-5.1 ms at the maximum — the three are not distinguishable. Six times a
+small number is still a small number. Lower them anyway if a large server wants the
+headroom back; the old behaviour is the minimum of each.
+
 `maxcitizenpercolony` now accepts up to 1000, default unchanged at 250. A colony
 is capped by the smallest of its bed count, the citizen-cap research and this
 option, so the research ladder's top rung was raised to match — otherwise a
@@ -1372,6 +1770,68 @@ the first thing to try, and worth reporting.
 
 `/mc pathstats` reports the arrival tail directly, so the effect is visible
 rather than taken on trust. `26.2/PATHFINDING-EXIT.md` has the full record.
+
+`pathfindingthreads` (new, **default 1**, range 1 to 8) is how many worker
+threads the pathfinding pool runs. One is the size the pool was hard-coded to
+before this setting existed, so a server that leaves it alone builds exactly the
+pool it built before. It is read once, when the pool is first made, so a change
+here lands on the next server start; `/mc debug maxpool` above is how the size of
+a pool that is already running is changed, and a size asked for that way holds
+until the next switch or the next restart.
+
+**Why it exists.** `/mc pathstats` can already say "the queue is the bottleneck:
+a worker waits 164 ms before its search even starts", and until now there was
+nothing an operator could do about it. Every path search on the server — every
+citizen, raider and animal, in every colony — goes through the one thread.
+
+**What raising it is measured to buy, on one small stand.** 60 citizens walking
+between a dozen targets on a flat arena, ten minutes each at one thread and at
+four, everything else identical:
+
+| | 1 thread | 4 threads |
+|---|---|---|
+| searches finished | 17067 (28.3/s) | 15775 (26.2/s) |
+| queue wait, average | **164 ms** (3.3 ticks) | **73 ms** (1.5 ticks) |
+| queue wait, worst | 1.85 s | 2.16 s |
+| searches that produced no path at all | **4 %** | **0 %** |
+| mean tick time | 5.6 ms | 5.6 ms |
+
+The queue wait roughly halves and the tick time does not move. The searches are
+not comparable one for one — a search that has waited 164 ms is often started
+against a citizen that has since been given a different order, and gives up
+early, which is where the 4 % of empty results and the lower average node count
+at one thread come from.
+
+**Four threads on a four-core box did not starve the server thread**: the server
+thread held 9–12 % of a core in both runs and the mean tick time was the same
+5.6 ms. What went up was the pool's own consumption, 20 % of a core at one
+thread against 30–48 % at four, because more of the queued work actually ran.
+
+**The caveat is the one in the config comment, and it is not small.** The
+searches read the live world through `ChunkCache`, which holds `LevelChunk`s and
+reads them off the server thread; vanilla's `PalettedContainer` takes no lock on
+the read path and its palette can be grown under a reader. Worse, a block with a
+dynamic shape reaches `LevelChunk#getBlockEntity`, which *writes* to two plain
+hash maps — `minecraft:moving_piston` is that block. None of this is new at one
+thread: the pool has always run off the server thread and the race has always
+been there. More threads widen the window rather than opening a new one.
+
+**Measured against that, not just left as a worry.** The same stand was built to
+hit exactly that branch: 225 pistons firing twice a second in the floor the
+citizens walk on, and roughly 700 000 block changes per run poured into the
+chunks being searched. An instrumented build counted **over 30 000
+`moving_piston` states read by the worker threads out of live chunks in five
+minutes**, with **four searches running at once**. Nothing broke — no
+`MissingPaletteEntryException`, no `ConcurrentModificationException`, no null
+from a worker, no watchdog, no crash, in either run or in the instrumented one.
+
+That is an absence of failures over about half an hour on one small stand, on
+one machine, at one moment of one snapshot. It is not a proof of safety: a data
+race that does not fire is still a data race, and the honest reading is that the
+window is narrow, not that it is closed. **1 stays the default for that reason.**
+Raise it if `/mc pathstats` says the queue is your bottleneck, on a server you
+can watch, and report anything odd.
+
 
 `stuckrescueseconds` (new, default 60, 0 to disable) teleports a worker to where
 its job sent it once it has spent that long without getting any closer.

@@ -108,6 +108,16 @@ public class BuildingLumberjack extends AbstractBuilding
      * @param c the colony.
      * @param l the position.
      */
+    /**
+     * How many saplings of each permitted species the hut holds on to.
+     * <p>
+     * This used to be a full stack of every one of them. There are sixteen species now, so the hut committed a
+     * thousand items' worth of chest space to something it plants one of per tree, and a level one or two hut filled
+     * up and started complaining. A handful of each is plenty, and the deliveryman carries the surplus to the
+     * warehouse instead of it sitting here.
+     */
+    private static final int SAPLINGS_KEPT_PER_SPECIES = 16;
+
     public BuildingLumberjack(final IColony c, final BlockPos l)
     {
         super(c, l);
@@ -136,7 +146,7 @@ public class BuildingLumberjack extends AbstractBuilding
         {
             if (!saplingList.isItemInList(sapling))
             {
-                toKeep.put(stack -> ItemStackUtils.compareItemStacksIgnoreStackSize(sapling.getItemStack(), stack), new Tuple<>(com.minecolonies.api.util.constant.Constants.STACKSIZE, true));
+                toKeep.put(stack -> ItemStackUtils.compareItemStacksIgnoreStackSize(sapling.getItemStack(), stack), new Tuple<>(SAPLINGS_KEPT_PER_SPECIES, true));
             }
         }
         return toKeep;

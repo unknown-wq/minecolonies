@@ -106,8 +106,8 @@ public class TileEntityEnchanterRenderer implements BlockEntityRenderer<TileEnti
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.75D, 0.5D);
         poseStack.translate(0.0D, (0.1F + Mth.sin(state.time * 0.1F) * 0.01F), 0.0D);
-        poseStack.mulPose(Axis.YP.rotation(-state.yRot));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(80.0F));
+        poseStack.rotate(Axis.YP.rotation(-state.yRot));
+        poseStack.rotate(Axis.ZP.rotationDegrees(80.0F));
 
         final float flipA = Mth.frac(state.pageFlip + 0.25F) * 1.6F - 0.3F;
         final float flipB = Mth.frac(state.pageFlip + 0.75F) * 1.6F - 0.3F;

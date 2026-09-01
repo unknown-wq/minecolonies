@@ -178,6 +178,7 @@ public class QuestRegistries
     public static Identifier PLACEBLOCK_OBJECTIVE_ID = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "placeblock");
     public static Identifier BUILD_BUILDING_OBJECTIVE_ID = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "buildbuilding");
     public static Identifier RESEARCH_OBJECTIVE_ID = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "research");
+    public static Identifier RAIDER_CAMP_OBJECTIVE_ID = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "raidercamp");
 
     public static Identifier STATE_TRIGGER_ID       = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "state");
     public static Identifier RANDOM_TRIGGER_ID      = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "random");
@@ -208,6 +209,7 @@ public class QuestRegistries
     public static Supplier<ObjectiveEntry> placeBlockObjective;
     public static Supplier<ObjectiveEntry> buildBuildingObjective;
     public static Supplier<ObjectiveEntry> researchObjective;
+    public static Supplier<ObjectiveEntry> raiderCampObjective;
 
     public static Supplier<TriggerEntry> stateTrigger;
     public static Supplier<TriggerEntry> randomTrigger;

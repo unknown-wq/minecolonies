@@ -553,6 +553,32 @@ public class SettingsFactories
     }
 
     /**
+     * Specific factory for the stable's patrol interval setting.
+     */
+    public static class PatrolIntervalSettingFactory extends AbstractIntSettingFactory<PatrolIntervalSetting>
+    {
+        @NotNull
+        @Override
+        public PatrolIntervalSetting getNewInstance(final int value, final int def)
+        {
+            return new PatrolIntervalSetting(value, def);
+        }
+
+        @NotNull
+        @Override
+        public TypeToken<PatrolIntervalSetting> getFactoryOutputType()
+        {
+            return TypeToken.of(PatrolIntervalSetting.class);
+        }
+
+        @Override
+        public short getSerializationId()
+        {
+            return SerializationIdentifierConstants.PATROL_INTERVAL_SETTINGS_ID;
+        }
+    }
+
+    /**
      * Specific factory for the beekeeper collection setting.
      */
     public static class BeekeeperCollectionSettingsFactory extends AbstractStringSettingsFactory<BeekeeperCollectionSetting>

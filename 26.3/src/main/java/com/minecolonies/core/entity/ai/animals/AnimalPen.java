@@ -12,6 +12,7 @@ import com.minecolonies.core.colony.buildings.workerbuildings.BuildingStable;
 import com.minecolonies.core.debug.FreeMode;
 import com.minecolonies.core.entity.ai.workers.production.herders.AbstractEntityAIHerder;
 import com.minecolonies.core.entity.other.cavalry.CavalryHorseEntity;
+import com.minecolonies.core.entity.other.cavalry.Hitch;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -356,6 +357,13 @@ public final class AnimalPen
             {
                 claim(pen, animal);
             }
+
+            // Stocked, not turned loose - the same thing conscript does for a stable's mounts below, and for the
+            // same reason. A hut is topped up a couple of animals at a time and they start strolling it the moment
+            // they land, so what free mode hands the player is a milling herd rather than a pen. Tied to the pen's
+            // own fencing they stand where they were put. A hut with no fence within reach of the spot gets the old
+            // behaviour, because Tether never places a block, and a species that refuses a lead is left alone.
+            Tether.tieUp(animal);
         }
     }
 
@@ -374,6 +382,9 @@ public final class AnimalPen
      * back when free mode is switched off: these are real, persisted entities the colony owns, and free mode
      * documents that it does not clean up after itself. What stops is the supply - the pen is no longer topped up,
      * and readiness goes back to costing the Stablemaster real tack.
+     * <p>
+     * The mount is tied to the nearest fence as it is issued, if the stable has any within reach of the spot it was
+     * put down on; see {@link Hitch}.
      *
      * @param building the hut being stocked.
      * @param level    the level.
@@ -398,6 +409,15 @@ public final class AnimalPen
         cav.getAnimalData().setCombatCooldown(0);
         cav.getAnimalData().markDirty();
         cav.setItemSlot(EquipmentSlot.BODY, new ItemStack(bardingFor(building.getBuildingLevel())));
+
+        // Stocked, not turned loose. A stable's mounts are conjured a couple at a time straight into the pen, and
+        // left to themselves they immediately start strolling it - so what free mode actually hands the player is a
+        // milling herd rather than a stable. Tied to the stalls' own fencing they stand where they were put, and
+        // CavalryStrollGoal stands down for as long as the rope is on. The first cavalryman to take one unties it
+        // himself (CavalryHorseEntity#addPassenger). A stable with no fence in range of the spot gets the old
+        // behaviour, because Hitch never places a block.
+        Hitch.tieUp(cav);
+
         return true;
     }
 

@@ -372,6 +372,32 @@ public class SettingsFactories
     }
 
     /**
+     * Specific factory for the stable's patrol interval setting.
+     */
+    public static class PatrolIntervalSettingFactory extends AbstractIntSettingFactory<PatrolIntervalSetting>
+    {
+        @NotNull
+        @Override
+        public PatrolIntervalSetting getNewInstance(final int value, final int def)
+        {
+            return new PatrolIntervalSetting(value, def);
+        }
+
+        @NotNull
+        @Override
+        public TypeToken<PatrolIntervalSetting> getFactoryOutputType()
+        {
+            return TypeToken.of(PatrolIntervalSetting.class);
+        }
+
+        @Override
+        public short getSerializationId()
+        {
+            return SerializationIdentifierConstants.PATROL_INTERVAL_SETTINGS_ID;
+        }
+    }
+
+    /**
      * Specific factory for the string setting with desc.
      * TODO: Remove in future versions as this only exists right now for settings parsing purposes, this one is not necessary anymore because {@link StringSetting} contains a description by default now.
      */

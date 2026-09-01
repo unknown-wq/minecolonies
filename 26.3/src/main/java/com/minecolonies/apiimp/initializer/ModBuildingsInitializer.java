@@ -433,6 +433,7 @@ public final class ModBuildingsInitializer
           .addBuildingModuleProducer(ENCHANTER_WORK)
           .addBuildingModuleProducer(ENCHANTER_CRAFT)
           .addBuildingModuleProducer(ENCHANTER_STATIONS)
+          .addBuildingModuleProducer(ENCHANTER_SETTINGS)
           .addBuildingModuleProducer(MIN_STOCK)
           .addBuildingModuleProducer(STATS_MODULE)
           .createBuildingEntry());

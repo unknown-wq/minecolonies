@@ -128,7 +128,7 @@ public class TileEntityNamedGraveRenderer implements BlockEntityRenderer<TileEnt
             case NORTH:
                 poseStack.translate(0.5f, 1.18F, 0.48F); //in front of the center point of the name plate
                 poseStack.scale(0.006F, -0.006F, 0.006F); //size of the text font
-                poseStack.mulPose(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_NORTH));
+                poseStack.rotate(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_NORTH));
                 break;
             case SOUTH:
                 poseStack.translate(0.5f, 1.18F, 0.54F);
@@ -138,12 +138,12 @@ public class TileEntityNamedGraveRenderer implements BlockEntityRenderer<TileEnt
             case EAST:
                 poseStack.translate(0.54f, 1.18F, 0.5F);
                 poseStack.scale(0.006F, -0.006F, 0.006F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_EAST));
+                poseStack.rotate(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_EAST));
                 break;
             case WEST:
                 poseStack.translate(0.48f, 1.18F, 0.5F);
                 poseStack.scale(0.006F, -0.006F, 0.006F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_WEST));
+                poseStack.rotate(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_WEST));
                 break;
             default:
                 break;

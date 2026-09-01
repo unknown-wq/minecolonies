@@ -5,119 +5,57 @@
         {
           "type": "minecraft:item",
           "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:aqua_affinity": 1
-              }
-            }
+            "type": "minecraft:enchant_with_levels",
+            "levels": {
+              "type": "minecraft:uniform",
+              "max": 24.0,
+              "min": 15.0
+            },
+            "options": "#minecraft:in_enchanting_table"
           },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
+          "name": "minecraft:book",
+          "quality": -8,
+          "weight": 1000
         },
         {
           "type": "minecraft:item",
           "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:bane_of_arthropods": 3
-              }
-            }
+            "type": "minecraft:enchant_with_levels",
+            "levels": {
+              "type": "minecraft:uniform",
+              "max": 30.0,
+              "min": 24.0
+            },
+            "options": "#minecraft:in_enchanting_table"
           },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
+          "name": "minecraft:book",
+          "quality": 8,
+          "weight": 200
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "quality": -10,
+          "weight": 2000
         },
         {
           "type": "minecraft:item",
           "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:blast_protection": 3
-              }
-            }
+            "type": "minecraft:enchant_with_levels",
+            "levels": {
+              "type": "minecraft:uniform",
+              "max": 24.0,
+              "min": 15.0
+            },
+            "options": "#minecraft:in_enchanting_table"
           },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:depth_strider": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:efficiency": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:feather_falling": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:fire_aspect": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:fire_protection": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:flame": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
+          "name": "minecraft:book",
+          "quality": 4,
+          "weight": 400
         },
         {
           "type": "minecraft:item",
@@ -130,810 +68,8 @@
             }
           },
           "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:knockback": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:looting": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:power": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:projectile_protection": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:protection": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:punch": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:quick_charge": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:respiration": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:sharpness": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:smite": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:sweeping_edge": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:unbreaking": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecolonies:raider_damage_enchant": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:fortune": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:aqua_affinity": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:bane_of_arthropods": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:blast_protection": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:depth_strider": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:efficiency": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:feather_falling": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:fire_aspect": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:fire_protection": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:flame": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:frost_walker": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:infinity": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:knockback": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:looting": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:power": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:projectile_protection": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:punch": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:quick_charge": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:respiration": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:sharpness": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:smite": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:sweeping_edge": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:unbreaking": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:fortune": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:aqua_affinity": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:bane_of_arthropods": 5
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:blast_protection": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:depth_strider": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:efficiency": 5
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:feather_falling": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:fire_aspect": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:fire_protection": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:flame": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:frost_walker": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:infinity": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:knockback": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:looting": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:mending": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:multishot": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:power": 5
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:projectile_protection": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:protection": 4
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:punch": 2
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:quick_charge": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:respiration": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:sharpness": 5
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:silk_touch": 1
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:smite": 5
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:sweeping_edge": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:unbreaking": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
-        },
-        {
-          "type": "minecraft:item",
-          "modifier": {
-            "type": "minecraft:set_components",
-            "components": {
-              "minecraft:stored_enchantments": {
-                "minecraft:fortune": 3
-              }
-            }
-          },
-          "name": "minecraft:enchanted_book"
+          "quality": 1,
+          "weight": 30
         },
         {
           "type": "minecraft:item",
@@ -945,10 +81,54 @@
               }
             }
           },
-          "name": "minecraft:enchanted_book"
+          "name": "minecraft:enchanted_book",
+          "quality": 1,
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "modifier": {
+            "type": "minecraft:set_components",
+            "components": {
+              "minecraft:stored_enchantments": {
+                "minecraft:soul_speed": 3
+              }
+            }
+          },
+          "name": "minecraft:enchanted_book",
+          "quality": 1,
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "modifier": {
+            "type": "minecraft:set_components",
+            "components": {
+              "minecraft:stored_enchantments": {
+                "minecraft:swift_sneak": 3
+              }
+            }
+          },
+          "name": "minecraft:enchanted_book",
+          "quality": 1,
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "modifier": {
+            "type": "minecraft:set_components",
+            "components": {
+              "minecraft:stored_enchantments": {
+                "minecraft:mending": 1
+              }
+            }
+          },
+          "name": "minecraft:enchanted_book",
+          "quality": 1,
+          "weight": 30
         }
       ],
-      "rolls": 1.0
+      "rolls": 3.0
     }
   ],
   "random_sequence": "minecolonies:recipes/enchanter5"

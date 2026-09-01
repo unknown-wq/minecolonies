@@ -355,9 +355,19 @@ public class MeleeCombatAI extends AttackMoveAI<EntityCitizen>
 
         if (isHuscarl())
         {
-            double share = (50 + user.getCitizenData().getCitizenSkillHandler().getLevel(Skill.Adaptability) / 2.0) / 100.0;
-            target.hurt(target.level().damageSources().source(DamageSourceKeys.PIERCE, user), (float) damageToBeDealt * (float) share);
-            target.hurt(source, (float) damageToBeDealt * (float) (1.0 - share));
+            // A huscarl's blow is meant to be one blow of `damageToBeDealt`, of which `share` bypasses armour and
+            // the rest does not. Two hurt() calls in the same tick cannot simply be added: vanilla's damage cooldown
+            // (LivingEntity#hurtServer) refuses a second hit that is not larger than the first and otherwise applies
+            // only the difference. The calls used to be ordered pierce-first with the larger share, so the second
+            // one was always refused and the huscarl lost the whole `1 - share` fraction -- half his damage at
+            // Adaptability 1, and at Adaptability 99 he dealt the entire swing as unblockable damage.
+            //
+            // Ordered this way the ordinary part lands first and sets the cooldown's high-water mark, then the pierce
+            // call is handed the *whole* swing so the cooldown applies exactly the remainder, armour-bypassing. Total
+            // delivered is `damageToBeDealt` at every level, split as the two lines say.
+            final double share = (50 + user.getCitizenData().getCitizenSkillHandler().getLevel(Skill.Adaptability) / 2.0) / 100.0;
+            target.hurt(source, (float) (damageToBeDealt * (1.0 - share)));
+            target.hurt(target.level().damageSources().source(DamageSourceKeys.PIERCE, user), (float) damageToBeDealt);
         }
         else
         {
@@ -517,7 +527,12 @@ public class MeleeCombatAI extends AttackMoveAI<EntityCitizen>
             {
                 addDmg += TinkersToolHelper.getDamage(heldItem);
             }
-            addDmg += EnchantmentHelper.modifyDamage((ServerLevel) user.level(), heldItem, target, user.level().damageSources().mobAttack(user), (float) addDmg);
+            // The weapon term is scaled explicitly, then handed to the enchantment helper once. Before, this line
+            // read `addDmg += EnchantmentHelper.modifyDamage(..., addDmg)`, and modifyDamage returns the damage it
+            // was given plus the enchantments' contribution -- so the weapon term was silently doubled on every
+            // swing. See MELEE_WEAPON_DAMAGE_SCALE for why the factor is kept rather than dropped.
+            addDmg *= MELEE_WEAPON_DAMAGE_SCALE;
+            addDmg = EnchantmentHelper.modifyDamage((ServerLevel) user.level(), heldItem, target, user.level().damageSources().mobAttack(user), (float) addDmg);
         }
 
         addDmg += user.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(MELEE_DAMAGE);
@@ -620,7 +635,7 @@ public class MeleeCombatAI extends AttackMoveAI<EntityCitizen>
     @Override
     protected int getSearchRange()
     {
-        return 16;
+        return AbstractEntityAIGuard.getGuardVisionRange(user);
     }
 
     @Override

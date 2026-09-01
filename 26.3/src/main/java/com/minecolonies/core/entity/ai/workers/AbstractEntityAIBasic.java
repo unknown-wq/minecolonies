@@ -151,6 +151,12 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
     private int slotAt = 0;
 
     /**
+     * Set when a dump pass could not place everything it took out of the worker, so the leftovers went back into the
+     * worker's own inventory instead of being destroyed.
+     */
+    private boolean dumpBlocked = false;
+
+    /**
      * Indicator if something has actually been dumped.
      */
     private int dumpedItems = 0;
@@ -1313,29 +1319,21 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
 
         if (InventoryUtils.isBuildingFull(building))
         {
-            final ICitizenData citizenData = worker.getCitizenData();
-            if (citizenData != null)
-            {
-                citizenData
-                  .triggerInteraction(new StandardInteraction(Component.translatableEscape(COM_MINECOLONIES_COREMOD_ENTITY_WORKER_INVENTORYFULLCHEST),
-                    ChatPriority.IMPORTANT));
-            }
-
-            // In this case, pickup during crafting is ok, since cleaning a full inventory is very important.
-            // Note that this will not create a pickup request when another request is already in progress.
-            if (building.getPickUpPriority() > 0)
-            {
-                building.createPickupRequest(dumpedItems, true);
-                dumpedItems = 0;
-            }
-            alreadyKept.clear();
-            slotAt = 0;
-            this.clearActionsDone();
+            complainThatTheHutIsFull(building);
             return afterDump();
         }
         else if (dumpSomeMoreSlots())
         {
             return INVENTORY_FULL;
+        }
+
+        if (dumpBlocked)
+        {
+            // isBuildingFull() only answers true at zero free slots across the whole hut, so a hut with a slot or two
+            // left took part of a full worker and said nothing about the rest. Complain about what actually happened.
+            dumpBlocked = false;
+            complainThatTheHutIsFull(building);
+            return afterDump();
         }
 
         alreadyKept.clear();
@@ -1350,6 +1348,33 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
             dumpedItems = 0;
         }
         return afterDump();
+    }
+
+    /**
+     * Tell the player the hut has no room left for what the worker is carrying, and ask for a pickup.
+     *
+     * @param building the building that could not take the items.
+     */
+    private void complainThatTheHutIsFull(final IBuilding building)
+    {
+        final ICitizenData citizenData = worker.getCitizenData();
+        if (citizenData != null)
+        {
+            citizenData
+              .triggerInteraction(new StandardInteraction(Component.translatableEscape(COM_MINECOLONIES_COREMOD_ENTITY_WORKER_INVENTORYFULLCHEST),
+                ChatPriority.IMPORTANT));
+        }
+
+        // In this case, pickup during crafting is ok, since cleaning a full inventory is very important.
+        // Note that this will not create a pickup request when another request is already in progress.
+        if (building.getPickUpPriority() > 0)
+        {
+            building.createPickupRequest(dumpedItems, true);
+            dumpedItems = 0;
+        }
+        alreadyKept.clear();
+        slotAt = 0;
+        this.clearActionsDone();
     }
 
     /**
@@ -1450,7 +1475,16 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
             if (amount > 0)
             {
                 final ItemStack activeStack = getInventory().extractItem(slotAt, amount, false);
-                InventoryUtils.transferItemStackIntoNextBestSlotInItemHandler(activeStack, getBuildingToDump().getItemHandlerCap());
+                // The stack has already left the worker's inventory; whatever the hut cannot take has to go back in,
+                // or it is destroyed. The building-full check below only fires at zero free slots, so a hut with one
+                // slot left and a worker carrying ten stacks reaches here with room for a fraction of them.
+                final ItemStack remainder =
+                  InventoryUtils.transferItemStackIntoNextBestSlotInItemHandlerWithResult(activeStack, getBuildingToDump().getItemHandlerCap());
+                if (!ItemStackUtils.isEmpty(remainder))
+                {
+                    InventoryUtils.addItemStackToItemHandler(getInventory(), remainder);
+                    dumpBlocked = true;
+                }
 
                 if (getInventory().getHeldItemSlot(InteractionHand.MAIN_HAND) == slotAt)
                 {
@@ -1463,7 +1497,7 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
                     worker.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
                 }
 
-                dumpedItems += amount;
+                dumpedItems += amount - remainder.getCount();
             }
         }
         slotAt++;

@@ -55,6 +55,10 @@ public class InteractionValidatorInitializer
         InteractionValidatorRegistry.registerStandardPredicate(Component.translatableEscape(FURNACE_USER_NO_FUEL),
           citizen -> citizen.getWorkBuilding() != null && citizen.getWorkBuilding().hasModule(BuildingModules.FURNACE) && citizen.getWorkBuilding().hasModule(BuildingModules.ITEMLIST_FUEL)
                        && citizen.getWorkBuilding().getModule(BuildingModules.ITEMLIST_FUEL).getList().isEmpty());
+        // Every furnace user raises this key -- cook, chef, smelter, glassblower, stonemason, dyer and baker all
+        // reach it through their AI. The registry is a plain map keyed by the message, so a second, narrower
+        // registration for one profession silently replaces this one and mutes the complaint for the other six.
+        // Keep this the only registration for the key.
         InteractionValidatorRegistry.registerStandardPredicate(Component.translatableEscape(BAKER_HAS_NO_FURNACES_MESSAGE),
           citizen -> citizen.getWorkBuilding() != null && citizen.getWorkBuilding().hasModule(BuildingModules.FURNACE) && citizen.getWorkBuilding().getModule(BuildingModules.FURNACE).getFurnaces().isEmpty());
         InteractionValidatorRegistry.registerStandardPredicate(Component.translatableEscape(RAW_FOOD),
@@ -248,8 +252,8 @@ public class InteractionValidatorInitializer
             return InventoryUtils.getItemCountInProvider(citizen.getWorkBuilding(), item -> item.is(ModTags.meshes)) <= 0 &&
                    InventoryUtils.getItemCountInItemHandler(citizen.getInventory(), item -> item.is(ModTags.meshes)) <= 0;
           });
-        InteractionValidatorRegistry.registerStandardPredicate(Component.translatableEscape(BAKER_HAS_NO_FURNACES_MESSAGE),
-          citizen -> citizen.getWorkBuilding() instanceof BuildingBaker && citizen.getWorkBuilding().getModule(BuildingModules.FURNACE).getFurnaces().isEmpty());
+        InteractionValidatorRegistry.registerStandardPredicate(Component.translatableEscape(ALCHEMIST_HAS_NO_BREWING_STAND_MESSAGE),
+          citizen -> citizen.getWorkBuilding() instanceof BuildingAlchemist && ((BuildingAlchemist) citizen.getWorkBuilding()).getAllBrewingStandPositions().isEmpty());
 
         InteractionValidatorRegistry.registerStandardPredicate(Component.translatableEscape(NO_HIVES),
           citizen -> citizen.getWorkBuilding() instanceof BuildingBeekeeper && ((BuildingBeekeeper) citizen.getWorkBuilding()).getHives().isEmpty());

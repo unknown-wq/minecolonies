@@ -9,8 +9,10 @@ import com.minecolonies.api.entity.mobs.ICustomAttackSound;
 import com.minecolonies.api.entity.mobs.IRangedMobEntity;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.EntityUtils;
+import com.minecolonies.core.MineColonies;
 import com.minecolonies.core.colony.events.raid.RaiderConstants;
 import com.minecolonies.core.entity.ai.combat.AttackMoveAI;
+import com.minecolonies.core.entity.ai.combat.TargetAI;
 import com.minecolonies.core.entity.ai.combat.CombatUtils;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
 import com.minecolonies.core.entity.other.CustomArrowEntity;
@@ -205,5 +207,46 @@ public class RaiderRangedAI<T extends AbstractEntityMinecoloniesMonster & IThrea
     protected boolean isWithinPersecutionDistance(final LivingEntity target)
     {
         return BlockPosUtil.getDistanceSquared(user.blockPosition(), target.blockPosition()) <= RaiderConstants.MAX_ARCHER_RAIDER_PERSECUTION_DISTANCE * RaiderConstants.MAX_ARCHER_RAIDER_PERSECUTION_DISTANCE;
+    }
+
+    /**
+     * Horizontal half-width of the target search box on its full-range tier.
+     * <p>
+     * Upstream never overrode this either, so an archer raider inherited {@link TargetAI#getSearchRange()} = 16 and
+     * got a 48 x 6 x 32 box, while {@link #getAttackDistance()} is {@link #MAX_ATTACK_DISTANCE} = 20 times
+     * <code>max(difficulty, 2)</code>, i.e. never below <b>40</b> blocks. The weapon outranged the eye by a factor of
+     * two and the archer could only shoot what had already walked well inside its own range.
+     * <p>
+     * The default is 40, the bow's floor, so the eye now reaches the weapon. {@link TargetAI#getSearchArea()} sweeps
+     * this range as a full box on its slow tier (and the near cube between), so the box reaches 40 in every
+     * direction; that is inside
+     * {@link com.minecolonies.core.colony.events.raid.RaiderConstants#MAX_ARCHER_RAIDER_PERSECUTION_DISTANCE} = 80,
+     * which is what {@link #isWithinPersecutionDistance(LivingEntity)} would otherwise immediately throw the target
+     * away for. The config maximum of 64 stays inside that persecution limit for the same reason.
+     * <p>
+     * Not clamped to the raider's live <code>getAttackDistance()</code>, which rises with raid difficulty: acquiring
+     * at the floor and shooting further is harmless, and a search box that grows with difficulty grows the raid's
+     * dominant per-entity cost with it, which is precisely what the config exists to bound.
+     *
+     * @return the horizontal search range, from the server config.
+     */
+    @Override
+    protected int getSearchRange()
+    {
+        return MineColonies.getConfig().getServer().raiderArcherVision.get();
+    }
+
+    /**
+     * Vertical half-height of the target search box. Shares
+     * {@link com.minecolonies.core.entity.mobs.aitasks.RaiderMeleeAI#getYSearchRange()}'s config value and its
+     * reasoning, with one difference that matters: the archer is the only raider whose weapon can actually reach an
+     * elevated target, so this is the override that turns "the raid ignores the archer on my tower" into return fire.
+     *
+     * @return the vertical half-height, from the server config.
+     */
+    @Override
+    protected int getYSearchRange()
+    {
+        return MineColonies.getConfig().getServer().raiderVerticalVision.get();
     }
 }

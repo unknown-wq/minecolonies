@@ -44,8 +44,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static com.minecolonies.api.items.ModTags.fungi;
 import static com.minecolonies.api.util.constant.NbtTagConstants.*;
@@ -66,9 +68,14 @@ public class Tree
     private static final int NUMBER_OF_LEAVES = 3;
 
     /**
-     * Number of leaves in every direction from the middle of the tree.
+     * Number of leaves in every direction from the tree's own logs.
      */
     private static final int LEAVES_WIDTH = 4;
+
+    /**
+     * How far above the highest log of the tree its canopy may still reach.
+     */
+    private static final int LEAVES_HEIGHT = 8;
 
     /**
      * A lot of luck to get a guaranteed saplings drop.
@@ -163,7 +170,6 @@ public class Tree
 
             dynamicTree = Compatibility.isDynamicBlock(block.getBlock());
             stumpLocations = new ArrayList<>();
-            woodBlocks.clear();
             slimeTree = Compatibility.isSlimeBlock(block.getBlock());
             sapling = calcSapling(world);
             if (sapling.is(ItemStackUtils.COMMON_MUSHROOMS) || sapling.is(fungi))
@@ -370,7 +376,7 @@ public class Tree
             return false;
         }
 
-        final Tuple<BlockPos, BlockPos> baseAndTOp = getBottomAndTopLog(world, pos, new LinkedList<>(), null, null);
+        final Tuple<BlockPos, BlockPos> baseAndTOp = getBottomAndTopLog(world, pos, new HashSet<>(), null, null);
 
         //Get base log, should already be base log.
         final BlockPos basePos = baseAndTOp.getA();
@@ -395,7 +401,7 @@ public class Tree
     private static Tuple<BlockPos, BlockPos> getBottomAndTopLog(
       @NotNull final LevelReader world,
       @NotNull final BlockPos log,
-      @NotNull final LinkedList<BlockPos> woodenBlocks,
+      @NotNull final Set<BlockPos> woodenBlocks,
       final BlockPos bottomLog,
       final BlockPos topLog)
     {
@@ -447,7 +453,6 @@ public class Tree
      */
     private static boolean hasEnoughLeavesAndIsSupposedToCut(@NotNull final LevelReader world, final BlockPos pos, final List<ItemStorage> treesToNotCut)
     {
-        boolean checkedLeaves = false;
         int leafCount = 0;
         int dynamicBonusY = 0;
         final BlockState blockState = world.getBlockState(pos);
@@ -467,11 +472,15 @@ public class Tree
                     final BlockState block = world.getBlockState(leafPos);
                     if (block.is(BlockTags.LEAVES) || block.is(ModTags.hugeMushroomBlocks) || block.is(BlockTags.WART_BLOCKS))
                     {
-                        if (!checkedLeaves && !supposedToCut(world, treesToNotCut, leafPos))
+                        // Only the first leaf found used to be tested, and a failure rejected the whole tree. So a
+                        // player-placed leaf next to a natural tree vetoed it, while a barred species whose first leaf
+                        // happened to be a neighbour's was cut anyway. Test every leaf and simply do not count the
+                        // ones this lumberjack is not allowed to touch: a tree of a barred species then cannot reach
+                        // the leaf count at all, which is the intent of the setting.
+                        if (!supposedToCut(world, treesToNotCut, leafPos))
                         {
-                            return false;
+                            continue;
                         }
-                        checkedLeaves = true;
 
                         leafCount++;
                         // Dynamic tree growth is checked by radius instead of leafcount
@@ -502,10 +511,9 @@ public class Tree
             return false;
         }
 
-        // sadly this is called from pathfinding so can't directly access server loot; this means if the sapling
-        // isn't already cached (which it won't be the very first time we encounter a new tree type for this colony)
-        // then we will try to chop it regardless of hut settings.  but the *second* tree of that type we should
-        // obey the settings properly.
+        // This runs on the pathfinding thread and so cannot roll loot tables itself. The leaf-to-sapling table is
+        // filled in up front by CompatibilityManager#discoverLeaves for exactly that reason; before it was, the
+        // barred-species list did nothing until the colony had already felled one tree of that species.
         final ItemStack sap = IColonyManager.getInstance().getCompatibilityManager().getSaplingForLeaf(leaf.getBlock());
 
         if (sap == null)
@@ -634,7 +642,13 @@ public class Tree
      */
     public void findLogs(@NotNull final Level world, @Nullable final IColony colony)
     {
-        addAndSearch(world, location, colony);
+        // The constructor already walked the whole trunk to find the base and top log; it then threw the result away
+        // and this method walked it a second time. Only walk again if there is nothing to reuse -- a tree read back
+        // from NBT, or one whose logs have all been taken.
+        if (woodBlocks.isEmpty())
+        {
+            addAndSearch(world, location, colony);
+        }
         woodBlocks.sort((c1, c2) -> (int) (c1.distSqr(location) - c2.distSqr(location)));
         if (getStumpLocations().isEmpty())
         {
@@ -683,12 +697,27 @@ public class Tree
      */
     private void addAndSearch(@NotNull final Level world, @NotNull final BlockPos log, @Nullable final IColony colony)
     {
-        if (woodBlocks.size() >= MineColonies.getConfig().getServer().maxTreeSize.get())
+        addAndSearch(world, log, colony, new HashSet<>(woodBlocks));
+    }
+
+    /**
+     * Adds a log and searches for further logs(Breadth first search).
+     *
+     * @param world  The world the log is in.
+     * @param log    the log to add.
+     * @param colony the colony to search for buildings, or null if we don't care.
+     * @param found  the logs already taken, mirroring {@link #woodBlocks}. Kept alongside the list purely so that the
+     *               membership test below is not a linear scan: at the default maxtreesize of 400 the walk was
+     *               quadratic, and it runs on the main thread.
+     */
+    private void addAndSearch(@NotNull final Level world, @NotNull final BlockPos log, @Nullable final IColony colony, @NotNull final Set<BlockPos> found)
+    {
+        if (found.size() >= MineColonies.getConfig().getServer().maxTreeSize.get())
         {
             return;
         }
 
-        if (woodBlocks.contains(log))
+        if (found.contains(log))
         {
             return;
         }
@@ -721,6 +750,7 @@ public class Tree
         }
 
         woodBlocks.add(log);
+        found.add(log);
 
         // Only add the base to a dynamic tree
         if (Compatibility.isDynamicBlock(BlockPosUtil.getBlock(world, log)))
@@ -739,7 +769,7 @@ public class Tree
                     final BlockState block = BlockPosUtil.getBlockState(world, temp);
                     if ((block.is(ModTags.tree) || Compatibility.isSlimeBlock(block.getBlock())))
                     {
-                        addAndSearch(world, temp, colony);
+                        addAndSearch(world, temp, colony, found);
                     }
                 }
             }
@@ -785,27 +815,35 @@ public class Tree
      */
     private void addAndSearch(@NotNull final Level world)
     {
-        int locXMin = location.getX() - LEAVES_WIDTH;
-        int locXMax = location.getX() + LEAVES_WIDTH;
+        // The window used to be a fixed square around the base log running all the way to world.getHeight(), which is
+        // the number of blocks in the column (384) rather than the top of it (319): for a tree at y=70 that was some
+        // 25 000 block lookups in a single tick, five thousand of them provably outside the world. It also missed the
+        // edges of anything wider than the square -- a pale or dark oak leans as it grows and its canopy reaches four
+        // blocks past the outermost log -- so with defoliate on those corners were left hanging.
+        //
+        // Take the window from the logs actually found instead, and stop at the top of the tree.
+        int minX = location.getX();
+        int maxX = location.getX();
+        int minZ = location.getZ();
+        int maxZ = location.getZ();
+        for (final BlockPos log : woodBlocks)
+        {
+            minX = Math.min(minX, log.getX());
+            maxX = Math.max(maxX, log.getX());
+            minZ = Math.min(minZ, log.getZ());
+            maxZ = Math.max(maxZ, log.getZ());
+        }
+
+        final int locXMin = minX - LEAVES_WIDTH;
+        final int locXMax = maxX + LEAVES_WIDTH;
+        final int locZMin = minZ - LEAVES_WIDTH;
+        final int locZMax = maxZ + LEAVES_WIDTH;
         final int locYMin = location.getY() + 1;
-        int locZMin = location.getZ() - LEAVES_WIDTH;
-        int locZMax = location.getZ() + LEAVES_WIDTH;
-        int temp;
-        if (locXMin > locXMax)
-        {
-            temp = locXMax;
-            locXMax = locXMin;
-            locXMin = temp;
-        }
-        if (locZMin > locZMax)
-        {
-            temp = locZMax;
-            locZMax = locZMin;
-            locZMin = temp;
-        }
+        final int locYMax = Math.min(world.getMaxY(), topLog.getY() + LEAVES_HEIGHT);
+
         for (int locX = locXMin; locX <= locXMax; locX++)
         {
-            for (int locY = locYMin; locY < world.getHeight(); locY++)
+            for (int locY = locYMin; locY <= locYMax; locY++)
             {
                 for (int locZ = locZMin; locZ <= locZMax; locZ++)
                 {

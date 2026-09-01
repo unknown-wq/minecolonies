@@ -1,0 +1,130 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+// No `loom { accessWidenerPath ... }` block and no mixin config: this mod deliberately has neither.
+// Everything it needs is reachable through public Minecraft API or Fabric API.
+
+// ---------------------------------------------------------------------------------------------------
+// The optional MineColonies integration
+// ---------------------------------------------------------------------------------------------------
+//
+// COMPILE-ONLY, and never nested. The colony overlay is one package
+// (com/unknownwq/worldmap/colony/minecolonies) reached through an interface whose default implementation
+// does nothing, installed only behind FabricLoader.isModLoaded("minecolonies"), and fabric.mod.json says
+// `recommends`, not `depends`. So the classes may legitimately be absent at runtime and this jar must not
+// carry a copy of a mod the player installs themselves.
+//
+// MineColonies is a fat jar: BlockUI, Domum Ornamentum and Structurize ride along in META-INF/jars, which
+// the loader unpacks at runtime but javac cannot see into. They are needed at COMPILE time even though
+// nothing here calls them, because IBuildingView's supertypes and method signatures name their types
+// (RotationMirror from Structurize, BOWindow from BlockUI) and javac has to resolve those to type-check a
+// call on the interface at all. So they are lifted out into a staging directory and put on the classpath
+// beside their host.
+//
+// This has to happen at configuration time, and the staging directory has to be outside build/, for the
+// same reason ../../26.3/build.gradle stages its three libraries there: `clean` wipes build/ after
+// configuration has already run, and configuration does not run again before the compile resolves.
+// The default is resolved by glob, not by a pinned version. It used to name
+// dist/minecolonies-26.3-0.0.62.jar, and when dist/ moved to a newer build the path stopped existing --
+// so the integration package was dropped and the map shipped with only its no-op overlay, silently and
+// with a green build, which is exactly what the else-branch below is designed to allow. Newest wins so
+// this keeps working across dist/ swaps; -Pminecolonies_jar still overrides it.
+//
+// ../../26.3's own build output is preferred over dist/ when it exists. The two disagree exactly when this
+// tree has changed something the map reads -- the raid time behind a spawn point is the current case -- and
+// then dist/ is a jar from before the change, which fails the compile with a missing method rather than
+// producing a map without it. The jar you are building alongside is the one to build against; dist/ stays
+// the answer for a checkout where 26.3 has not been built at all.
+def minecoloniesJar
+if (project.hasProperty('minecolonies_jar')) {
+	minecoloniesJar = file(project.minecolonies_jar)
+} else {
+	final Closure newestIn = { String dir ->
+		final File d = file(dir)
+		final File[] found = d.isDirectory()
+			? d.listFiles({ f -> f.name ==~ /minecolonies-26\.3-.*\.jar/ } as FileFilter)
+			: null
+		return found ? found.sort { it.name }.last() : null
+	}
+	minecoloniesJar = newestIn('../../26.3/build/libs')
+		?: newestIn('../../dist')
+		?: file('../../dist/none.jar')
+}
+if (minecoloniesJar.exists()) {
+	logger.lifecycle("Colony overlay compiled against ${minecoloniesJar}")
+}
+
+def colonyClasspath = []
+if (minecoloniesJar.exists()) {
+	colonyClasspath.add(minecoloniesJar)
+
+	final File nested = file('.staged-libs')
+	nested.mkdirs()
+	new java.util.zip.ZipFile(minecoloniesJar).withCloseable { zip ->
+		zip.entries().findAll { it.name.startsWith('META-INF/jars/') && it.name.endsWith('.jar') }.each { entry ->
+			final File out = new File(nested, entry.name.substring('META-INF/jars/'.length()))
+			if (!out.exists() || out.lastModified() < minecoloniesJar.lastModified()) {
+				out.bytes = zip.getInputStream(entry).bytes
+			}
+			colonyClasspath.add(out)
+		}
+	}
+} else {
+	// Not fatal, and deliberately so: this is the build-side half of the same promise the runtime side
+	// makes. With no jar to compile against, the one package that names a MineColonies type is dropped
+	// from the source set and everything else -- the interface, the no-op default, the bridge that picks
+	// between them, the whole screen -- compiles and runs exactly as it does with the integration in.
+	logger.warn("WARNING: no MineColonies jar found (looked for ../../dist/minecolonies-26.3-*.jar).")
+	logger.warn("  Building the map WITHOUT the colony overlay -- borders, huts and the rest will be absent")
+	logger.warn("  at runtime even with MineColonies installed. Point -Pminecolonies_jar=<path> at one to")
+	logger.warn("  build it in, and check the jar afterwards: it must contain")
+	logger.warn("  com/unknownwq/worldmap/colony/minecolonies/MineColoniesOverlay.class")
+	sourceSets.main.java {
+		exclude 'com/unknownwq/worldmap/colony/minecolonies/**'
+	}
+}
+
+dependencies {
+	compileOnly files(colonyClasspath)
+
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	// Minecraft 26.1+ is unobfuscated and Yarn is discontinued: no mappings line is needed.
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	// Plain `implementation`, not `modImplementation`, for the same reason as ../../26.3/build.gradle:
+	// 26.1+ is unobfuscated, so there is nothing to remap, and this Loom does not expose the remapping
+	// configurations. Fabric API is a platform every installation already has, so it is not nested.
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+	it.options.release = 25
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}" }
+	}
+}

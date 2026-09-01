@@ -378,11 +378,16 @@ public class ClientRegistryHandler
         BlockEntityRendererRegistry.register(MinecoloniesTileEntities.COLONY_SIGN.get(), TileEntityColonySignRenderer::new);
 
         // TODO(port-26.2): DISABLED (degradation ladder step 1) -- ItemBlockRenderTypes and ItemProperties are
-        // both gone in 26.2: the render layer of a block is declared by its model json ("render_type") and the
-        // "throwing" / "disabled" item predicates became item model definitions under
-        // assets/minecolonies/items/. Datagen has to emit both; until it does, the huts, scarecrow, rack,
-        // decoration controller, composted dirt, barrel, waypoint, flooded farmland and every crop render on
-        // the solid layer, and the spear/goggles never switch to their alternate model.
+        // both gone. The "throwing" / "disabled" item predicates became item model definitions under
+        // assets/minecolonies/items/, which datagen does not emit yet, so the spear/goggles never switch to
+        // their alternate model.
+        //
+        // The render-layer half of this note is closed by 26.3 itself, not by the mod: a block's chunk layer is no
+        // longer registered per block or declared per model. FaceBakery computes a Transparency for every face
+        // from the pixels of the sprite region it maps (SpriteContents#computeTransparency), and
+        // BakedQuad.MaterialInfo turns that into the ChunkSectionLayer through ChunkSectionLayer#byTransparency.
+        // Crops, the rack, the scarecrow and the rest therefore land on cutout or translucent on their own,
+        // exactly as they would have under the old ItemBlockRenderTypes table. Nothing to register here.
     }
 
 }

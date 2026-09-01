@@ -70,8 +70,8 @@ public class RendererSpear extends EntityRenderer<ThrownTrident, ThrownTridentRe
       @NotNull final CameraRenderState camera)
     {
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(state.yRot - 90.0F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(state.xRot + 90.0F));
+        poseStack.rotate(Axis.YP.rotationDegrees(state.yRot - 90.0F));
+        poseStack.rotate(Axis.ZP.rotationDegrees(state.xRot + 90.0F));
         if (state.isFoil)
         {
             submitNodeCollector.submitModel(this.model,

@@ -38,8 +38,11 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ArrowItem;
+import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ChargedProjectiles;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 
@@ -123,7 +126,13 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
         if (weaponSlot != -1)
         {
             CitizenItemUtils.setHeldItem(user, InteractionHand.MAIN_HAND, weaponSlot);
-            if (nextAttackTime - BOW_HOLDING_DELAY >= user.level().getGameTime() && !user.isUsingItem())
+
+            final ItemStack weapon = user.getItemInHand(InteractionHand.MAIN_HAND);
+            if (weapon.getItem() instanceof CrossbowItem)
+            {
+                driveCrossbowLoading(weapon);
+            }
+            else if (nextAttackTime - BOW_HOLDING_DELAY >= user.level().getGameTime() && !user.isUsingItem())
             {
                 user.startUsingItem(InteractionHand.MAIN_HAND);
             }
@@ -131,6 +140,65 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
         }
 
         return false;
+    }
+
+    /**
+     * Walks a held crossbow through the load half of its cycle.
+     * <p>
+     * A crossbow is not a bow with a different model: it is loaded once and fired later, and the two halves are
+     * separate states of the item. The archer's single phase -- hold the weapon "in use" for the whole cycle and
+     * spawn an arrow at the end of it -- cannot express that, which is what left a marksman winding the string for
+     * ever. He held {@code CROSSBOW_CHARGE} from one shot to the next, replayed the loading-start and loading-middle
+     * sounds every cycle, and could never reach {@code CROSSBOW_HOLD} or the loading-finished sound, because nothing
+     * ever ended the use and the item's own charge was never read.
+     * <p>
+     * This is vanilla's own mob sequence ({@code RangedCrossbowAttackGoal}) with the goal's timers taken out, since
+     * the guard's cadence is {@link #getAttackDelay()}: start using the weapon while it is empty,
+     * {@code CrossbowItem#onUseTick} fills it once it has been held for {@link CrossbowItem#getChargeDuration} (which
+     * is where Quick Charge is read, so an enchanted crossbow really does load faster), and the use ends the moment
+     * it is loaded so the guard stands holding a charged bolt. The release call below is vanilla's belt and braces:
+     * on the tick the charge time is reached it runs the last use tick itself rather than waiting for the next one.
+     *
+     * @param crossbow the crossbow in the guard's main hand.
+     */
+    private void driveCrossbowLoading(final ItemStack crossbow)
+    {
+        if (CrossbowItem.isCharged(crossbow))
+        {
+            if (user.isUsingItem())
+            {
+                user.stopUsingItem();
+            }
+            return;
+        }
+
+        if (!user.isUsingItem())
+        {
+            user.startUsingItem(InteractionHand.MAIN_HAND);
+            return;
+        }
+
+        if (user.getTicksUsingItem() >= CrossbowItem.getChargeDuration(crossbow, user))
+        {
+            user.releaseUsingItem();
+        }
+    }
+
+    /**
+     * A crossbow may only be fired once it is loaded; everything else in this AI is ready whenever its owner is.
+     * <p>
+     * Deferring here rather than in {@link #canAttack()} is what keeps the target: an unloaded crossbow is not a
+     * reason to give up on the raider, only a reason to wait for {@link #driveCrossbowLoading} to finish. It also
+     * keeps {@code nextAttackTime} where it is, so the load happens inside the cadence instead of on top of it --
+     * a marksman still fires every {@link #getAttackDelay()} ticks, the loading simply fills the gap.
+     *
+     * @return true when the weapon in hand can be discharged now.
+     */
+    @Override
+    protected boolean isReadyToAttack()
+    {
+        final ItemStack weapon = user.getItemInHand(InteractionHand.MAIN_HAND);
+        return !(weapon.getItem() instanceof CrossbowItem) || CrossbowItem.isCharged(weapon);
     }
 
     /**
@@ -165,7 +233,7 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
     @Override
     protected void doAttack(final LivingEntity target)
     {
-        if (user.distanceToSqr(target) < RANGED_FLEE_SQDIST)
+        if (user.distanceToSqr(target) < getKiteDistanceSq())
         {
             if (user.getRandom().nextInt(FLEE_CHANCE) == 0 &&
                   !((AbstractBuildingGuards) user.getCitizenData().getWorkBuilding()).getTask().equals(GuardTaskSetting.GUARD))
@@ -217,8 +285,28 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
             arrow.setBaseDamage(damage);
 
             final float chance = HIT_CHANCE_DIVIDER / (user.getCitizenData().getCitizenSkillHandler().getLevel(Skill.Adaptability) + 1);
-            CombatUtils.shootArrow(arrow, target, chance);
-            user.playSound(SoundEvents.SKELETON_SHOOT, (float) BASIC_VOLUME, (float) SoundUtils.getRandomPitch(user.getRandom()));
+            if (bow.getItem() instanceof CrossbowItem)
+            {
+                // A crossbow announces itself. CROSSBOW_SHOOT goes off at the marksman, where vanilla plays it, and
+                // it stands in for the skeleton twang below rather than joining it -- the archer's noise, on a
+                // weapon that is not his, was the last audible trace of the bow cycle the marksman was borrowing.
+                CombatUtils.shootBolt(arrow, target, chance, i);
+            }
+            else
+            {
+                CombatUtils.shootArrow(arrow, target, chance);
+                user.playSound(SoundEvents.SKELETON_SHOOT, (float) BASIC_VOLUME, (float) SoundUtils.getRandomPitch(user.getRandom()));
+            }
+        }
+
+        final ItemStack weapon = user.getItemInHand(InteractionHand.MAIN_HAND);
+        if (weapon.getItem() instanceof CrossbowItem)
+        {
+            // Spend the load, the way vanilla's own discharge does (CrossbowItem#performShooting): the component is
+            // emptied rather than removed, and isCharged reads an empty one as unloaded, so the next pass through
+            // driveCrossbowLoading starts winding again. Without this the marksman would fire one loaded bolt and
+            // then count as permanently charged, shooting every cycle with no load in between.
+            weapon.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.EMPTY);
         }
 
         target.setLastHurtByMob(user);
@@ -241,19 +329,33 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
             attackDist += (user.getCitizenData().getCitizenSkillHandler().getLevel(Skill.Adaptability) / 50.0f) * 15;
         }
 
-        attackDist = Math.min(attackDist, MAX_DISTANCE_FOR_RANGED_ATTACK);
-
         if (target != null)
         {
             attackDist += user.getY() - target.getY();
         }
 
-        if (((AbstractBuildingGuards) user.getCitizenData().getWorkBuilding()).getTask().equals(GuardTaskSetting.GUARD))
+        // Null-safe: getSearchRange now calls this on every target scan, not only once a target exists, so the
+        // unguarded cast that used to sit here would have been reachable for a guard between buildings.
+        if (user.getCitizenData().getWorkBuilding() instanceof AbstractBuildingGuards guardBuilding
+              && guardBuilding.getTask().equals(GuardTaskSetting.GUARD))
         {
             attackDist += GUARD_BONUS_RANGE;
         }
 
-        return attackDist;
+        // The clamp belongs last. It used to be applied before the height difference and the guard-post bonus, so an
+        // archer twenty blocks above his target on Guard had an effective attack distance of 54 and the constant's
+        // own comment ("24 max arrow dist") was simply untrue. It did not show up in play only because his target
+        // search box could not reach that far either; now that getSearchRange follows this number, it would.
+        return Math.min(attackDist, MAX_DISTANCE_FOR_RANGED_ATTACK);
+    }
+
+    @Override
+    protected int getSearchRange()
+    {
+        // An archer's eyes have to keep up with his bow: the inherited 16 was less than half the distance
+        // getAttackDistance asks him to open fire at, so for most of the scan cycle a raid could walk to within
+        // sixteen blocks of a tower before anyone on it noticed.
+        return Math.max(AbstractEntityAIGuard.getGuardVisionRange(user), (int) Math.ceil(getAttackDistance()));
     }
 
     @Override
@@ -277,40 +379,19 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
         damage += EnchantmentHelper.getItemEnchantmentLevel(Utils.getRegistryValue(Enchantments.POWER, user.level()), heldItem);
         damage += user.getCitizenColonyHandler().getColony().getResearchManager().getResearchEffects().getEffectStrength(ARCHER_DAMAGE);
 
+        boolean consumesArrow = false;
         if (user.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(ARCHER_USE_ARROWS) > 0)
         {
-            int slot = InventoryUtils.findFirstSlotInItemHandlerWith(user.getInventoryCitizen(), item -> item.getItem() instanceof ArrowItem);
-            if (slot != -1)
+            final int slot = InventoryUtils.findFirstSlotInItemHandlerWith(user.getInventoryCitizen(), item -> item.getItem() instanceof ArrowItem);
+            if (slot != -1 && !ItemStackUtils.isEmpty(user.getInventoryCitizen().extractItem(slot, 1, true)))
             {
-                if (!ItemStackUtils.isEmpty(user.getInventoryCitizen().extractItem(slot, 1, true)))
-                {
-                    damage += ARROW_EXTRA_DAMAGE;
-                    if (arrow instanceof CustomArrowEntity customArrowEntity)
-                    {
-                        customArrowEntity.setOnHitCallback(entityRayTraceResult ->
-                        {
-                            final int arrowSlot = InventoryUtils.findFirstSlotInItemHandlerWith(user.getInventoryCitizen(), item -> item.getItem() instanceof ArrowItem);
-                            if (arrowSlot != -1)
-                            {
-                                user.getInventoryCitizen().extractItem(arrowSlot, 1, false);
-                            }
-
-                            if (isMarksman())
-                            {
-                                // Calculate true damage from reduced arrow damage. The damage source comes from the
-                                // entity that was hit rather than from the guard's target: an arrow is still in the
-                                // air long after the guard has dropped that target, and reading target.level() then
-                                // threw a NullPointerException out of the arrow's tick, which crashes the server.
-                                // It is the same level either way, since something has just been shot in it.
-                                entityRayTraceResult.getEntity()
-                                  .hurt(entityRayTraceResult.getEntity().level().damageSources().source(DamageSourceKeys.PIERCE, user),
-                                    (float) ((CustomArrowEntity) arrow).getBaseDamage() * (float) marksManTrueDamageShare() * 10);
-                            }
-
-                            return true;
-                        });
-                    }
-                }
+                damage += ARROW_EXTRA_DAMAGE;
+                // The bow's arrow is deducted when it lands, through the on-hit callback below, because an arrow
+                // that never arrives was never worth spending. A crossbow has already paid: loading it is what
+                // takes the bolt out of the pack (LivingEntity#getProjectile hands vanilla the live stack and
+                // ProjectileWeaponItem#useAmmo splits it), so charging the callback again would bill the marksman
+                // twice for one shot.
+                consumesArrow = !(heldItem.getItem() instanceof CrossbowItem);
             }
         }
 
@@ -324,7 +405,48 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
             damage *= 1.5;
         }
 
-        return (RANGER_BASE_DMG + damage) * MineColonies.getConfig().getServer().guardDamageMultiplier.get() * ((isMarksman() ? 1 - marksManTrueDamageShare() : 1));
+        // A marksman splits his shot: `share` of it ignores armour, the rest is an ordinary arrow. The arrow below is
+        // launched carrying only the `1 - share` fraction, and the on-hit callback pays back the difference.
+        final double trueDamageShare = isMarksman() ? Math.min(marksManTrueDamageShare(), MARKSMAN_MAX_TRUE_DAMAGE_SHARE) : 0.0;
+
+        if (arrow instanceof CustomArrowEntity customArrowEntity && (consumesArrow || trueDamageShare > 0))
+        {
+            final boolean consumeArrow = consumesArrow;
+            customArrowEntity.setOnHitCallback(entityRayTraceResult ->
+            {
+                if (consumeArrow)
+                {
+                    final int arrowSlot = InventoryUtils.findFirstSlotInItemHandlerWith(user.getInventoryCitizen(), item -> item.getItem() instanceof ArrowItem);
+                    if (arrowSlot != -1)
+                    {
+                        user.getInventoryCitizen().extractItem(arrowSlot, 1, false);
+                    }
+                }
+
+                if (trueDamageShare > 0)
+                {
+                    // Reconstruct the undivided shot from the reduced figure the arrow is carrying, and hand the
+                    // whole of it to the armour-bypassing source. Vanilla's damage cooldown (LivingEntity#hurtServer)
+                    // has just been set by the arrow's own hit, so this call applies exactly the remainder --
+                    // `share` of the shot, through armour and shields. It used to read
+                    // `getBaseDamage() * share * 10`, a product that peaks at share 0.5 and decays to nothing as the
+                    // marksman trains: a level-99 marksman dealt about a fiftieth of what a level-1 one did, which
+                    // is why the research-locked late-game unit was worse than a fresh ranger.
+                    //
+                    // The damage source comes from the entity that was hit rather than from the guard's target: an
+                    // arrow is still in the air long after the guard has dropped that target, and reading
+                    // target.level() then threw a NullPointerException out of the arrow's tick, which crashes the
+                    // server. It is the same level either way, since something has just been shot in it.
+                    entityRayTraceResult.getEntity()
+                      .hurt(entityRayTraceResult.getEntity().level().damageSources().source(DamageSourceKeys.PIERCE, user),
+                        (float) (customArrowEntity.getBaseDamage() / (1.0 - trueDamageShare)));
+                }
+
+                return true;
+            });
+        }
+
+        return (RANGER_BASE_DMG + damage) * MineColonies.getConfig().getServer().guardDamageMultiplier.get() * (1.0 - trueDamageShare);
     }
 
     /**
@@ -344,12 +466,12 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
     @Override
     protected PathResult moveInAttackPosition(final LivingEntity target)
     {
-        if (BlockPosUtil.getDistanceSquared(target.blockPosition(), user.blockPosition()) <= 4.0)
+        if (BlockPosUtil.getDistanceSquared(target.blockPosition(), user.blockPosition()) <= getKiteDistanceSq())
         {
             final PathJobMoveAwayFromLocation job = new PathJobMoveAwayFromLocation(user.level(),
               PathfindingUtils.prepareStart(target),
               target.blockPosition(),
-              (int) 7.0,
+              (int) (getAttackDistance() / 2.0),
               (int) user.getAttribute(Attributes.FOLLOW_RANGE).getValue(),
               user);
             final PathResult pathResult = ((MinecoloniesAdvancedPathNavigate) user.getNavigation()).setPathJob(job, null, getCombatMovementSpeed(), true);

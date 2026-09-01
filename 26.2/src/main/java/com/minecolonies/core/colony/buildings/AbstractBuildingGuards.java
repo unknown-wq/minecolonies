@@ -347,7 +347,7 @@ public abstract class AbstractBuildingGuards extends AbstractBuilding implements
     {
         super.onColonyTick(colony);
 
-        if (patrolTimer > 0 && getSetting(GUARD_TASK).getValue().equals(GuardTaskSetting.PATROL))
+        if (patrolTimer > 0 && walksAPatrol())
         {
             patrolTimer--;
             if (patrolTimer <= 0 && !getAllAssignedCitizen().isEmpty())
@@ -356,6 +356,21 @@ public abstract class AbstractBuildingGuards extends AbstractBuilding implements
                 startPatrolNext();
             }
         }
+    }
+
+    /**
+     * Whether the building's guards are currently set to a task that walks a patrol route.
+     * <p>
+     * The patrol timer is what hands out the next patrol point, so it has to run for a permanent patrol as well as
+     * an ordinary one; leaving it gated on {@link GuardTaskSetting#PATROL} alone would have left a permanently
+     * patrolling unit walking to a single point and stopping there.
+     *
+     * @return true if the guards patrol.
+     */
+    public boolean walksAPatrol()
+    {
+        final String task = getSetting(GUARD_TASK).getValue();
+        return task.equals(GuardTaskSetting.PATROL) || task.equals(GuardTaskSetting.PATROL_PERMANENT);
     }
 
     @Override

@@ -24,6 +24,7 @@ import com.minecolonies.core.util.FurnaceRecipes;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
@@ -41,6 +42,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
@@ -53,7 +56,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
+import net.minecraft.world.level.block.VegetationBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.Vec3;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
@@ -210,6 +217,7 @@ public class CompatibilityManager implements ICompatibilityManager
     {
         clear();
         discoverAllItems(level);
+        discoverLeaves(level);
 
         discoverModCompat();
 
@@ -756,8 +764,88 @@ public class CompatibilityManager implements ICompatibilityManager
     {
         if (stack.is(ItemTags.SAPLINGS) || stack.is(COMMON_MUSHROOMS) || stack.is(ModTags.fungi))
         {
+            // c:mushrooms follows #minecraft:mushrooms, which now also holds the shelf mushroom. That one grows out of
+            // the side of a log rather than out of the ground: the lumberjack cannot plant it on a stump, so listing
+            // it as a species gave his hut a row nobody can act on and a reserved stack nobody ever spends. Everything
+            // he can actually plant is ground vegetation.
+            if (stack.getItem() instanceof BlockItem blockItem && !(blockItem.getBlock() instanceof VegetationBlock))
+            {
+                return;
+            }
             saplings.add(new ItemStorage(stack, false, true));
         }
+    }
+
+    /**
+     * Number of times a leaf's loot table is rolled while looking for the sapling it drops.
+     */
+    private static final int LEAF_DROP_ROLLS = 500;
+
+    /**
+     * Work out, up front, which sapling each kind of leaf drops.
+     * <p>
+     * This table used to fill itself only as trees were felled, from main-thread code as each tree was chosen.
+     * The lumberjack's "do not cut this species" list is consulted from the pathfinding thread, which cannot roll loot
+     * tables, so it asked this table, got nothing back for a species the colony had never cut, and cut the tree anyway.
+     * The setting therefore did nothing at all until one tree of that species had already been felled -- including for
+     * the species added by this snapshot.
+     * <p>
+     * Rolling every leaf's loot table once here costs a few thousand table evaluations at datapack load and makes the
+     * setting work from the first tree. Entries already known (the nether wart blocks, or anything restored from the
+     * colony's own save) are left alone.
+     *
+     * @param level the server level to roll the loot tables against.
+     */
+    private void discoverLeaves(final Level level)
+    {
+        if (!(level instanceof ServerLevel serverLevel))
+        {
+            return;
+        }
+
+        // Mangrove leaves drop nothing; the propagule hangs off them as a block of its own.
+        leavesToSaplingMap.putIfAbsent(Blocks.MANGROVE_LEAVES, new ItemStorage(new ItemStack(Items.MANGROVE_PROPAGULE), false, true));
+
+        final Vec3 origin = Vec3.atCenterOf(BlockPos.ZERO);
+        for (final Block block : BuiltInRegistries.BLOCK)
+        {
+            final BlockState state = block.defaultBlockState();
+            if (leavesToSaplingMap.containsKey(block) || !(state.is(BlockTags.LEAVES) || state.is(ModTags.hugeMushroomBlocks)))
+            {
+                continue;
+            }
+
+            for (int roll = 0; roll < LEAF_DROP_ROLLS; roll++)
+            {
+                final ItemStack sapling = firstSaplingIn(state.getDrops(new LootParams.Builder(serverLevel)
+                                                                          .withParameter(LootContextParams.TOOL, new ItemStack(Items.WOODEN_AXE))
+                                                                          .withLuck(100)
+                                                                          .withParameter(LootContextParams.ORIGIN, origin)));
+                if (!sapling.isEmpty())
+                {
+                    leavesToSaplingMap.put(block, new ItemStorage(sapling, false, true));
+                    break;
+                }
+            }
+        }
+
+        Log.getLogger().info("Finished discovering leaves " + leavesToSaplingMap.size());
+    }
+
+    /**
+     * @param drops one roll of a leaf's loot table.
+     * @return the first sapling or mushroom in it, or an empty stack.
+     */
+    private static ItemStack firstSaplingIn(final List<ItemStack> drops)
+    {
+        for (final ItemStack drop : drops)
+        {
+            if (drop.is(ItemTags.SAPLINGS) || drop.is(COMMON_MUSHROOMS))
+            {
+                return drop;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     /**

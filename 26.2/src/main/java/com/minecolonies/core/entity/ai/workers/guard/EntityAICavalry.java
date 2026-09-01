@@ -13,6 +13,7 @@ import com.minecolonies.core.colony.buildings.workerbuildings.BuildingStable;
 import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.core.colony.jobs.guard.JobCavalry;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
+import com.minecolonies.core.entity.other.SittingEntity;
 import com.minecolonies.core.entity.other.cavalry.CavalryHorseEntity;
 import com.minecolonies.core.entity.pathfinding.navigation.EntityNavigationUtils;
 
@@ -115,12 +116,16 @@ public class EntityAICavalry extends AbstractEntityAIGuard<JobCavalry, AbstractB
      * Sleep activity
      *
      * If the guard is mounted, dismounts and clears the horse of the guard's reservation.
+     * <p>
+     * The horse, and only the horse. A guard that nodded off on foot is sitting on a {@code SittingEntity} - that is
+     * what {@code shouldSleep} put it on, and it is the nap's posture, not a mount. Standing the guard back up off
+     * it on every tick of the nap left a cavalryman sleeping bolt upright and leaked the seat.
      *
      * @return the next state to go into
      */
     protected IAIState sleep()
     {
-        if (worker.isPassenger())
+        if (worker.isPassenger() && !(worker.getVehicle() instanceof SittingEntity))
         {
             worker.stopRiding();
         }
@@ -265,13 +270,18 @@ public class EntityAICavalry extends AbstractEntityAIGuard<JobCavalry, AbstractB
 
     /**
      * Patrol between a list of patrol points.
+     * <p>
+     * Between sorties a cavalry unit waits at its stable rather than standing on the last patrol point, so the whole
+     * troop is in one place when the next one is dispatched. Whether it is between sorties at all is the stable's
+     * decision ({@link BuildingStable#restingAtStable()}), not a second timestamp comparison of this AI's own; a unit
+     * set to a permanent patrol is never between sorties and falls straight through to the route.
      *
      * @return the next patrol point to go to.
      */
     @Override
     public IAIState patrol()
     {
-        if (building instanceof BuildingStable stable && stable.minutesSinceLastPatrol() < building.getSetting(BuildingStable.PATROL_INTERVAL).getValue())
+        if (building instanceof BuildingStable stable && stable.restingAtStable())
         {
             currentPatrolPoint = null;
             EntityNavigationUtils.walkToRandomPosAround(worker, getStableRestCenter(), STABLE_REST_WANDER_RANGE, 0.6D);

@@ -11,23 +11,18 @@ import com.ldtteam.structurize.placement.handlers.placement.IPlacementHandler;
 import com.ldtteam.structurize.placement.handlers.placement.PlacementHandlers;
 import com.ldtteam.structurize.tag.ModTags;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.StaticCache2D;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
@@ -38,14 +33,8 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.chunk.ImposterProtoChunk;
-import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.chunk.status.ChunkPyramid;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
-import net.minecraft.world.level.chunk.status.ChunkStep;
-import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.*;
-import net.minecraft.world.level.levelgen.blending.Blender;
+import net.minecraft.world.level.levelgen.densityfunction.SamplerContext;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -71,8 +60,13 @@ public final class BlockUtils
 {
     /**
      * All solid blocks in the game that may float in the air without support.
+     *
+     * <p>Published as a whole rather than filled in place: the filter reads
+     * {@code ModTags.WEAK_SOLID_BLOCKS}, so the set has to be rebuilt when tags reload, and
+     * {@link #canBlockFloatInAir} reads it from the placement path meanwhile. Swapping a finished set into
+     * a volatile field means a reader sees either the old answer or the new one, never a half-filled set.</p>
      */
-    private static final Set<Block> trueSolidBlocks = Collections.newSetFromMap(new IdentityHashMap<>());
+    private static volatile Set<Block> trueSolidBlocks = Collections.emptySet();
 
     /**
      * Predicated to determine if a block is free to place.
@@ -101,12 +95,36 @@ public final class BlockUtils
     {
         if (trueSolidBlocks.isEmpty())
         {
-            BuiltInRegistries.BLOCK.stream()
-                .filter(BlockUtils::canBlockSurviveWithoutSupport)
-                .filter(block -> !block.defaultBlockState().canBeReplaced() && block.hasCollision && !(block instanceof Fallable) && !block.defaultBlockState().isAir()
-                    && !(block instanceof LiquidBlock) && !block.builtInRegistryHolder().is(ModTags.WEAK_SOLID_BLOCKS))
-                .forEach(trueSolidBlocks::add);
+            trueSolidBlocks = computeTrueSolidBlocks();
         }
+    }
+
+    /**
+     * Rebuild the solid-block set because the tags it is derived from have changed.
+     *
+     * <p>Only ever called for the logical server, which is the only side that populated the set before --
+     * {@link #checkOrInit()} runs off the server level tick. Keeping that side condition means this adds an
+     * invalidation and nothing else.</p>
+     */
+    public static void onTagsReloaded()
+    {
+        trueSolidBlocks = computeTrueSolidBlocks();
+    }
+
+    /**
+     * Walk the block registry for everything that can stand unsupported.
+     *
+     * @return the freshly derived set.
+     */
+    private static Set<Block> computeTrueSolidBlocks()
+    {
+        final Set<Block> solid = Collections.newSetFromMap(new IdentityHashMap<>());
+        BuiltInRegistries.BLOCK.stream()
+            .filter(BlockUtils::canBlockSurviveWithoutSupport)
+            .filter(block -> !block.defaultBlockState().canBeReplaced() && block.hasCollision && !(block instanceof Fallable) && !block.defaultBlockState().isAir()
+                && !(block instanceof LiquidBlock) && !block.builtInRegistryHolder().is(ModTags.WEAK_SOLID_BLOCKS))
+            .forEach(solid::add);
+        return solid;
     }
 
     /**
@@ -151,7 +169,7 @@ public final class BlockUtils
      * @param  virtualBlocks if null use level instead for getting surrounding block states, fnc may should return null if virtual
      *                       block is not available
      * @return               the BlockState of the filler block.
-     * @see                  net.minecraft.data.worldgen.SurfaceRuleData for possible blockstates
+     * @see                  net.minecraft.world.level.levelgen.material.MaterialRules for possible blockstates
      */
     @Nullable
     public static BlockState getWorldgenBlock(final Level level, final BlockPos location, @Nullable final Function<BlockPos, BlockState> virtualBlocks)
@@ -163,65 +181,40 @@ public final class BlockUtils
             {
                 final NoiseGeneratorSettings generatorSettings = chunkGenerator.generatorSettings().value();
 
-                // VANILLA INLINE: look at usage of generatorSettings.surfaceRule()
-
+                // TODO(port-26.3): 26.3-snapshot-10 deleted SurfaceRules and replaced it with the material rules
+                //  under net.minecraft.world.level.levelgen.material. MaterialRuleContext, the context they
+                //  evaluate against, is a public class -- but its constructor and its updateXZ/updateY are
+                //  package-private, so it can be neither built nor driven from outside vanilla, and the
+                //  evaluation this method used to inline cannot be reached any more. MaterialSystem#topMaterial
+                //  is the public way in, and is what vanilla itself calls to ask the same question about one
+                //  position.
+                //
+                //  Two things go with the inline. topMaterial pins the stone depth above and below at one, where
+                //  the loops here measured the real column, and it takes no virtual-block overlay, so blueprint
+                //  blocks that are not placed yet are invisible to it. Both only bite below the surface. The two
+                //  callers in FallingBlockPlacementHandler walk down from the block that needs support, and only
+                //  the first step of that walk stands on the surface -- which is the step topMaterial answers
+                //  correctly. Deeper steps now return null and fall through to the handler's DIRT/STONE default.
+                final RandomState randomState = serverLevel.getChunkSource().randomState();
                 final ChunkAccess chunk = serverLevel.getChunk(location);
-                final SurfaceRules.Context ctx = new SurfaceRules.Context(serverLevel.getChunkSource().randomState().surfaceSystem(),
-                    serverLevel.getChunkSource().randomState(),
-                    chunk,
-                    chunk.getOrCreateNoiseChunk(c -> createNoiseBiome(serverLevel, chunkGenerator, c)),
-                    serverLevel.getBiomeManager()::getBiome,
-                    new WorldGenerationContext(chunkGenerator, serverLevel),
-                    null);
 
-                final int locX = location.getX();
-                final int locY = location.getY();
-                final int locZ = location.getZ();
+                // Whether the column is submerged directly above the queried block: the one thing topMaterial still
+                // takes from the caller, and what the old loop derived its water height from. Read it through the
+                // overlay when there is one, as that loop did.
+                final BlockPos above = location.above();
+                final BlockState stateAbove = virtualBlocks == null ? chunk.getBlockState(above) :
+                    Objects.requireNonNullElseGet(virtualBlocks.apply(above), () -> chunk.getBlockState(above));
 
-                int stoneDepthAbove = 1;
-                int stoneDepthBelow = DimensionType.WAY_BELOW_MIN_Y;
-                int waterHeight = Integer.MIN_VALUE;
-
-                final MutableBlockPos temp = new MutableBlockPos(locX, locY, locZ);
-                for (int tempY = locY + 1; tempY <= chunk.getMaxY() + 2; ++tempY)
-                {
-                    temp.setY(tempY);
-                    final BlockState bs = virtualBlocks == null ? chunk.getBlockState(temp) :
-                        Objects.requireNonNullElseGet(virtualBlocks.apply(temp), () -> chunk.getBlockState(temp));
-                    if (bs.isAir())
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        if (!bs.getFluidState().isEmpty())
-                        {
-                            waterHeight = tempY + 1;
-                        }
-                        stoneDepthAbove++;
-                    }
-                }
-
-                for (int tempY = locY - 1; tempY >= chunk.getMinY() - 1; --tempY)
-                {
-                    temp.setY(tempY);
-                    final BlockState bs = virtualBlocks == null ? chunk.getBlockState(temp) :
-                        Objects.requireNonNullElseGet(virtualBlocks.apply(temp), () -> chunk.getBlockState(temp));
-                    if (bs.isAir() || !bs.getFluidState().isEmpty())
-                    {
-                        stoneDepthBelow = tempY + 1;
-                        break;
-                    }
-                }
-
-                stoneDepthBelow = locY - stoneDepthBelow + 1;
-
-                ctx.updateXZ(locX, locZ);
-                ctx.updateY(stoneDepthAbove, stoneDepthBelow, waterHeight, locY);
-
-                // TODO(port-26.3): NoiseGeneratorSettings#surfaceRule() was renamed to materialRule() and now returns
-                //  a Holder<SurfaceRules.RuleSource> instead of the RuleSource itself.
-                return generatorSettings.materialRule().value().apply(ctx).tryApply(locX, locY, locZ);
+                return randomState.surfaceSystem()
+                    .topMaterial(generatorSettings.materialRule().value(),
+                        randomState,
+                        new WorldGenerationContext(chunkGenerator, serverLevel),
+                        serverLevel.getBiomeManager()::getBiome,
+                        chunk,
+                        randomState.samplersWithContext(SamplerContext.EMPTY_UNCACHED),
+                        location,
+                        !stateAbove.getFluidState().isEmpty())
+                    .orElse(null);
             }
             else if (generator instanceof FlatLevelSource chunkGenerator)
             {
@@ -237,18 +230,6 @@ public final class BlockUtils
         return null;
     }
 
-    private static NoiseChunk createNoiseBiome(
-        final ServerLevel serverLevel,
-        final NoiseBasedChunkGenerator chunkGenerator,
-        final ChunkAccess chunk)
-    {
-        final WorldGenRegion worldGenRegion = new OurWorldGenRegion(serverLevel, ChunkPyramid.GENERATION_PYRAMID.getStepTo(ChunkStatus.SURFACE), chunk);
-
-        return chunkGenerator.createNoiseChunk(chunk,
-            serverLevel.structureManager().forWorldGenRegion(worldGenRegion),
-            Blender.of(worldGenRegion),
-            serverLevel.getChunkSource().randomState());
-    }
 
     /**
      * Checks if the block is water.
@@ -686,92 +667,6 @@ public final class BlockUtils
     private static <T extends Comparable<T>> BlockState copyProperty(final BlockState from, final BlockState to, final Property<T> property)
     {
         return to.setValue(property, from.getValue(property));
-    }
-
-    private static class OurWorldGenRegion extends WorldGenRegion
-    {
-        private final StaticCache2D<ChunkAccess> chunks;
-        private final ServerLevel level;
-
-        private OurWorldGenRegion(final ServerLevel level, final ChunkStep step, final ChunkAccess chunk)
-        {
-            super(level, null, step, chunk);
-            final int chunkX = chunk.getPos().x();
-            final int chunkZ = chunk.getPos().z();
-            final int chunkRange = step.accumulatedDependencies().getRadius();
-
-            this.level = level;
-            chunks = StaticCache2D.create(chunkX, chunkZ, chunkRange, (x, z) -> {
-                ChunkAccess surroundingChunk = level.getChunk(x, z, ChunkStatus.SURFACE);
-
-                if (surroundingChunk instanceof final ImposterProtoChunk imposterProtoChunk)
-                {
-                    surroundingChunk = new ImposterProtoChunk(imposterProtoChunk.getWrapped(), true);
-                }
-                else if (surroundingChunk instanceof final LevelChunk levelChunk)
-                {
-                    surroundingChunk = new ImposterProtoChunk(levelChunk, true);
-                }
-
-                return surroundingChunk;
-            });
-        }
-
-        @Override
-        public boolean destroyBlock(BlockPos p_9550_, boolean p_9551_, @Nullable Entity p_9552_, int p_9553_)
-        {
-            return false;
-        }
-
-        @Override
-        public boolean ensureCanWrite(BlockPos p_181031_)
-        {
-            return false;
-        }
-
-        @Override
-        public boolean setBlock(BlockPos p_9539_, BlockState p_9540_, int p_9541_, int p_9542_)
-        {
-            return false;
-        }
-
-        @Override
-        public boolean addFreshEntity(Entity p_9580_)
-        {
-            return false;
-        }
-
-        @Override
-        public boolean removeBlock(BlockPos p_9547_, boolean p_9548_)
-        {
-            return false;
-        }
-
-        @Override
-        public ChunkAccess getChunk(int p_9514_, int p_9515_, ChunkStatus p_331853_, boolean p_9517_)
-        {
-            return chunks.get(p_9514_, p_9515_);
-        }
-
-        @Override
-        public boolean hasChunk(int p_9574_, int p_9575_)
-        {
-            return level.hasChunk(p_9574_, p_9575_);
-        }
-
-        @Override
-        public boolean isOldChunkAround(ChunkPos pos, int radius)
-        {
-            final int minX = pos.x() - radius;
-            final int maxX = pos.x() + radius;
-            final int minZ = pos.z() - radius;
-            final int maxZ = pos.z() + radius;
-
-            return chunks.contains(minX, minZ) &&
-                chunks.contains(minX, maxZ) &&
-                chunks.contains(maxX, minZ) &&
-                chunks.contains(maxX, maxZ);
-        }
     }
 
     /**

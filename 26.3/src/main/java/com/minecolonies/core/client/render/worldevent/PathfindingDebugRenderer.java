@@ -134,7 +134,7 @@ public class PathfindingDebugRenderer
 
         // PORT-26.2: EntityRenderDispatcher#cameraOrientation is gone; the camera quaternion lives on the
         //  extracted CameraRenderState. Text goes to the submit queue instead of Font#drawInBatch.
-        ctx.poseStack.mulPose(ctx.cameraRenderState.orientation);
+        ctx.poseStack.rotate(ctx.cameraRenderState.orientation);
         ctx.poseStack.scale(0.014F, -0.014F, 0.014F);
 
         ctx.renderFillRectangle(-i - 1, -5, 0, 2 * i + 2, 17, 0x7f000000);

@@ -736,7 +736,7 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
 
         return switch (buildingGuards.getTask())
                  {
-                     case GuardTaskSetting.PATROL -> patrol();
+                     case GuardTaskSetting.PATROL, GuardTaskSetting.PATROL_PERMANENT -> patrol();
                      case GuardTaskSetting.GUARD -> guard();
                      case GuardTaskSetting.FOLLOW -> follow();
                      case GuardTaskSetting.PATROL_MINE -> patrolMine();
@@ -765,6 +765,7 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
         switch (buildingGuards.getTask())
         {
             case GuardTaskSetting.PATROL:
+            case GuardTaskSetting.PATROL_PERMANENT:
             case GuardTaskSetting.PATROL_MINE:
                 return lastGuardActionPos;
             case GuardTaskSetting.FOLLOW:
@@ -788,6 +789,7 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
         switch (buildingGuards.getTask())
         {
             case GuardTaskSetting.PATROL:
+            case GuardTaskSetting.PATROL_PERMANENT:
                 return MAX_PATROL_DERIVATION;
             case GuardTaskSetting.PATROL_MINE:
             case GuardTaskSetting.FOLLOW:

@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.ldtteam.structurize.api.constants.Constants.UPDATE_FLAG;
 
@@ -150,9 +151,29 @@ public final class PlacementHandlers
     }
 
     /**
-     * Simple block based handler cache to avoid too many iterations
+     * Simple block based handler cache to avoid too many iterations.
+     *
+     * <p>Concurrent, not an {@code IdentityHashMap}: {@link #getHandler} both reads and writes this map
+     * with no lock, from the server thread on every placement and from the client thread when
+     * {@code WindowScan} builds its resource list, which in singleplayer are two different threads racing
+     * on the same table. Neither {@code Block} nor {@code BlockBehaviour} overrides {@code hashCode} or
+     * {@code equals}, so a {@code ConcurrentHashMap} keyed on {@code Block} still compares by identity --
+     * the reason the {@code IdentityHashMap} was chosen -- and the read path stays a plain volatile read.</p>
      */
-    private static Map<Block, IPlacementHandler> handlerCache = new IdentityHashMap<>(128);
+    private static final Map<Block, IPlacementHandler> handlerCache = new ConcurrentHashMap<>(128);
+
+    /**
+     * Drop the cached block-to-handler mapping.
+     *
+     * <p>Called on a tag reload: {@code BlackListedBlockPlacementHandler#canHandle} tests
+     * {@code ModTags.BLUEPRINT_BLACKLIST}, so a datapack that changes that tag changes which handler a
+     * block belongs to. Before this the cache was only ever cleared by {@link #add(IPlacementHandler)},
+     * and entries decided under the old tags stayed in place for the rest of the session.</p>
+     */
+    public static void invalidateHandlerCache()
+    {
+        handlerCache.clear();
+    }
 
     /**
      * Finds the appropriate {@link IPlacementHandler} for the given location.

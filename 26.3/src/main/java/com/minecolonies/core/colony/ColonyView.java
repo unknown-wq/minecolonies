@@ -135,6 +135,12 @@ public final class ColonyView implements IColonyView
     private final List<BlockPos> lastSpawnPoints = new ArrayList<>();
 
     /**
+     * Game time the raid that produced {@link #lastSpawnPoints} started at, or
+     * {@link IRaiderManager#NO_RAID_TIME} when the colony has never been raided.
+     */
+    private long lastRaidTime = IRaiderManager.NO_RAID_TIME;
+
+    /**
      * The Positions which players can freely interact.
      */
     private final Set<BlockPos> freePositions = new HashSet<>();
@@ -377,6 +383,7 @@ public final class ColonyView implements IColonyView
         {
             buf.writeBlockPos(block);
         }
+        buf.writeLong(colony.getRaiderManager().getLastRaidTime());
 
         buf.writeInt(colony.getTeamColonyColor().ordinal());
         Utils.serializeCodecMess(BannerPatternLayers.STREAM_CODEC, buf, colony.getColonyFlag());
@@ -764,6 +771,7 @@ public final class ColonyView implements IColonyView
             lastSpawnPoints.add(buf.readBlockPos());
         }
         Collections.reverse(lastSpawnPoints);
+        this.lastRaidTime = buf.readLong();
 
         this.teamColonyColor = ChatFormatting.values()[buf.readInt()];
         this.colonyFlag =  Utils.deserializeCodecMess(BannerPatternLayers.STREAM_CODEC, buf);
@@ -1204,6 +1212,12 @@ public final class ColonyView implements IColonyView
     public List<BlockPos> getLastSpawnPoints()
     {
         return new ArrayList<>(lastSpawnPoints);
+    }
+
+    @Override
+    public long getLastRaidTime()
+    {
+        return lastRaidTime;
     }
 
     @Override

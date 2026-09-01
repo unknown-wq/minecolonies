@@ -1,0 +1,135 @@
+{
+  "name": "The Camp Over the Hill",
+  "max-occurrences": 1,
+  "parents": [],
+  "triggers": [
+    {
+      "type": "minecolonies:state",
+      "state": {
+        "path": "buildingManager/buildings",
+        "match": {
+          "type": "minecolonies:guardtower",
+          "level": 2
+        }
+      }
+    },
+    {
+      "type": "minecolonies:citizen",
+      "state": {
+        "match": {
+          "job": {
+            "type": "minecolonies:knight"
+          }
+        }
+      }
+    }
+  ],
+  "triggerOrder": "1 && 2",
+  "objectives": [
+    {
+      "type": "minecolonies:dialogue",
+      "target": 0,
+      "text": "I have had scouts out past the tree line for a week and they have found what I was afraid of: a barbarian camp, close enough that they can see our smoke. Camps like that do not sit still. Every night it stands is a night they spend counting our gates. I would rather we went to them.",
+      "options": [
+        {
+          "answer": "Show me where it is.",
+          "result": {
+            "type": "minecolonies:dialogue",
+            "text": "Take the road out and my scouts will point you the rest of the way. Kill the ones standing guard, then break every spawner in the camp - that is the part that matters. Leave one standing and it will all be back inside a week.",
+            "options": [
+              {
+                "answer": "It will be cleared by morning.",
+                "result": {
+                  "type": "minecolonies:advanceobjective",
+                  "go-to": 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          "answer": "We are not ready for that yet.",
+          "result": {
+            "type": "minecolonies:return"
+          }
+        }
+      ]
+    },
+    {
+      "type": "minecolonies:raidercamp",
+      "details": {
+        "target": 0,
+        "entity-type": "minecolonies:campbarbarian",
+        "qty": 8,
+        "structure": "minecolonies:camps/small_barbarian_camp",
+        "min-range": 120,
+        "max-range": 220,
+        "next-objective": 2
+      }
+    },
+    {
+      "type": "minecolonies:breakblock",
+      "details": {
+        "target": 0,
+        "block": "minecraft:spawner",
+        "qty": 5,
+        "next-objective": 3
+      }
+    },
+    {
+      "unlocks-rewards": [0, 1, 2, 3, 4],
+      "type": "minecolonies:dialogue",
+      "target": 0,
+      "text": "The scouts walked the ground this morning and there is nothing left standing. No spawners, no watch, no fires. That is the first quiet week this colony has had. Whatever was going to come out of that camp is not coming now - take this, and my thanks with it.",
+      "options": [
+        {
+          "answer": "Sleep well, then.",
+          "result": {
+            "type": "minecolonies:advanceobjective",
+            "go-to": 4
+          }
+        }
+      ]
+    }
+  ],
+  "rewards": [
+    {
+      "type": "minecolonies:raid",
+      "details": {
+        "change": -6
+      }
+    },
+    {
+      "type": "minecolonies:item",
+      "details": {
+        "item": {
+          "id": "minecolonies:ancienttome",
+          "count": 2
+        }
+      }
+    },
+    {
+      "type": "minecolonies:item",
+      "details": {
+        "item": {
+          "id": "minecraft:iron_ingot",
+          "count": 16
+        }
+      }
+    },
+    {
+      "type": "minecolonies:happiness",
+      "details": {
+        "target": 0,
+        "qty": 2,
+        "days": 14
+      }
+    },
+    {
+      "type": "minecolonies:questreputation",
+      "details": {
+        "qty": 1.0
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> **This branch is the port to Minecraft 26.3-snapshot-9 — a snapshot, not a release.** 26.3 is not
+> **This branch is the port to Minecraft 26.3-snapshot-10 — a snapshot, not a release.** 26.3 is not
 > out yet, snapshots land roughly weekly, and no pre-release or release candidate existed while this
 > was ported. The base can move under your feet.
 >
@@ -19,7 +19,7 @@
 <h1 align="center">
   <img src="26.2/src/main/resources/minecolonies_logo.png" alt="MineColonies logo" width="200">
   <br>
-  MineColonies — Fabric port for Minecraft 26.3-snapshot-9
+  MineColonies — Fabric port for Minecraft 26.3-snapshot-10
 </h1>
 
 <p align="center">
@@ -34,7 +34,7 @@
 </p>
 
 <p align="center">
-  <img alt="Minecraft 26.3-snapshot-9" src="https://img.shields.io/badge/Minecraft-26.3--snapshot--9-yellow?style=for-the-badge">
+  <img alt="Minecraft 26.3-snapshot-10" src="https://img.shields.io/badge/Minecraft-26.3--snapshot--10-yellow?style=for-the-badge">
   <img alt="Fabric" src="https://img.shields.io/badge/Loader-Fabric%200.19.3-1976d2?style=for-the-badge">
   <img alt="Fabric API" src="https://img.shields.io/badge/Fabric%20API-0.158.0%2B26.3-1976d2?style=for-the-badge">
   <img alt="Java 25" src="https://img.shields.io/badge/Java-25-orange?style=for-the-badge">
@@ -115,7 +115,7 @@ integrated server ticking well inside its 50 ms budget.
 **The built mod jar lives in [`dist/`](dist/).** One file, nothing else to assemble.
 
 ```
-dist/minecolonies-26.3-0.0.57.jar          44 MB   this branch's build, for 26.3-snapshot-9
+dist/minecolonies-26.3-0.0.73.jar          44 MB   this branch's build, for 26.3-snapshot-10
 dist/minecolonies-26.2-0.0.55.jar          44 MB   the 26.2 release this branch started from
 ```
 
@@ -124,9 +124,9 @@ them up as ordinary mods:
 
 | Nested mod | Version |
 |---|---|
-| `blockui` | 0.0.1 |
-| `domum_ornamentum` | 26.2-1.0.0 |
-| `structurize` | 26.2-1.0.0 |
+| `blockui` | 0.0.2 |
+| `domum_ornamentum` | 26.3-1.0.1 |
+| `structurize` | 26.3-1.0.2 |
 
 > ⚠️ **Do not also put `blockui`, `structurize` or `domum_ornamentum` in `mods/` as separate files.**
 > A jar in `mods/` wins over a nested one **regardless of version** — `isRoot()` is the first key in
@@ -356,13 +356,13 @@ Domum Ornamentum ──────────────┘
 
 ## 🚀 Installation
 
-1. Install [Fabric Loader](https://fabricmc.net/use/installer/) 0.19.3 or newer for Minecraft 26.2.
+1. Install [Fabric Loader](https://fabricmc.net/use/installer/) 0.19.3 or newer for Minecraft 26.3.
 2. Put exactly two files in `mods/`:
 
 ```
 mods/
-├── fabric-api-0.154.2+26.2.jar
-└── minecolonies-26.3-0.0.57.jar
+├── fabric-api-0.158.3+26.3.jar
+└── minecolonies-26.3-0.0.73.jar
 ```
 
 3. Launch. In the loaded-mod list, `blockui`, `domum_ornamentum` and `structurize` must appear
@@ -370,7 +370,7 @@ mods/
    `mods/` — remove it.
 
 The mod is required on both client and dedicated server. Java 25 is a hard requirement of Minecraft
-26.2 itself.
+26.3 itself.
 
 ---
 
@@ -380,11 +380,15 @@ The mod is required on both client and dedicated server. Java 25 is a hard requi
 ./gradle-dist/install.sh                       # installs Gradle 9.6.1 to /opt and OpenJDK 25
 export JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64
 
-cd 26.2
-/opt/gradle-9.6.1/bin/gradle build             # jar lands in 26.2/build/libs/
+cd 26.3
+/opt/gradle-9.6.1/bin/gradle runDatagen        # required before the first build
+/opt/gradle-9.6.1/bin/gradle build             # jar lands in 26.3/build/libs/
 ```
 
-The three dependency jars are taken from the paths in `26.2/gradle.properties`; build them from
+Run Gradle one invocation at a time — `tools/mc-build.sh <project-dir> <task>` takes a global lock,
+and two Loom builds at once corrupt the shared Minecraft cache.
+
+The three dependency jars are taken from the paths in `26.3/gradle.properties`; build them from
 their own repositories first, or point those properties at the jars in their `dist/` folders.
 `./gradlew` does not work here — the wrapper cannot fetch GitHub release assets through the proxy.
 
@@ -449,6 +453,38 @@ Start with [`PORTING-BUNDLE-26.2.md`](https://github.com/unknown-wq/port-kit/blo
 
 ---
 
+## 🔎 Reading the Minecraft sources
+
+Decompiled sources are not shipped with this repository and are not needed to build it. When you do
+need to read vanilla, Loom will make them in about eighty seconds:
+
+```sh
+tools/mc-build.sh 26.3 genSources --no-daemon
+# -> 26.3/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-*/
+#      26.3-snapshot-10/minecraft-merged-*-26.3-snapshot-10-sources.jar
+```
+
+7243 files, and — because Loom decompiles exactly what the build resolves — guaranteed to be the
+version this branch targets. Check it if you like: `SharedConstants.WORLD_VERSION` must read `5015`,
+`SurfaceRules` must be absent, and `ChunkStatus` must have `TERRAIN` and no `NOISE`.
+
+**A source tree can be named after the wrong version; the jar the build resolves cannot.** A tree
+called `/opt/mc-src-26.3` was used as the 26.3 reference for much of this port and was in fact
+snapshot-**9** (`WORLD_VERSION = 5011`). It is deleted. The audit of what that got wrong is commit
+`6514134b`: the answer was two comments explaining a correct change for the wrong reason, and several
+documentation errors — no wrong code, because anything that named a symbol snapshot-10 had removed
+failed to compile. Where the two disagree, settle it with `unzip -l` and `javap -p` against
+`~/.gradle/caches/fabric-loom/26.3-snapshot-10/minecraft-merged.jar`.
+
+**About 69 comments across the tree still cite paths under that deleted directory with line numbers.**
+They are left alone on purpose. The facts they support were re-verified and are correct; the line
+numbers came from snapshot-9 and would not survive a rename, because the two trees do not line up.
+Repointing the path would turn a citation that is obviously stale into one that looks live and sends
+the reader to the wrong line — the quieter failure, and the worse one. Read them as "vanilla, around
+here", and confirm against a freshly generated tree.
+
+---
+
 ## 📁 Repository layout
 
 ```
@@ -476,6 +512,7 @@ Start with [`PORTING-BUNDLE-26.2.md`](https://github.com/unknown-wq/port-kit/blo
 ├── docs/screenshots/      # the frames shown above
 ├── docs/CURSEFORGE.md     # the release description, for the CurseForge page
 ├── COMMANDS.md            # every added command, item and config option, in one place
+├── HEADLESS.md            # running a colony on a server nobody is logged into, start to finish
 ├── UPSTREAM-SYNC.md       # which upstream commit the snapshot sits on, and what has been taken since
 ├── API-CHECKLIST-26.2.md  # the API delta measured against this codebase, with hit counts
 └── gradle-dist/           # vendored Gradle 9.6.1 + toolchain installer

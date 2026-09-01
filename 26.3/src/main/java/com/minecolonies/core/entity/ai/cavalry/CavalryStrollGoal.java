@@ -31,6 +31,7 @@ public class CavalryStrollGoal extends WaterAvoidingRandomStrollGoal
      *     <li>The horse has a passenger.</li>
      *     <li>The horse has a reservation.</li>
      *     <li>The horse does not have a valid animal data object.</li>
+     *     <li>The horse is leashed - tied to a fence, or being led by the Stablemaster.</li>
      * </ul>
      * <p>
      * If the goal is usable, the horse will continue to move towards the stable block position.
@@ -52,7 +53,8 @@ public class CavalryStrollGoal extends WaterAvoidingRandomStrollGoal
     }
 
     /**
-     * Checks if the horse is free to roam, meaning it has no passenger, no reservation, and has a valid animal data object.
+     * Checks if the horse is free to roam, meaning it has no passenger, no reservation, no leash, and has a valid
+     * animal data object.
      * 
      * @return true if the horse is free to roam, false otherwise
      */
@@ -64,6 +66,15 @@ public class CavalryStrollGoal extends WaterAvoidingRandomStrollGoal
         }
 
         if (mob.getControllingPassenger() != null || horse.hasReservation() || horse.getAnimalData() == null)
+        {
+            return false;
+        }
+
+        // A tied horse is not free to roam, and vanilla's stroll goal does not know that: WaterAvoidingRandomStrollGoal
+        // picks a destination up to ten blocks away without ever asking about the leash, and two of those in a row
+        // walk the horse past the twelve block snap distance. The rope is what holds it, not the goal - but the goal
+        // is what would break the rope.
+        if (horse.isLeashed())
         {
             return false;
         }

@@ -60,7 +60,14 @@ public class BlueprintBlockAccess extends FakeLevel<Blueprint>
                 {
                     return solidSubstitutionOverride;
                 }
-                return BlockUtils.getSubstitutionBlockAtWorld(anyLevel(), worldPos.offset(pos), levelSource.getRawBlockStateFunction().compose(b -> b.subtract(worldPos)));
+                // `getRawBlockStateFunction().compose(...)` built three objects per solid placeholder -- the
+                // bound method reference, the capturing lambda and the Function returned by compose -- for an
+                // overlay that is one call away. One lambda does the same job. worldPos is still read fresh,
+                // so a caller that moves the fake level between queries still gets the right anchor.
+                final BlockPos anchor = worldPos;
+                return BlockUtils.getSubstitutionBlockAtWorld(anyLevel(),
+                    anchor.offset(pos),
+                    b -> levelSource.getRawBlockState(b.subtract(anchor)));
             }
             else if (state.getBlock() == ModBlocks.blockFluidSubstitution.get())
             {

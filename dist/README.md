@@ -1,14 +1,474 @@
 # dist
 
 > [!IMPORTANT]
-> **Two jars live here on the `26.3` branch, and only one of them is a release.**
+> **Two jars live here on the `26.3` branch, and neither is a release.**
 >
-> `minecolonies-26.3-0.0.57.jar` is a build of the **26.3-snapshot-9 port** (source in `../26.3/`).
+> `minecolonies-26.3-0.0.73.jar` is a build of the **26.3-snapshot-10 port** (source in `../26.3/`).
 > Minecraft 26.3 is not a release, the port is not finished, and this jar exists so the branch can
-> be run rather than only read. Booted before being placed: `Done (0.837s)`, clean shutdown, one
-> `/ERROR]` line — vanilla worldgen's `No key layers in MapLike[{}]`, which appears on a stock
-> server too. Everything the branch's `README.md` says about unverified client rendering and input
-> applies to it.
+> be run rather than only read. Everything the branch's `README.md` says about unverified client
+> rendering and input applies to it.
+>
+> `sha256 2f60c14eab40adc8bc899726c03d6412a47336f664c7acc8820b706dccf3b8d6`
+>
+> **0.0.73 is a pass over five professions and the pathfinding pool.** No map changes; worldmap
+> stays at 0.1.4.
+>
+> **The pathfinding pool is no longer stuck at one thread.** Every path search on the server -- every
+> citizen, raider and animal, in every colony -- has always gone through a single worker, and
+> `/mc pathstats` could say "the queue is the bottleneck" without an operator having anything to do
+> about it. The size now comes from the `pathfindingthreads` server setting, and `/mc debug maxpool`
+> changes it on a running server.
+>
+> The default is 1, the size it was hard-coded to, so a server that leaves both alone behaves as it
+> did. **Raising it is a knob to turn while watching, not a default to adopt.** The searches read the
+> live world, and vanilla's block storage is not written for concurrent readers -- that is already
+> true at one thread, and more threads widen the window rather than opening a new one. Measured on a
+> flat stand with sixty citizens walking, ten minutes at each size: queue wait fell from 164 ms to
+> 73 ms and searches that found nothing at all fell from 4% to none, while tick time did not move.
+> Nothing failed in half an hour of that, with the risky path genuinely exercised -- over thirty
+> thousand reads of a moving piston's state from worker threads -- which is evidence that the race is
+> narrow, not that it is closed. A synthetic benchmark of the same shape scales x2.68 on four cores,
+> not x4, so four threads on a four-core machine is not the obvious choice it looks like.
+>
+> A switch never loses work. The new pool is published before the old one is shut down, and both take
+> the same lock as submission, so a replaced pool finishes its backlog on its own threads while every
+> new search goes to the new pool, and no submission can be rejected by a switch. Each pool owns its
+> queue, which is what makes two live pools safe. Measured across fifteen switches under load: 9391
+> submitted, 9223 handed on, 9223 completed, 168 cancelled, and every one of the fourteen replaced
+> pools ended terminated with an empty queue.
+>
+> **A crafter's task queue could hang the server.** A token whose request had gone missing was removed
+> by value from a queue that had already emptied, which removes nothing, so the loop spun forever on
+> the server thread. It is removed by position now. The same file was reading three separate tags into
+> one field, losing two of them.
+>
+> **The lumberjack ate the scenery on the way to work.** He now leaves alone what he is only walking
+> past, and one wasted pass per block is gone with it. What counts as a tree and what counts as a
+> sapling are both worked out once when datapacks load rather than by walking every trunk twice, and a
+> leaf scan that used to range freely is bounded by the trunk's own box; a list that was searched
+> linearly is a set. Snapshot species are recognised, including the ones with mushrooms on them.
+>
+> **The bakery can use a smoker**, its output is offered to the colony's restaurants automatically, it
+> works in the rain, and its ingredient hold-back map is cached rather than rebuilt. A furnace with
+> nothing in it is no longer accelerated, the furnace list is cleared before being read back, and
+> every furnace user -- not just the baker -- can now say out loud that it has no furnace. That last
+> one was silencing seven professions: a narrow registration was overwriting the general one.
+>
+> **The alchemist** harvests mistletoe without walking home after each one, records the nether wart he
+> actually took, waits for wart to finish growing, asks the brewing-fuel component instead of naming
+> blaze powder, and no longer collects a second copy of every brewing stand. The druid's potion overlay
+> shows the potion he is carrying, and the missing `build_alchemist` advancement is in.
+>
+> **The undertaker** no longer duplicates a dead citizen's armour, can reach a resurrection, goes to
+> the grave that is about to decay rather than the nearest, hands a reservation back when the graveyard
+> releases it, and can eat between emptying a grave and filling in the headstone. A graveyard can be
+> cleared again and has stopped shouting its dead at every connected client. Two citizens with the same
+> name get two headstones.
+>
+> **Also here:** `/mc colony found` and `/mc colony hut` raise a colony with huts from the server
+> console, with no client attached. They exist because the measurements above needed them, and they
+> are the only way to stand a colony up headless.
+>
+> **0.0.72 gives raiders sight worth the weapons they carry, adds quests to clear a barbarian camp, and
+> fixes two defects found while auditing.** No map changes; worldmap stays at 0.1.4.
+>
+> **Raiders could not see a defender on a wall.** The target box was six blocks tall — 32x6x32 for a
+> melee raider, 48x6x32 for an archer — so anything on a four-block wall simply was not there. The
+> ranged raider was the absurd case: its bow engages from 40 blocks and its eyes reached six blocks up,
+> so its own weapon outranged its sight. Vertical reach is now 16 for melee raiders and the archer's box
+> is 40 forward, both configurable, and both restore the old behaviour exactly at their minimum. The
+> call-for-help box, a flat 20x5x20 before, now scales with how far away the attacker is, floored at the
+> old size and capped so a sniper does not wake three chunks of horde.
+>
+> The cost was measured rather than guessed, on a dedicated server with 81 archer raiders scanning: tick
+> time is 4.0-5.1 ms in steady state at the old values, at the new defaults, and at the config maximum,
+> and the three are not separable. The box is 6.4 times the volume; six times a small number is still a
+> small number. The caveat is that no valid targets were present in that run, so the per-candidate
+> line-of-sight raycast was not exercised; that term scales with colony size, not horde size.
+>
+> **Barbarian camps can now be quested for, because the quest brings its own camp.** Worldgen places
+> them roughly one per 880 blocks squared and only in three biome tags, so a colony cannot expect one in
+> range — measured on one seed, nine camps at 264 to 2209 blocks from thirteen sample points, with two
+> of thirteen inside a colony's maximum claim radius. A cleared camp leaves nothing behind to detect,
+> either, so a quest cannot find one.
+>
+> So the quest places the worldgen template itself, once, permanently, and never touches it again. No
+> new blueprint and no new asset: it is the same camp file the jigsaw would have used. The site search
+> refuses unloaded chunks outright rather than generating any, refuses claimed chunks, uses the raid
+> system's own minimum-distance test so it cannot land in the walls, and rejects uneven ground, fluid,
+> unnatural surface blocks and — the test that actually protects builds — any block entity in the
+> footprint plus a four-block margin. If it cannot find a site the quest cancels with a message and
+> comes back later. `/mc colony camp <colony>` places one on demand and prints why candidates were
+> rejected, which is how an operator finds out why a quest keeps cancelling.
+>
+> **A ladder on a cavalryman's path deleted his horse.** The code meant to exempt a cavalry horse from
+> being discarded on dismount, but it asked what was being ridden *after* dismounting, when the answer is
+> nothing — so the exemption never once applied and the horse was destroyed rather than left standing.
+>
+> **Cavalry split their damage with the horse twice.** The block that gives the mount a share of a blow
+> appeared twice in a row, verbatim. At the stock 20 % split that had the horse taking 0.36 of a melee
+> hit instead of 0.20 and 0.47 of an arrow instead of 0.24, so mounts died at roughly twice the intended
+> rate while their riders quietly took less than they should.
+>
+> Both audits behind this release are in the tree: `docs/studies/raids-and-raiders.md` and
+> `docs/studies/guards.md`. The camp placement was tested on a real dedicated server — a camp placed 208
+> blocks out after 120 rejected candidates, its spawners and loot containers verified by reading the
+> region file back. The raider sight change was not verified behaviourally: summoned camp mobs die to
+> the stuck handler within about a minute, which makes them useless as a test fixture, and there is no
+> client here to fight a real raid with.
+>
+> **0.0.71 ties the cavalry horse up when the rider stops for the night.** No map changes; worldmap
+> stays at 0.1.4.
+>
+> A cavalryman who nods off dismounts and leashes his horse to the nearest fence, and unties it when he
+> wakes. No lead item is needed or consumed — the hitch is a posture, not an economy sink. With no fence
+> within five blocks nothing happens at all and the horse stands loose as before; no block is ever
+> placed. In free mode, a horse conscripted into a stable's pen arrives already tied, so a stocked
+> stable is horses at the stalls rather than a herd immediately strolling off.
+>
+> **Two things had to be got right for this not to be a nuisance.**
+>
+> Vanilla has no cleanup for a leash knot whose animal is *removed* — it handles detaching, not
+> removal — so following vanilla's own flow would have left a knot behind on every dead or culled horse,
+> for ever. Every way a hitch can end is walked back to an explicit untie: waking, remounting, the horse
+> dying, the horse being discarded, a dimension change, the fence being broken. Chunk unload deliberately
+> is not one of them: there the leash is saved and restored by vanilla, and untying would be wrong.
+> Because a split chunk load can still mint a second knot at the same fence, the untie ends with a small
+> sweep that discards any knot at that position holding nothing.
+>
+> And vanilla returns a lead item whenever a leash comes off by itself. A fence hitch costs no lead, so
+> that would have minted one lead per cavalryman per night. The horse's drop-leash path now routes a
+> fence hitch through the untie and leaves every other case alone, so the stablemaster's rope and a
+> player's own lead still give the lead back.
+>
+> The horse also stands still while tied: its stroll goal and its return-to-stable goal both stand down
+> when leashed, which they did not do before — two of them in a row would walk past the twelve-block
+> snap distance and break the rope.
+>
+> **Where the guard sleeps turned out not to be where the brief assumed.** Guards never go to bed: their
+> AI returns "work" unconditionally, and the only dismount is a nap taken wherever the guard happens to
+> be standing, not a return to the stable. So the fence is searched around the horse, not around the
+> building — searching near the stable while the horse was two hundred blocks out would have tied it to
+> a knot past the snap distance. The rest between patrol sorties keeps the rider mounted and is
+> deliberately left alone: dismounting there would put the unit on foot, and on foot it cannot charge.
+>
+> Nothing here was watched in a running game — there is no client for the mod in the build environment.
+>
+> **0.0.70 makes cavalry fight by charging.** No map changes; worldmap stays at 0.1.4. This is the
+> jar 0.0.69's map work belongs in too — 0.0.69 was built from a clean tree while this cavalry work was
+> still uncommitted, so it shipped without it.
+>
+> **A mounted cavalryman no longer stops while a target lives.** He gallops in at the horse's ceiling,
+> strikes on the way through, rides ten blocks out along the line he was already travelling, turns while
+> still under power, and comes back round. There is no standoff state at all: if the attack cooldown is
+> not up when the turn brings him back, he rides on and comes round again rather than standing there.
+>
+> The piece that makes it work is a five-tick check that ends the outbound leg the moment he is six
+> blocks clear and re-issues the closing path immediately. The movement layer alone cannot do this — its
+> "path finished" test means the pathfinding job completed, not that the horse arrived, so it would only
+> re-path after the run-out ran dry and the horse had coasted to a halt.
+>
+> **A charge hurts more, and the damage stays in the progression.** The multiplier is
+> `1 + min(1, speed / 7.9)`, applied to the guard's own damage rather than replacing it, so guard level,
+> melee research, the crit roll, the low-health doubling and the colony's damage multiplier are all
+> inside the number being scaled. With the mod's own spear a cavalryman deals 12 at rest, 18 at half
+> speed and 24 at the ceiling; a foot knight with a netherite sword deals 20 on the same reading.
+>
+> Staying on the mod's own damage path — rather than moving cavalry onto vanilla's kinetic-weapon
+> stab — is what keeps the `minecolonies:guard` damage source and its armour-bypassing PvP form, spear
+> durability and therefore re-requesting, the whirlwind and taunt effects, and the guard's own attack
+> timing. A study of the vanilla route is in `docs/studies/cavalry-vanilla-attack-path.md`; it costs
+> those four things and gains only knockback and dismount.
+>
+> **Boxed in, it gives up gracefully.** A run-out that times out having moved less than six blocks
+> counts as a failed pass; three in a row suspend charging for ten seconds, during which the unit fights
+> exactly like a knight. The test is against where the leg started rather than where the target is, so a
+> rider being chased at equal speed — covering ground but never pulling away — is not misread as stuck.
+>
+> Ranged guards, druids and raiders are untouched: the one change above the cavalry class is a predicate
+> that returns true by default, and cavalry is its only override. Knights and huscarls are untouched
+> too — the shared melee class is not modified at all.
+>
+> **Reported, not fixed:** the shared melee code doubles every melee guard's weapon damage
+> unconditionally, because it adds a helper's return value to the value it passed in and that helper
+> returns the whole figure rather than the difference. It is inherited upstream code, identical in the
+> 26.2 tree, and correcting it would halve every knight and huscarl in the game — a balance change, not
+> a bug fix to slip into a cavalry release. The charge numbers above are quoted on the live behaviour;
+> they halve if it is ever corrected, without retuning, because the charge term multiplies.
+>
+> Nothing here was watched in a running game — there is no client for the mod in the build environment.
+> The cycle rests on a state trace through the machine and a clean server boot.
+>
+> **0.0.69 gives the world map four new colony layers, and makes the colony layer survive a restart.**
+> No MineColonies changes; worldmap 0.1.3 -> 0.1.4.
+>
+> **Colonies now survive quitting.** The client's claim map is filled in by `ColonyView` packets, and
+> the server sends those to a player standing on the colony's claimed chunks -- plus, once, at login,
+> to a player who holds a colony-manager rank in it. So borders survived walking away but not logging
+> out: on the next login you had the colonies you manage and nothing else, and every neighbour's
+> border came back only by walking into it again. The overlay now writes one record per colony to
+> `<gamedir>/worldmap/<world>/<dimension>/colonies.wmc`, beside the tiles, under the same world key,
+> gzipped behind a `WMC1` header and moved into place from a `.tmp` exactly as a tile is. Id, name,
+> citizen count, colour, membership, the hostile flag, the centre, the claimed chunks, the hut, field,
+> patrol and raider-spawn lists, and a last-seen timestamp.
+>
+> Live data always wins and an empty read never does: a colony with live claims takes its chunks, name
+> and colour from the live view; a colony whose claims arrived but whose view has not keeps the
+> remembered name instead of showing as a grey blob; and an empty hut or field list does not erase a
+> good record, because those lists are pushed to close subscribers only and a colony you have not
+> stood in this session reports zero of everything.
+>
+> **A remembered colony is never deleted automatically**, and cannot be: the live claim map only ever
+> holds colonies somebody is standing in, so "deleted while you were away" and "out of range" are the
+> same observation. It is drawn as remembered instead -- dashed outline, no fill, dimmed label -- its
+> tooltip says how long ago it was last seen, and right-clicking inside it offers *Forget <name>*.
+>
+> **Raids.** A colony being raided gets a two-pixel-heavier outline and a `[raid]` tag on its label,
+> from `IColonyView#isRaiding()`. Each of the last recorded raider spawn points gets a small downward
+> triangle, from `getLastSpawnPoints()` -- which is *last*, with no timestamp anywhere in the mod, so
+> the tooltip says so rather than implying a live raid. A colony flagged hostile
+> (`IColony#isHostile()`, a synced field, not the server-thread `HostileTerritory` index) gets a
+> heavier outline with a one-pixel black line down its middle: the double line a frontier is drawn
+> with, still flat and still the colony's own colour.
+>
+> **Fields.** Farmer and plantation fields as 7-pixel squares, hollow when nobody is assigned and
+> filled when somebody is, with a thin line to the hut that owns them. From
+> `getClientBuildingManager().getBuildingExtensions(...)`.
+>
+> **Guard patrol routes.** A closed polyline through a tower's manual patrol points, off by default.
+> `AbstractBuildingGuards.View#getPatrolTargets()` is the only `com.minecolonies.core` type the map
+> names -- there is no api-side route to the list -- so it is isolated behind an `instanceof` in one
+> class of one method, and a MineColonies that has moved it costs the patrol layer and a warning.
+>
+> Layer toggles for all four are in the map's right-click menu; raids and fields default on, patrol
+> routes off, remembered colonies on. Ten toggles now.
+>
+> Verified from the artefact rather than the build log: `META-INF/jars/worldmap-26.3-0.1.4.jar` is
+> nested and carries `MineColoniesOverlay.class`. The dedicated server boots clean with this jar, and
+> a headless dev client with both mods installed reports the colony overlay enabled. **The layers
+> themselves were not seen drawn in a running game** -- that needs a colony, and this environment has
+> no way to play one.
+>
+> **Cavalry never walked a patrol leg.** A cavalryman set to patrol was handed a destination and then,
+> on his next AI tick, sent straight back to loiter in the stable yard. One timestamp was doing two
+> jobs: the stable reset it at the moment it dispatched a sortie, and the cavalry AI read that same
+> timestamp to decide whether it was inside the rest window -- so dispatching a patrol always put the
+> unit into rest. A sortie is now explicit state rather than something inferred from a clock, and the
+> stable is the single authority on whether a unit is resting.
+>
+> Two further defects in the same method, both real. The building's own patrol pump was set to 1200
+> colony ticks; those run once every 500 game ticks, so the pump was not delayed by a minute, it was
+> off for about eight hours of play. And the automatic patrol target was drawn from stables and gate
+> houses only, so a colony with one stable and no gate house sent every cavalryman to the building he
+> was already standing in. The target now falls back to the ordinary guard patrol point.
+>
+> **The stable's patrol interval is editable, and says what it is.** The "6" was a bare int with no
+> label and no tooltip, so the row rendered its raw translation key. Worse, clearing the box to type a
+> new number wrote a zero back under the caret on the very next frame, and any building sync landing
+> mid-edit dropped the old value back in. The field now clamps to 0-60 minutes at every write, keeps
+> its default of 6, no longer zeroes an empty box, and no longer repaints while focused. An existing
+> colony's saved value is dropped on load and the default applies -- the setting's type is part of its
+> key -- which changes no behaviour, because 6 was the only value the old setting could usefully hold.
+>
+> **New guard task: permanent patrol.** Offered by the stable only; every other guard building's option
+> list is unchanged. The unit patrols continuously and never stands down between legs, and it is
+> appended to the option list rather than inserted, so no existing stable is silently retasked. Eating
+> and sleeping still interrupt it: a patrolling guard sits in a combat state declared safe to eat from,
+> and the guard nap is driven by the guard's own state machine, which never consults the task.
+>
+> A cavalry sleep bug turned up while checking that and is fixed too: the nap dismounted on every tick,
+> and for an already-dismounted cavalryman the thing being dismounted was the seat entity itself, which
+> stood him back up each tick and leaked a seat.
+>
+> **Vanilla spears were assessed and kept.** 26.3-snapshot-10 has seven vanilla spears and cavalry
+> already accepts all of them: the equipment type matches the spear tag, the request system asks for
+> them, and the melee AI scores them. One thing was wrong. Every vanilla spear carries a mob reach
+> factor of 0.5, giving a citizen about 2.85 blocks centre to centre, while the cavalry attack distance
+> was a flat 2.4 -- the rider closed half a block inside the reach of the weapon in his hand. A
+> cavalryman holding a spear now uses its real reach.
+>
+> Not done, and deliberately: vanilla spears are designed as mounted charge weapons, with damage scaling
+> off closing speed through the vehicle's motion. None of that fires for a colony guard, because the
+> guard AI deals damage directly rather than through the item's stab path. Wiring it up means moving
+> cavalry onto vanilla's item-use path and touching the whole guard damage pipeline, which is not a
+> small change.
+>
+> Neither item was verified in game -- this environment has no client for the colony mod -- so both rest
+> on a code trace and a green build. The patrol change is the one worth a play test.
+>
+> **0.0.67 clears the map's zoomed-out clutter, gives the player marker a facing arrow, and stops the
+> map saying it has no idea what the Y is.** worldmap 0.1.2 -> 0.1.3.
+>
+> **Hut icons, graves and waypoints are now drawn only at 1x and closer.** Below one pixel per block a
+> colony is a few dozen pixels across and its markers -- which are a fixed size in screen pixels, so they
+> do not shrink -- covered it and the terrain around it completely. All three are dropped outright under
+> 1x, and nothing is recorded for them either, so a marker you cannot see cannot be hovered or clicked
+> through the map. Colony borders and name labels are deliberately kept at every zoom: the borders scale
+> with the map and are the whole reason to zoom out, and there is one label per colony rather than one
+> per building.
+>
+> **The map shows which way you are facing.** A small triangle in the marker's own red, just off the tip
+> of the plus, pointing where the player is looking. Fixed size at every zoom like the marker itself, and
+> the marker's centre does not move -- only the triangle does. The yaw is client state, so this costs no
+> packet and asks the server nothing.
+>
+> **A map made before the height plane existed now fills itself in.** The coordinate readout showed no Y
+> anywhere and the right-click teleport was greyed with *"no height recorded for this column"* over the
+> whole map. The cause was not the readout. Tile files have two formats -- v1 is colour-only, v2 added a
+> plane of surface heights -- and a world mapped by an earlier build is v1 on disk, so it loads with every
+> column's height unknown. Chunks were then scanned exactly once ever, and the "do we have this chunk?"
+> test looked only at colours, so walking back over that ground changed nothing and never would.
+>
+> A chunk that has colours but no heights is now eligible for one re-scan, which writes back the same
+> colours plus real heights and saves the tile as v2. The map therefore heals itself as the ground is
+> walked over. The cost is one extra chunk scan per chunk of old map, paid once and spread over however
+> long revisiting takes: a scan fills every column, so the chunk is skipped from then on. The Nether is
+> excluded on purpose -- there the scan draws vanilla's dirt-and-stone noise and records no heights at
+> all by design, so without the exception every Nether chunk would re-scan on every single load, for
+> ever. The Nether keeps reporting no Y, which is the truth about it.
+>
+> Ground mapped by this build or later was never affected, and nothing on disk is discarded either way.
+>
+> **0.0.66 actually ships the colony overlay, which 0.0.64 and 0.0.65 did not.** Those two jars carried
+> the overlay's interface, its no-op default and the bridge that picks between them -- but not
+> `MineColoniesOverlay`, the one class that draws anything. At runtime the bridge took its
+> `ClassNotFoundException` branch and logged *"This build of the map carries no MineColonies
+> integration"*, so borders, hut icons, labels, tooltips, graves and waypoints were absent even with
+> MineColonies installed. Nothing was wrong with the code; it was never compiled in.
+>
+> The cause was a build default. `worldmap/26.3/build.gradle` compiles that package only when it can find
+> a MineColonies jar to compile against, and drops it with a green build when it cannot -- deliberately,
+> so the map builds standalone. Its default path named `dist/minecolonies-26.3-0.0.62.jar`, and every
+> later build replaced that file with a differently-named one, so the path stopped existing and the
+> package was dropped silently. The default now resolves `dist/minecolonies-26.3-*.jar` by glob, newest
+> wins, and the skip is a multi-line warning naming the class to check for rather than a quiet notice.
+>
+> **Also fixed: the cursor coordinates were overlapped by the dimension label.** They were centred on the
+> whole window while the dimension and zoom were right-aligned, and nothing measured whether the two
+> collided -- with an id as long as `minecraft:overworld` they always did. The header now lays its three
+> pieces out against each other with a fixed gap: the coordinates are centred in the space actually
+> free, and the right-hand label gives way first, losing the dimension, then the zoom, then all of it.
+> The coordinates are the point of the strip and are never dropped. `minecraft:` is also stripped from
+> the dimension, since it is the same for every dimension a player normally looks at; a modded dimension
+> keeps its namespace, where the namespace is what says which mod it came from.
+>
+> **0.0.65 makes the map's zoom usable on a laptop.** worldmap 0.1.0 -> 0.1.1. Zoom stepped one rung of
+> the ladder per scroll event, which is right for a wheel -- one notch is one event -- and wrong for a
+> touchpad, where a two-finger swipe is dozens of events and ran the whole ladder in a single gesture.
+> Nothing in the API tells the two apart: `SDL_MouseWheelEvent` carries a device id and a direction, but
+> only its two float axes reach a screen, as four bare doubles. What is left is the size of the delta.
+> SDL reports one detent as `1.0` and a touchpad reports fractions of it, so an event of a whole unit or
+> more steps at once -- which is what keeps the wheel exactly as it was -- and anything smaller is banked
+> until it reaches `scrollZoomThreshold` units. Horizontal scroll now pans, an axis previously ignored.
+>
+> **The wheel was verified on screen; the touchpad was not.** A headless client run stepped
+> 1x-2x-4x-8x and back to 1/4x, one notch one rung in both directions with the clamps intact. There is
+> no touchpad in the build environment and `Robot` cannot synthesise fractional deltas, so that half is
+> reasoned about only. `scrollZoomThreshold` in `config/worldmap.properties` exists for that reason:
+> **raise it** (4, 6, 8) if a swipe still runs through the zoom levels too fast, lower it towards 1 if
+> the map barely moves. The default of 2.0 is a starting point, not an answer. Note that Options ->
+> Controls -> **Discrete scrolling** rounds every delta to +/-1 before any screen sees it, which
+> collapses the distinction and restores one rung per event.
+>
+> **0.0.64 gives the map a MineColonies overlay.** worldmap 0.0.1 -> 0.1.0. Colony borders drawn from
+> the claim data with a translucent fill and an outline along the region boundary -- interior holes get
+> their own ring and no fill, which is the case a naive outer contour draws as a lie. Other colonies in
+> a weaker style, coloured from each colony's own team colour rather than an invented palette. Name
+> labels, hut icons, hover tooltips, graves, waypoints, six layer toggles, click a hut to open its GUI.
+> Right-click the map for teleport and PNG export.
+>
+> The overlay is a soft dependency and stays one -- the map loads and works with MineColonies absent,
+> and builds green with the integration package dropped entirely. Hostile territory and raids were not
+> built as their own layer; such territories still draw, as ordinary claim data.
+>
+> Teleport needed a surface height the tiles never stored, so a tile now carries a height plane beside
+> its colours (1 MiB -> 1.5 MiB; the CPU cache ceiling moves 64 -> 96 MiB) and the cursor readout shows
+> a real Y. **Regions explored by an older build stay height-less permanently**, because chunks are
+> never re-scanned: there the readout shows `Y -` and teleport is greyed out.
+>
+> **0.0.63 nests the world map, so this is now one file instead of two.** `worldmap` 0.0.1, source
+> in `../worldmap/`, is a separate client-only mod: a full-screen top-down map on `M`, `Esc` to
+> close, vanilla `MapColor` palette, no HUD minimap, no networking. It has no dependency on
+> MineColonies and MineColonies has none on it -- it rides inside the jar purely so installing is one
+> file. It is nested conditionally: `26.3/build.gradle` stages it only when
+> `../worldmap/26.3/build/libs/` holds a jar, so building MineColonies in a tree where the map was
+> never built still works and simply omits it.
+>
+> Because the map declares `"environment": "client"`, a dedicated server skips it entirely. Verified
+> rather than assumed: booting this jar alone in `mods/` beside Fabric API gives `Done (0.622s)`,
+> clean shutdown, no `/ERROR]` and no `/FATAL]`, 9 warnings, and the log does not contain the string
+> `worldmap` even once -- `minecolonies 0.0.63`, `blockui 0.0.2`, `domum_ornamentum 1.0.1`,
+> `structurize 1.0.2`. The client side of the map is therefore **not exercised by that boot at all**;
+> what is known about it comes from a headless client run recorded in `../worldmap/26.3/README.md`.
+>
+> **0.0.62 is the first jar on this branch that changes Structurize's behaviour rather than its
+> version.** Ten fixes from the performance study in `../docs/studies/structurize-performance.md`,
+> all inside `libs/structurize/26.3/src/main/java/`. The two that a player is most likely to feel:
+> loading a blueprint no longer runs a stream over every entity once per position in the volume (a
+> 50x30x50 blueprint with 20 entities was allocating about 1.5 million throwaway `BlockPos` objects
+> to answer a question one pass answers), and scanning a region no longer searches the palette
+> linearly twice per block (a 100x50x100 scan against a 500-entry palette ran on the order of half a
+> billion state comparisons on the server thread). The blueprint IO pool also gets the second thread
+> it was already configured for but could never start, because its queue is unbounded and a
+> `ThreadPoolExecutor` only grows past its core size when the queue refuses work.
+>
+> Two correctness fixes came along with it. The block-to-handler cache and the solid-block set are
+> both derived from block tags and were never rebuilt on a datapack reload, so entries decided under
+> the old tags survived a `/reload` for the rest of the session; there is now a tag-reload hook, the
+> first in this mod. And the inward-circle iterator's resume replay was an unbounded `while` that
+> spun forever if the saved position fell outside the blueprint -- it is bounded now.
+>
+> Five findings were left alone, with reasons recorded in the merge commit. The largest, memoising
+> the worldgen-block query, was rejected because the study's soundness argument is wrong: the query
+> is not a pure function of position, since its water argument is read through the caller's
+> virtual-block overlay and the falling-block handler queries the same position under two different
+> overlays.
+>
+> Structurize moves 1.0.1 to 1.0.2 with the code; BlockUI and Domum Ornamentum are untouched and stay
+> at 0.0.2 and 1.0.1. Booted with this jar alone in `mods/` beside Fabric API: `Done (0.801s)`, clean
+> shutdown, no `/ERROR]` and no `/FATAL]` line, 9 warnings, `minecolonies 0.0.62`, `blockui 0.0.2`,
+> `domum_ornamentum 1.0.1`, `structurize 1.0.2`. Datagen output is byte for byte what 0.0.61
+> produced. Structurize's own tests pass. **Not exercised by that boot, and so unverified:** the
+> builder path, a paste and undo, a scan, any client rendering, and a live `/reload` against a
+> datapack that edits `structurize:blueprint_blacklist` or `weak_solid_blocks`.
+>
+> **0.0.61 makes the build say which version it is.** Four mod names still announced themselves as
+> the 26.2 port -- the loader hands that name to anything that has to name the mod, so it surfaced as
+> the creative tab's title and inside item tooltips. All four now read 26.3, and every library moved a
+> version with them: BlockUI 0.0.1 to 0.0.2, Domum Ornamentum and Structurize 1.0.0 to 1.0.1, so the
+> renamed artefacts are not two different jars under one number. Booted on a flat-noise world, this
+> jar alone in `mods/` beside Fabric API: `Done (5.019s)`, clean shutdown, no `/ERROR]` and no
+> `/FATAL]` line, 10 warnings, and all four mod ids reading their new versions -- `minecolonies
+> 0.0.61`, `blockui 0.0.2`, `domum_ornamentum 1.0.1`, `structurize 1.0.1`. No code changed: datagen
+> output is byte for byte what 0.0.60 produced.
+>
+> **0.0.60 moves the port from snapshot 9 to snapshot 10.** Minecraft `26.3-snapshot-10`, Fabric
+> loader `0.19.4`, Fabric API `0.158.3+26.3`. Three renames in MineColonies itself
+> (`PoseStack#mulPose` to `#rotate` in 21 places, the `ItemStack#hurtAndBreak` callback now handed
+> the whole stack, `ServerLevel#getStructureManager` to `#getStructureTemplateManager`), one in
+> BlockUI, and in Structurize the blueprint data version plus a real change: snapshot 10 deletes the
+> `SurfaceRules` system outright and collapses the `NOISE`, `SURFACE` and `CARVERS` chunk statuses
+> into one `TERRAIN`. The "what block would worldgen put here" query that decides the support block
+> under a falling block in a blueprint now goes through the public `MaterialSystem#topMaterial`
+> instead of inlining the deleted system; below the surface it returns nothing and the placement
+> handler falls back to dirt or stone, as it already did outside noise worlds. Domum Ornamentum
+> needed no change at all.
+>
+> Booted on a **normal** world, this jar alone in `mods/` beside Fabric API: `Done (3.792s)`, clean
+> shutdown, no `/ERROR]` and no `/FATAL]` line, 9 warnings, and all four mods in the list —
+> `minecolonies 0.0.60`, `blockui 0.0.1`, `domum_ornamentum 1.0.0`, `structurize 1.0.0`. Datagen
+> output is byte for byte what snapshot 9 produced. **The client has not been run**, here or on
+> 0.0.59.
+>
+> Numbering: this jar carries everything 0.0.59 did, on the newer snapshot. It does **not** carry
+> 0.0.58's restaurant work, which is 26.2 source that has not been brought over to this tree yet.
+>
+> The snapshot-9 build, `minecolonies-26.3-0.0.59.jar`, is gone from this folder — it will not load
+> on snapshot 10, and git history keeps it. What it fixed came with it: placing a structure over
+> normal terrain used to kill the server with a `NullPointerException` in `WorldGenRegion.<init>`,
+> because the port handed that constructor a null chunk cache which 26.2 tolerated and 26.3
+> dereferences. That code is retired in 0.0.60 rather than merely fixed — `topMaterial` needs no
+> `WorldGenRegion` — so the crash cannot come back the same way.
 >
 > `minecolonies-26.2-0.0.55.jar` is the last **26.2 release**, inherited from `main`. Note that it
 > predates the framed-block fix that this branch's own `../26.2/` source already carries — the

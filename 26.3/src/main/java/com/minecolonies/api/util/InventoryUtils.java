@@ -25,9 +25,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import com.minecolonies.api.inventory.InventoryCitizen;
 import com.minecolonies.api.inventory.api.IItemHandler;
 import com.minecolonies.api.inventory.api.InvWrapper;
 
@@ -2565,6 +2567,37 @@ public class InventoryUtils
             if (itemstack != null)
             {
                 spawnItemStack(world, x, y, z, itemstack);
+            }
+        }
+    }
+
+    /**
+     * Drop everything a citizen is carrying, worn armour included.
+     * <p>
+     * {@link #dropItemHandler} alone is not enough for a citizen: it iterates {@code handler.getSlots()}, and
+     * {@code InventoryCitizen#getSlots} reports only the pack, because the four worn pieces live in a separate
+     * armour inventory that {@code getStackInSlot} deliberately refuses to reach. Every drop site that handed a
+     * citizen inventory to {@link #dropItemHandler} therefore *deleted* the guard's armour: the death of a citizen
+     * outside the colony claim, and both of the grave manager's fallbacks (grave full, and nowhere to place a
+     * grave). The player saw a pile of arrows and food and no diamond chestplate.
+     *
+     * @param inventory the citizen's inventory.
+     * @param world     the world to drop into.
+     * @param x         drop x.
+     * @param y         drop y.
+     * @param z         drop z.
+     */
+    public static void dropCitizenInventory(final InventoryCitizen inventory, final Level world, final int x, final int y, final int z)
+    {
+        dropItemHandler(inventory, world, x, y, z);
+
+        for (final EquipmentSlot equipmentSlot : InventoryCitizen.ARMOR_SLOTS)
+        {
+            final ItemStack stack = inventory.getArmorInSlot(equipmentSlot);
+            if (!ItemStackUtils.isEmpty(stack))
+            {
+                inventory.forceClearArmorInSlot(equipmentSlot, stack);
+                spawnItemStack(world, x, y, z, stack);
             }
         }
     }

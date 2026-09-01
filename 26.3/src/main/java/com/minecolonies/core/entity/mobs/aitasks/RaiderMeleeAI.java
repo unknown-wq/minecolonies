@@ -8,8 +8,10 @@ import com.minecolonies.api.entity.mobs.AbstractEntityMinecoloniesMonster;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.SoundUtils;
 import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.MineColonies;
 import com.minecolonies.core.colony.events.raid.RaiderConstants;
 import com.minecolonies.core.entity.ai.combat.AttackMoveAI;
+import com.minecolonies.core.entity.ai.combat.TargetAI;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
 import com.minecolonies.core.entity.pathfinding.navigation.EntityNavigationUtils;
 import com.minecolonies.core.entity.pathfinding.pathresults.PathResult;
@@ -99,5 +101,30 @@ public class RaiderMeleeAI<T extends AbstractEntityMinecoloniesMonster & IThreat
     protected int getSearchRange()
     {
         return 0;
+    }
+
+    /**
+     * Vertical half-height of the target search box, for every raider and camp mob that fights hand to hand.
+     * <p>
+     * Upstream never overrode this, so a raider inherited {@link TargetAI#getYSearchRange()}, which reads the
+     * <em>guard</em> config and defaults to {@link com.minecolonies.api.util.constant.GuardConstants#Y_VISION} = 3.
+     * With {@link #getSearchRange()} returning 0 the resulting box is 32 x 6 x 32: sixteen blocks sideways and three
+     * up. A defender standing on a four-block wall is outside it, which is why a horde walks under a manned wall to
+     * reach whatever building it was sent to.
+     * <p>
+     * The default is {@link com.minecolonies.api.util.constant.GuardConstants#DEFAULT_VISION} = 16, the same constant
+     * that already sets this raider's horizontal reach, so the box becomes a cube rather than a slab -- a raider sees
+     * as far up as it already saw sideways, and no new magic number enters the tree. Sixteen is also the point past
+     * which more vertical range buys a melee raider nothing: its own reach is
+     * {@link com.minecolonies.core.colony.events.raid.RaiderConstants#MIN_DISTANCE_FOR_ATTACK} = 2.5, so it can never
+     * hit an elevated target; all the range does is make it path towards the foot of the wall, and every wall and all
+     * but the tallest towers are inside 16.
+     *
+     * @return the vertical half-height, from the server config.
+     */
+    @Override
+    protected int getYSearchRange()
+    {
+        return MineColonies.getConfig().getServer().raiderVerticalVision.get();
     }
 }

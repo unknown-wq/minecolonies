@@ -214,7 +214,7 @@ public class RenderBipedCitizen extends MobRenderer<AbstractEntityCitizen, Citiz
         final Vec3 attachment = state.nameTagAttachment;
         poseStack.pushPose();
         poseStack.translate(attachment.x, attachment.y + 0.9, attachment.z);
-        poseStack.mulPose(camera.orientation);
+        poseStack.rotate(camera.orientation);
         poseStack.scale(0.025F, -0.025F, 0.025F);
 
         submitNodeCollector.submitCustomGeometry(poseStack,

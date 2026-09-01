@@ -164,9 +164,10 @@ public enum AIWorkerState implements IAIState
     */
 
     /**
-     * Empty The grave
+     * Empty The grave. Interruptible: it is a stand-still-and-swing loop whose progress is a field that survives
+     * being resumed, and the whole grave-to-headstone chain is otherwise four minutes with no meal at low skills.
      */
-    EMPTY_GRAVE(false),
+    EMPTY_GRAVE(true),
 
     /**
      * Dig The grave
@@ -174,9 +175,9 @@ public enum AIWorkerState implements IAIState
     DIG_GRAVE(false),
 
     /**
-     * Bury the citizen
+     * Bury the citizen. Interruptible for the same reason as EMPTY_GRAVE above.
      */
-    BURY_CITIZEN(false),
+    BURY_CITIZEN(true),
 
     /**
      * Attempt Resurrect
@@ -370,6 +371,11 @@ public enum AIWorkerState implements IAIState
      * Feed animals.
      */
     HERDER_FEED(false),
+
+    /**
+     * Tie an animal to a fence.
+     */
+    HERDER_LEASH(true),
 
     /*
 ### Stablemaster ###
@@ -650,11 +656,6 @@ public enum AIWorkerState implements IAIState
      * Retrieve the ore from the brewingStand.
      */
     RETRIEVING_END_PRODUCT_FROM_BREWINGSTAMD(true),
-
-    /**
-     * Retrieve used fuel from the brewingStand.
-     */
-    RETRIEVING_USED_FUEL_FROM_BREWINGSTAND(true),
 
     /**
      * Fuel the brewingStand.

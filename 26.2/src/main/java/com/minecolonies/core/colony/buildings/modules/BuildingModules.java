@@ -202,11 +202,15 @@ public class BuildingModules
     public static final BuildingEntry.ModuleProducer<SettingsModule, SettingsModuleView> STABLE_SETTINGS =
       new BuildingEntry.ModuleProducer<>("stable_settings", () -> new SettingsModule()
         .with(AbstractBuilding.BREEDING, new BoolSetting(true))  
-        .with(AbstractBuildingGuards.GUARD_TASK, new GuardTaskSetting(GuardTaskSetting.PATROL, GuardTaskSetting.GUARD, GuardTaskSetting.FOLLOW))
+        .with(AbstractBuildingGuards.GUARD_TASK,
+          // Appended, not inserted: a saved StringSetting keeps its index and has the registered option list written
+          // over it on load, so putting a new option anywhere but the end would silently retask every stable in
+          // every existing colony to whatever slid into its slot.
+          new GuardTaskSetting(GuardTaskSetting.PATROL, GuardTaskSetting.GUARD, GuardTaskSetting.FOLLOW, GuardTaskSetting.PATROL_PERMANENT))
         .with(AbstractBuildingGuards.RETREAT, new BoolSetting(true))
         .with(AbstractBuildingGuards.HIRE_TRAINEE, new BoolSetting(true))
         .with(AbstractBuildingGuards.PATROL_MODE, new GuardPatrolModeSetting())
-        .with(BuildingStable.PATROL_INTERVAL, new IntSetting(6))
+        .with(BuildingStable.PATROL_INTERVAL, new PatrolIntervalSetting())
         .with(AbstractBuildingGuards.FOLLOW_MODE, new GuardFollowModeSetting()), () -> SettingsModuleView::new);
       
     // PORT-NOTE(26.2): upstream pins the fisherman hut at a single worker, the same way it pinned the

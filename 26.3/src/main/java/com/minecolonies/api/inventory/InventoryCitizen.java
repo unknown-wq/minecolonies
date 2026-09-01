@@ -34,6 +34,18 @@ import static com.minecolonies.api.util.constant.NbtTagConstants.*;
 public class InventoryCitizen implements IItemHandlerModifiable, Nameable
 {
     /**
+     * The worn-armour slots a citizen actually has, in the order they are stored.
+     * <p>
+     * Never iterate {@link EquipmentSlot#values()} filtered by {@link EquipmentSlot#isArmor()} to reach this
+     * inventory. {@code isArmor()} is true for {@code BODY} as well as for the four humanoid pieces, and
+     * {@code BODY.getIndex()} is 0 - the same index {@code FEET} uses - so such a loop reads the boots twice and
+     * misses nothing else. {@code armorInventory} has exactly these four entries and nothing ever writes a
+     * {@code BODY} piece into it, so this list is the whole of it.
+     */
+    public static final List<EquipmentSlot> ARMOR_SLOTS =
+      List.of(EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD);
+
+    /**
      * The returned slot if a slot hasn't been found.
      */
     private static final int NO_SLOT = -1;
@@ -402,7 +414,7 @@ public class InventoryCitizen implements IItemHandlerModifiable, Nameable
      * @param onBroken action upon item break
      * @return true if the item broke
      */
-    public <T extends LivingEntity> boolean damageInventoryItem(final int slot, int amount, @Nullable T entityIn, @Nullable Consumer<Item> onBroken)
+    public <T extends LivingEntity> boolean damageInventoryItem(final int slot, int amount, @Nullable T entityIn, @Nullable Consumer<ItemStack> onBroken)
     {
         final ItemStack stack = mainInventory.get(slot);
         if (!ItemStackUtils.isEmpty(stack))

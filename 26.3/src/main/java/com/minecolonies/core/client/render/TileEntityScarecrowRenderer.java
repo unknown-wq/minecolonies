@@ -201,7 +201,7 @@ public class TileEntityScarecrowRenderer implements BlockEntityRenderer<TileEnti
         poseStack.pushPose();
         //Set viewport to tile entity position to render it
         poseStack.translate(BLOCK_MIDDLE, YOFFSET, BLOCK_MIDDLE);
-        poseStack.mulPose(Axis.ZP.rotationDegrees(ROTATION));
+        poseStack.rotate(Axis.ZP.rotationDegrees(ROTATION));
 
         //In the case of worldLags tileEntities may sometimes disappear.
         if (state.facing != null)
@@ -209,13 +209,13 @@ public class TileEntityScarecrowRenderer implements BlockEntityRenderer<TileEnti
             switch (state.facing)
             {
                 case EAST:
-                    poseStack.mulPose(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_EAST));
+                    poseStack.rotate(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_EAST));
                     break;
                 case SOUTH:
-                    poseStack.mulPose(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_SOUTH));
+                    poseStack.rotate(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_SOUTH));
                     break;
                 case WEST:
-                    poseStack.mulPose(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_WEST));
+                    poseStack.rotate(Axis.YP.rotationDegrees(BASIC_ROTATION * ROTATE_WEST));
                     break;
                 default:
                     //don't rotate at all.
@@ -274,7 +274,7 @@ public class TileEntityScarecrowRenderer implements BlockEntityRenderer<TileEnti
     {
         poseStack.pushPose();
 
-        poseStack.mulPose(Axis.ZP.rotationDegrees(ROTATION));
+        poseStack.rotate(Axis.ZP.rotationDegrees(ROTATION));
         poseStack.translate(LANTERN_OFFSET_X, LANTERN_OFFSET_Y, LANTERN_OFFSET_Z);
         poseStack.scale(LANTERN_SCALE_X, LANTERN_SCALE_Y, LANTERN_SCALE_Z);
 

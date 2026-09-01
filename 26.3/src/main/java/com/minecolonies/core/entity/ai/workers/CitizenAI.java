@@ -309,7 +309,7 @@ public class CitizenAI implements IStateAI
             return false;
         }
 
-        if (citizen.getCitizenData().getJob() != null && (!citizen.getCitizenData().getJob().canAIBeInterrupted()))
+        if (citizen.getCitizenData().getJob() != null && !citizen.getCitizenData().getJob().canEat())
         {
             return false;
         }

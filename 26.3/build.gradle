@@ -44,9 +44,22 @@ def stageLib = { String group, String name, String version, String jarPath ->
 	return "${group}:${name}:${version}"
 }
 
-ext.blockuiCoords = stageLib("com.ldtteam", "blockui", "0.0.1", project.blockui_jar)
-ext.domumCoords = stageLib("com.ldtteam", "domum_ornamentum", "26.2-1.0.0", project.domum_jar)
-ext.structurizeCoords = stageLib("com.ldtteam", "structurize", "26.2-1.0.0", project.structurize_jar)
+ext.blockuiCoords = stageLib("com.ldtteam", "blockui", "0.0.2", project.blockui_jar)
+ext.domumCoords = stageLib("com.ldtteam", "domum_ornamentum", "26.3-1.0.1", project.domum_jar)
+ext.structurizeCoords = stageLib("com.ldtteam", "structurize", "26.3-1.0.2", project.structurize_jar)
+
+// The world map, nested only if it has been built. Unlike the three libraries above this is NOT a
+// compile dependency -- nothing in MineColonies names a com.unknownwq.worldmap type, and the map does
+// not name a MineColonies one either. It rides along purely so a player installs one file instead of
+// two. Staging it conditionally keeps `cd 26.3 && build` working in a tree where worldmap/ was never
+// built, which a hard stageLib call would break for a mod that is not actually required.
+ext.worldmapCoords = file(project.worldmap_jar).exists()
+	? stageLib("com.unknownwq", "worldmap", "26.3-0.1.6", project.worldmap_jar)
+	: null
+if (ext.worldmapCoords == null) {
+	logger.lifecycle("worldmap jar not found at ${project.worldmap_jar} -- building without the map. " +
+		"Run: tools/mc-build.sh worldmap/26.3 build")
+}
 
 repositories {
 	maven {
@@ -109,6 +122,11 @@ dependencies {
 	include blockuiCoords
 	include domumCoords
 	include structurizeCoords
+
+	// Nested only when it was built; see the conditional stageLib call above.
+	if (worldmapCoords != null) {
+		include worldmapCoords
+	}
 
 	// Simple Planes, if it is available to build against. compileOnly and NOT `include`, for two
 	// separate reasons that happen to agree:

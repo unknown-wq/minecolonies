@@ -66,12 +66,14 @@ public class BrewingCraftingType extends CraftingType
                 continue;
             }
 
-            // a brewing stand brews all three bottles from a single reagent
+            // A brewing stand brews all three bottles from a single reagent. The bottle comes first: the teaching
+            // GUI, the AI that loads the stand and the JEI display all read input 0 as the bottle and input 1 as
+            // the reagent, and this enumerator is the only other thing that builds a brewing recipe.
             recipes.add(GenericRecipe.builder()
                     .withRecipeId(holder.id().identifier())
                     .withOutput(output.copyWithCount(output.getCount() * 3))
-                    .withInputs(List.of(reagents,
-                            containers.stream().map(stack -> stack.copyWithCount(3)).toList()))
+                    .withInputs(List.of(containers.stream().map(stack -> stack.copyWithCount(3)).toList(),
+                            reagents))
                     .withIntermediate(Blocks.BREWING_STAND)
                     .build());
         }

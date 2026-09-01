@@ -51,6 +51,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -60,6 +62,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import static com.minecolonies.api.util.constant.CitizenConstants.*;
 import static com.minecolonies.api.util.constant.GuardConstants.BASE_PHYSICAL_DAMAGE;
@@ -554,6 +557,58 @@ public abstract class AbstractEntityCitizen extends AbstractCivilianEntity imple
     public boolean isBlocking()
     {
         return getUseItem().getItem() instanceof ShieldItem;
+    }
+
+    /**
+     * The ammunition this citizen feeds a projectile weapon he is holding.
+     * <p>
+     * {@link LivingEntity#getProjectile} answers {@code ItemStack.EMPTY} for everything that is not a {@link Player}
+     * or a {@link net.minecraft.world.entity.monster.Monster}, and a citizen is neither -- he is a
+     * {@code PathfinderMob}. That empty answer is not cosmetic: {@code CrossbowItem#onUseTick} loads the weapon by
+     * asking for it, so a citizen holding a crossbow could wind the string for ever and never reach the charged
+     * state, which is what left the marksman stuck in the loading pose with the loading-finished sound unreachable.
+     * <p>
+     * The search is the player's -- hand first, then the whole of the citizen's own inventory -- because that is
+     * where a citizen's arrows are; the {@code Monster} version only ever looks at the two hands. The fall-back when
+     * he carries none is the monster's: vanilla hands an empty-quivered mob one issue arrow rather than disarming
+     * it, and the same applies here, because a colony guard has never needed arrows to shoot. Arrows remain what
+     * they were before this method existed, a damage bonus rather than a gate -- with the difference that a real one
+     * is now genuinely spent (vanilla splits the stack this returns) instead of being deducted separately.
+     *
+     * @param heldWeapon the weapon asking for ammunition.
+     * @return the stack to draw from -- a live inventory stack whenever there is one.
+     */
+    @Override
+    public ItemStack getProjectile(final ItemStack heldWeapon)
+    {
+        if (!(heldWeapon.getItem() instanceof ProjectileWeaponItem weapon))
+        {
+            return ItemStack.EMPTY;
+        }
+
+        final ItemStack held = ProjectileWeaponItem.getHeldProjectile(this, weapon.getSupportedHeldProjectiles());
+        if (!held.isEmpty())
+        {
+            return held;
+        }
+
+        // A citizen whose data has not been attached yet (or has already been detached) has no pack to search; he
+        // still gets the issue arrow rather than an exception out of an item's use tick.
+        if (getCitizenData() != null)
+        {
+            final Predicate<ItemStack> supported = weapon.getAllSupportedProjectiles();
+            final InventoryCitizen inventory = getInventoryCitizen();
+            for (int slot = 0; slot < inventory.getSlots(); slot++)
+            {
+                final ItemStack stack = inventory.getStackInSlot(slot);
+                if (!stack.isEmpty() && supported.test(stack))
+                {
+                    return stack;
+                }
+            }
+        }
+
+        return new ItemStack(Items.ARROW);
     }
 
     /**

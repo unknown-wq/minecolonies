@@ -13,15 +13,13 @@ import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.NBTUtils;
 import com.minecolonies.core.colony.Colony;
 import com.minecolonies.core.colony.buildings.AbstractBuildingGuards;
+import com.minecolonies.core.colony.territory.BorderPatrol;
 import com.minecolonies.core.util.AdvancementUtils;
-import com.minecolonies.api.util.WorldUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -253,23 +251,11 @@ public class BuildingBarracksTower extends AbstractBuildingGuards
         }
 
         final BlockPos anchor = from == null ? getPosition() : from;
-        int nearest = 0;
-        long bestDistance = Long.MAX_VALUE;
-        for (int i = 0; i < stretch.size(); i++)
-        {
-            final long dx = (long) stretch.get(i).getX() - anchor.getX();
-            final long dz = (long) stretch.get(i).getZ() - anchor.getZ();
-            final long distance = dx * dx + dz * dz;
-            if (distance < bestDistance)
-            {
-                bestDistance = distance;
-                nearest = i;
-            }
-        }
+        final int nearest = BorderPatrol.nearestIndex(stretch, anchor);
 
         if (stretch.size() == 1)
         {
-            return surface(stretch.get(0));
+            return BorderPatrol.surface(colony.getWorld(), stretch.get(0));
         }
 
         if (nearest + patrolDirection < 0 || nearest + patrolDirection >= stretch.size())
@@ -277,31 +263,7 @@ public class BuildingBarracksTower extends AbstractBuildingGuards
             patrolDirection = -patrolDirection;
         }
 
-        return surface(stretch.get(nearest + patrolDirection));
+        return BorderPatrol.surface(colony.getWorld(), stretch.get(nearest + patrolDirection));
     }
 
-    /**
-     * Put a waypoint on the ground, or on the water, of a chunk that is actually loaded.
-     * <p>
-     * The plan stores waypoints with the barracks' own Y because working one out needs the world and the plan is built
-     * without touching it. Resolving it here costs a heightmap read of a loaded chunk and is skipped entirely for one
-     * that is not: {@code AbstractEntityAIGuard#patrol} treats an unloaded patrol point as already arrived at and
-     * moves on, which is exactly the right thing for a stretch running out into ground nobody is standing near.
-     * <p>
-     * {@code MOTION_BLOCKING} counts fluids, so over sea this answers the water surface rather than the sea bed. That
-     * is what a guard crossing it wants: the navigator spawns a {@link com.minecolonies.api.entity.other.MinecoloniesBoat}
-     * when a path runs over water and it has the Boats research, and a target on the surface is one it can sail to.
-     *
-     * @param waypoint the waypoint.
-     * @return the same column, on the surface where that is known.
-     */
-    private BlockPos surface(@NotNull final BlockPos waypoint)
-    {
-        final Level world = colony.getWorld();
-        if (world == null || !WorldUtil.isBlockLoaded(world, waypoint))
-        {
-            return waypoint;
-        }
-        return new BlockPos(waypoint.getX(), world.getHeight(Heightmap.Types.MOTION_BLOCKING, waypoint.getX(), waypoint.getZ()), waypoint.getZ());
-    }
 }

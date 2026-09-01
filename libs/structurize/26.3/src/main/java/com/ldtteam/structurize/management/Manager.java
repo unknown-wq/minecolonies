@@ -56,19 +56,24 @@ public final class Manager
      */
     public static void onWorldTick(final ServerLevel world)
     {
-        int count = 0;
-        if (!scanToolOperationPool.isEmpty())
+        // The budget is read once: it is a config value behind two volatile reads and an unbox, and it
+        // cannot change part-way through a tick anyway. Leaving the queue is a `break` rather than a
+        // spin to the budget -- peek() returning null used to keep the loop running for the remaining
+        // (up to 1000) iterations on every tick that drained the queue.
+        final int budget = Structurize.getConfig().getServer().maxOperationsPerTick.get();
+        for (int count = 0; count <= budget; count++)
         {
-            while (count++ <= Structurize.getConfig().getServer().maxOperationsPerTick.get())
+            final ITickedWorldOperation operation = scanToolOperationPool.peek();
+            if (operation == null)
             {
-                final ITickedWorldOperation operation = scanToolOperationPool.peek();
-                if (operation != null && operation.apply(world))
+                break;
+            }
+            if (operation.apply(world))
+            {
+                scanToolOperationPool.pop();
+                if (!(operation instanceof UndoOperation || operation instanceof RedoOperation))
                 {
-                    scanToolOperationPool.pop();
-                    if (!(operation instanceof UndoOperation || operation instanceof RedoOperation))
-                    {
-                        addToUndoRedoCache(operation.getChangeStorage());
-                    }
+                    addToUndoRedoCache(operation.getChangeStorage());
                 }
             }
         }

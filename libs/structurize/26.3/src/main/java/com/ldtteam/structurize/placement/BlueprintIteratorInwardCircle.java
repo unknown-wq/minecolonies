@@ -135,7 +135,14 @@ public class BlueprintIteratorInwardCircle extends AbstractBlueprintIterator
         {
             this.progressPos.set(NULL_POS);
 
-            while (progressPos.getX() != localPosition.getX() || progressPos.getZ() != localPosition.getZ())
+            // The replay exists to restore the four ring bounds, which are not derivable from the position
+            // alone. It is bounded now: the spiral covers one layer in exactly sizeX * sizeZ steps, so any
+            // (x, z) inside the blueprint is reached within that many. An (x, z) outside it -- a resume
+            // position saved against a blueprint that has since been resized, say -- used to spin forever,
+            // because iterate() resets to NULL_POS at the top of the structure and starts the layer again.
+            final int layer = size.getX() * size.getZ();
+            for (int i = 0; i <= layer
+                && (progressPos.getX() != localPosition.getX() || progressPos.getZ() != localPosition.getZ()); i++)
             {
                 iterate(true);
             }

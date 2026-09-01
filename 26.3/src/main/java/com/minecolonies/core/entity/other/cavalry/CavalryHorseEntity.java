@@ -389,6 +389,12 @@ public class CavalryHorseEntity extends Horse implements IManagedAnimal<CavalryH
 
     /**
      * Adds a passenger to the horse, dropping the leash and clearing the recent dismount cooldown.
+     * <p>
+     * This is the second half of the fence hitch and the one that catches everything the guard AI misses: whatever
+     * left the horse tied - a rider killed in his sleep, a colony reloaded mid-nap, a state machine reset - the next
+     * cavalryman to get in the saddle takes the rope off, knot and all. Through {@link Hitch} rather than straight
+     * to {@code removeLeash} so that the knot sweep runs too; a leash held by anything that is not a fence still
+     * comes off the plain way.
      *
      * @param passenger the passenger to add
      */
@@ -396,7 +402,12 @@ public class CavalryHorseEntity extends Horse implements IManagedAnimal<CavalryH
     protected void addPassenger(@NotNull Entity passenger)
     {
         super.addPassenger(passenger);
-        removeLeash();
+
+        if (!Hitch.untie(this))
+        {
+            removeLeash();
+        }
+
         lastDismountTime = -1;
     }
 
@@ -425,6 +436,68 @@ public class CavalryHorseEntity extends Horse implements IManagedAnimal<CavalryH
         super.setLeashedTo(entity, sendPacket);
     }
 
+    /**
+     * Ends a fence hitch without conjuring a lead for it.
+     * <p>
+     * Vanilla drops an {@code Items#LEAD} whenever a leash comes off by itself, on the assumption that a real lead
+     * was spent to put it on. A hitch made by {@link Hitch} costs nothing, so returning one would be minting items:
+     * the leash snapping once a night, for every cavalryman, is a lead a night out of nowhere. A leash held by
+     * anything that is not a fence knot - the Stablemaster leading a horse home, a player with a lead in hand - is
+     * left on vanilla's path and still gives its lead back.
+     * <p>
+     * This is the single choke point for every way vanilla lets a leash come off by itself: {@code Mob#leashTooFarBehaviour}
+     * reaches it when the leash snaps, and {@code Leashable#tickLeash} reaches it when the holder stops being
+     * interactable, which is what happens when somebody breaks the fence out from under the knot.
+     */
+    @Override
+    public void dropLeash()
+    {
+        if (Hitch.untie(this))
+        {
+            return;
+        }
+
+        super.dropLeash();
+    }
+
+    /**
+     * Untie the horse when it dies, so that the fence it was tied to does not keep a knot for a horse that no longer
+     * exists.
+     * <p>
+     * This is the first of the two removal hooks and the one that matters in practice, because it runs while the
+     * entity is still in the level and the knot's own {@code Leashable#leashableLeashedTo} scan can still see that
+     * nothing is attached. Nothing in vanilla does this: a knot whose mob is simply removed is left standing.
+     *
+     * @param source what killed it.
+     */
+    @Override
+    public void die(@NotNull DamageSource source)
+    {
+        Hitch.untie(this);
+        super.die(source);
+    }
+
+    /**
+     * Untie the horse when it is taken out of the world other than by dying - {@code /kill}, a colony being deleted,
+     * an admin clearing entities.
+     * <p>
+     * Gated on {@code shouldDestroy}, which is what separates the two reasons that end the entity (KILLED and
+     * DISCARDED) from the three that only put it away (UNLOADED_TO_CHUNK, UNLOADED_WITH_PLAYER, CHANGED_DIMENSION).
+     * Untying on an unload would be wrong twice over: the hitch is meant to survive a save, and the knot is a saved
+     * entity that comes back with the chunk for {@code Leashable#restoreLeashFromSave} to find again.
+     *
+     * @param reason why the entity is being removed.
+     */
+    @Override
+    public void onRemoval(@NotNull Entity.RemovalReason reason)
+    {
+        if (reason.shouldDestroy())
+        {
+            Hitch.untie(this);
+        }
+
+        super.onRemoval(reason);
+    }
 
     /**
      * Returns the attachment point for the given passenger entity, taking into account the entity dimensions and the partial tick.

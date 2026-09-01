@@ -33,6 +33,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -122,7 +123,7 @@ public class DruidCombatAI extends AttackMoveAI<EntityCitizen>
     @Override
     protected void doAttack(final LivingEntity target)
     {
-        if (user.distanceToSqr(target) < RANGED_FLEE_SQDIST)
+        if (user.distanceToSqr(target) < getKiteDistanceSq())
         {
             if (user.getRandom().nextInt(FLEE_CHANCE) == 0 &&
                   !((AbstractBuildingGuards) user.getCitizenData().getWorkBuilding()).getTask().equals(GuardTaskSetting.GUARD))
@@ -140,7 +141,13 @@ public class DruidCombatAI extends AttackMoveAI<EntityCitizen>
         final int level = user.getCitizenData().getCitizenSkillHandler().getLevel(ModGuardTypes.druid.get().getSecondarySkill());
         final int time = user.getCitizenData().getCitizenSkillHandler().getLevel(ModGuardTypes.druid.get().getPrimarySkill()) * 20;
 
-        final float inaccuracy = 99f / level;
+        // A fresh druid used to throw at inaccuracy 99. Projectile#shoot adds random.triangle(0, 0.0172275 * this)
+        // to each component of a normalised direction vector, so 99 is a spread of about +-1.7 against a unit
+        // vector: the potion goes in an essentially random direction, which reads in play as "the druid does
+        // nothing" for his first several days. This is the archer's own curve (HIT_CHANCE_DIVIDER over the skill),
+        // clamped at both ends so a level-one druid is merely bad rather than blind and a level-99 one still misses
+        // occasionally.
+        final float inaccuracy = Mth.clamp(HIT_CHANCE_DIVIDER / (level + 1), 0.5f, 6f);
         final Holder<MobEffect> effect;
         final ItemStack stack = Items.SPLASH_POTION.getDefaultInstance();
         boolean gotMaterial = false;
@@ -205,12 +212,12 @@ public class DruidCombatAI extends AttackMoveAI<EntityCitizen>
     @Override
     protected PathResult moveInAttackPosition(final LivingEntity target)
     {
-        if (BlockPosUtil.getDistanceSquared(target.blockPosition(), user.blockPosition()) <= 4.0)
+        if (BlockPosUtil.getDistanceSquared(target.blockPosition(), user.blockPosition()) <= getKiteDistanceSq())
         {
             final PathJobMoveAwayFromLocation job = new PathJobMoveAwayFromLocation(user.level(),
               PathfindingUtils.prepareStart(target),
               target.blockPosition(),
-              12,
+              (int) (getAttackDistance() / 2.0),
               (int) user.getAttribute(Attributes.FOLLOW_RANGE).getValue(),
               user);
             final PathResult pathResult = ((MinecoloniesAdvancedPathNavigate) user.getNavigation()).setPathJob(job, null, getCombatMovementSpeed(), true);
@@ -341,14 +348,23 @@ public class DruidCombatAI extends AttackMoveAI<EntityCitizen>
     }
 
     @Override
+    protected int getSearchRange()
+    {
+        return Math.max(AbstractEntityAIGuard.getGuardVisionRange(user), (int) Math.ceil(getAttackDistance()));
+    }
+
+    @Override
     protected int getYSearchRange()
     {
+        // Calls super so the guardverticalvision config reaches druids at all. The literals here were copied from
+        // RangeCombatAI before that config existed and never updated with it, so a druid's vertical box was frozen
+        // at the old numbers however the server was configured.
         if (((AbstractBuildingGuards) user.getCitizenData().getWorkBuilding()).getTask().equals(GuardTaskSetting.GUARD))
         {
-            return Y_VISION + 25;
+            return Math.max(super.getYSearchRange(), Y_VISION + 25);
         }
 
-        return Y_VISION;
+        return super.getYSearchRange();
     }
 
     @Override

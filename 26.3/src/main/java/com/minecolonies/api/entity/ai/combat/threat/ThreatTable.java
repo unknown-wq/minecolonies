@@ -71,6 +71,9 @@ public class ThreatTable<T extends LivingEntity & IThreatTableEntity>
         {
             return;
         }
+
+        pruneStaleEntries();
+
         ThreatTableEntry threatTableEntry = null;
         int index = threatList.size();
 
@@ -118,6 +121,34 @@ public class ThreatTable<T extends LivingEntity & IThreatTableEntity>
         }
 
         return -1;
+    }
+
+    /**
+     * Drop entries this table can no longer do anything with.
+     * <p>
+     * Nothing used to remove an entry except {@link #removeCurrentTarget()}, and {@link #getTarget()} only ever
+     * inspects the head of the list, so an enemy seen once at a threat below the current target's stayed in the
+     * table for the life of the owning entity -- holding a strong reference to a {@link LivingEntity} that may have
+     * been dead for hours, and lengthening every linear scan through here. Called from {@link #addThreat}, which is
+     * the only place the list grows.
+     */
+    private void pruneStaleEntries()
+    {
+        if (threatList.isEmpty())
+        {
+            return;
+        }
+
+        final long now = owner.level().getGameTime();
+        final ThreatTableEntry currentTarget = currentTargetIndex < threatList.size() ? threatList.get(currentTargetIndex) : null;
+
+        threatList.removeIf(entry -> entry.getEntity() == null
+                                       || entry.getEntity().isRemoved()
+                                       || !entry.getEntity().isAlive()
+                                       || Math.abs(now - entry.getLastSeen()) > MAX_TRACKING_TICKS);
+
+        final int newIndex = currentTarget == null ? -1 : threatList.indexOf(currentTarget);
+        currentTargetIndex = Math.max(newIndex, 0);
     }
 
     /**
@@ -197,7 +228,11 @@ public class ThreatTable<T extends LivingEntity & IThreatTableEntity>
             return null;
         }
 
-        if (current instanceof IThreatTableEntity threatTableEntity && threatTableEntity.getThreatTable().threatList.isEmpty())
+        // current.getEntity(), not current: a ThreatTableEntry is a plain holder and implements nothing, so this
+        // test used to be statically impossible and the branch below never ran. It is the reciprocal-aggro rule --
+        // an enemy a guard has just picked out notices the guard back, instead of ignoring the tower shooting at it
+        // until an arrow happens to land.
+        if (current.getEntity() instanceof IThreatTableEntity threatTableEntity && threatTableEntity.getThreatTable().threatList.isEmpty())
         {
             threatTableEntity.getThreatTable().addThreat(owner, 0);
         }
@@ -225,6 +260,11 @@ public class ThreatTable<T extends LivingEntity & IThreatTableEntity>
      */
     public void resetCurrentTargetThreat()
     {
+        if (threatList.isEmpty())
+        {
+            return;
+        }
+
         final ThreatTableEntry entry = threatList.get(currentTargetIndex);
         if (entry.getThreat() > 0)
         {

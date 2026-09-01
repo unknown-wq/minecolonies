@@ -35,6 +35,16 @@ public class GuardTaskSetting extends StringSettingWithDesc
     public static final String PATROL_MINE = "com.minecolonies.core.guard.setting.patrol_mine";
 
     /**
+     * A patrol that never stands down: the unit walks from one patrol point to the next for as long as it is on duty,
+     * and comes off the route only for the things that take any guard off it - a fight, a meal, a nap.
+     * <p>
+     * Offered by the Stable, where it is the difference between a cavalry unit that sorties and one that screens.
+     * Every other guard building is registered with an explicit list of task options that does not contain it, so
+     * nothing else in the colony gains an option it has no behaviour for.
+     */
+    public static final String PATROL_PERMANENT = "com.minecolonies.core.guard.setting.patrol_permanent";
+
+    /**
      * Different trigger button widths.
      */
     private static final int SET_POS_BUTTON_WIDTH = 60;
@@ -103,7 +113,7 @@ public class GuardTaskSetting extends StringSettingWithDesc
 
         switch (getValue())
         {
-            case PATROL ->
+            case PATROL, PATROL_PERMANENT ->
             {
                 final String patrolMode = settingsModuleView.getSetting(PATROL_MODE).getValue();
                 setPositionsButton.setVisible(patrolMode.equals(MANUAL));
@@ -129,7 +139,7 @@ public class GuardTaskSetting extends StringSettingWithDesc
     {
         return switch (getValue())
         {
-            case PATROL ->
+            case PATROL, PATROL_PERMANENT ->
             {
                 final String patrolMode = settingsModuleView.getSetting(PATROL_MODE).getValue();
                 yield patrolMode.equals(MANUAL) ? SET_POS_BUTTON_WIDTH : MAX_BUTTON_WIDTH;

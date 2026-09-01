@@ -331,6 +331,26 @@ public class TextField extends Pane
     {
         setCursorPosition(text.length());
         cursorBlinkCounter = 0;
+
+        // A typed character only reaches Screen#charTyped through SDL_EVENT_TEXT_INPUT, and SDL emits that
+        // event only while text input has been started for the window. Nothing starts it on its own: vanilla
+        // asks for it from EditBox#setFocused, and this field is not a vanilla widget, so a BlockUI window
+        // used to leave text input switched off for its whole lifetime and every character was dropped before
+        // it reached the pane. Keys that arrive as key events - backspace, delete, the arrows, tab - kept
+        // working the entire time, which is what made a field look like it was refusing digits rather than
+        // never being offered them.
+        mc.textInputManager().startTextInput(this);
+    }
+
+    @Override
+    public void onFocusLost()
+    {
+        // Stopping is owner-checked inside the manager, so this cannot cancel input that a different field has
+        // already claimed: focus moving from one field to the next calls this on the old one before the new one
+        // starts, and a stop from a field that no longer owns text input does nothing. Closing the screen is
+        // handled by the game itself - Gui#setScreen stops text input on every screen change - so a window shut
+        // while a field still holds focus leaves nothing running.
+        mc.textInputManager().stopTextInput(this);
     }
 
     /**

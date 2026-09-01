@@ -15,7 +15,8 @@ import com.minecolonies.api.util.Log;
 import com.minecolonies.core.colony.buildings.AbstractBuildingGuards;
 import com.minecolonies.core.colony.buildings.modules.AnimalHerdingModule;
 import com.minecolonies.core.colony.buildings.modules.BuildingModules;
-import com.minecolonies.core.colony.buildings.modules.settings.IntSetting;
+import com.minecolonies.core.colony.buildings.modules.settings.GuardTaskSetting;
+import com.minecolonies.core.colony.buildings.modules.settings.PatrolIntervalSetting;
 import com.minecolonies.core.colony.buildings.modules.settings.SettingKey;
 
 import net.minecraft.core.BlockPos;
@@ -55,13 +56,39 @@ public class BuildingStable extends AbstractBuildingGuards
     /**
      * Setting key for the patrol interval.
      */
-    public static final ISettingKey<IntSetting> PATROL_INTERVAL =
-      new SettingKey<>(IntSetting.class, Identifier.fromNamespaceAndPath(com.minecolonies.api.util.constant.Constants.MOD_ID, "patrolinterval"));
+    public static final ISettingKey<PatrolIntervalSetting> PATROL_INTERVAL =
+      new SettingKey<>(PatrolIntervalSetting.class, Identifier.fromNamespaceAndPath(com.minecolonies.api.util.constant.Constants.MOD_ID, "patrolinterval"));
 
     /**
-     * The last time the guards patrolled from this stable.
+     * How long a single sortie is allowed to last before it is written off, in minutes.
+     * <p>
+     * The patrol timer already ends a leg roughly two minutes after it was handed out, so this only catches the case
+     * where the timer is not running at all - a colony that was unloaded mid-leg - and stops a unit being counted as
+     * "out on patrol" for the rest of the save.
+     */
+    private static final int MAX_SORTIE_MINUTES = 5;
+
+    /**
+     * Patrol timer to set while the cavalry is resting, in colony ticks.
+     * <p>
+     * {@code patrolTimer} is counted down once per colony tick, which is one slow tick of the colony state machine
+     * (500 game ticks, about 25 seconds) - not once per game tick. Two of them is a recheck about every 50 seconds,
+     * which is fine enough for an interval expressed in whole minutes and cheap enough to run all day.
+     */
+    private static final int REST_RECHECK_TICKS = 2;
+
+    /**
+     * The last time the guards finished a patrol from this stable, i.e. when the current rest window started.
      */
     private long lastPatrolTime = 0;
+
+    /**
+     * When the sortie now under way was dispatched, or 0 when the cavalry is not out on one.
+     * <p>
+     * Deliberately not saved: a colony that is reloaded has no cavalry standing anywhere in particular, so the
+     * honest state to come back in is "resting", which is what a zero here means.
+     */
+    private long patrolStartTime = 0;
 
     /**
      * The last stable position used.
@@ -205,9 +232,19 @@ public class BuildingStable extends AbstractBuildingGuards
      */
     public int minutesSinceLastPatrol()
     {
-        long ticks = this.getColony().getWorld().getGameTime() - lastPatrolTime;
-        int minutes = (int) ticks / TICKS_SECOND / 60;
-        return minutes;
+        return minutesSince(lastPatrolTime);
+    }
+
+    /**
+     * The number of whole minutes of world time that have passed since a game time stamp.
+     *
+     * @param since the game time to measure from.
+     * @return the elapsed time in minutes, never negative.
+     */
+    private int minutesSince(final long since)
+    {
+        final long ticks = this.getColony().getWorld().getGameTime() - since;
+        return ticks <= 0 ? 0 : (int) (ticks / TICKS_SECOND / 60);
     }
 
     /**
@@ -225,18 +262,80 @@ public class BuildingStable extends AbstractBuildingGuards
     }
 
     /**
+     * The number of minutes the cavalry waits at the stable between sorties.
+     *
+     * @return the configured interval, in minutes.
+     */
+    public int getPatrolInterval()
+    {
+        return PatrolIntervalSetting.clamp(getSetting(PATROL_INTERVAL).getValue());
+    }
+
+    /**
+     * Whether the cavalry should be waiting at the stable rather than walking a patrol.
+     * <p>
+     * This is the one place that answers the question. It used to be asked twice - here and again in the cavalry AI -
+     * against {@link #minutesSinceLastPatrol()}, and {@code startPatrolNext} reset that clock at the moment it handed
+     * out a patrol point. So the clock the AI consulted was reset by the act of dispatching the patrol: the unit was
+     * given a destination and, on its very next AI tick, told it was inside the rest window and sent back to loiter
+     * at the stable without ever walking the leg. The clock now starts when a sortie <em>ends</em>, and a sortie in
+     * progress is a state of its own rather than something inferred from a timestamp.
+     *
+     * @return true if the cavalry should stay at the stable.
+     */
+    public boolean restingAtStable()
+    {
+        if (getTask().equals(GuardTaskSetting.PATROL_PERMANENT))
+        {
+            // A permanent patrol never stands down. Eating, sleeping and fighting still take the unit off the route,
+            // because those interrupt the guard AI itself rather than going through the patrol task.
+            return false;
+        }
+
+        if (patrolStartTime > 0)
+        {
+            if (minutesSince(patrolStartTime) < MAX_SORTIE_MINUTES)
+            {
+                return false;
+            }
+
+            endPatrol();
+        }
+
+        return minutesSinceLastPatrol() < getPatrolInterval();
+    }
+
+    /**
+     * Ends the sortie now under way and opens the rest window.
+     */
+    private void endPatrol()
+    {
+        patrolStartTime = 0;
+        setLastPatrolTime(getColony().getWorld().getGameTime());
+    }
+
+    /**
      * Initiate the next patrol.
+     * <p>
+     * Called when a patrol leg has been walked (every assigned guard reached the point) and when the patrol timer
+     * runs out part way through one. Either way the leg is over, so this is where a sortie ends and where the next
+     * one is dispatched once the rest window has passed.
      */
     @Override
     public void startPatrolNext()
     {
-        if (minutesSinceLastPatrol() < getSetting(PATROL_INTERVAL).getValue())
+        if (patrolStartTime > 0)
         {
-            setPatrolTimer(TICKS_SECOND * 60);
+            endPatrol();
+        }
+
+        if (restingAtStable())
+        {
+            setPatrolTimer(REST_RECHECK_TICKS);
             return;
         }
 
-        setLastPatrolTime(getColony().getWorld().getGameTime());
+        patrolStartTime = getColony().getWorld().getGameTime();
         super.startPatrolNext();
     }
 
@@ -247,6 +346,15 @@ public class BuildingStable extends AbstractBuildingGuards
     protected BlockPos getRandomPatrolTarget()
     {
         BlockPos buildingPos = getColony().getServerBuildingManager().getRandomBuilding(cavalryPatrolFilter());
+
+        // A colony with one stable and no gate house has nothing in that filter but this building, so every leg of
+        // the patrol ended where it started and the cavalry never left the yard. Fall back to the ordinary guard
+        // target in that case: the filter is there to give cavalry a preference for the colony's approaches, not to
+        // confine it to a route that does not exist yet.
+        if (buildingPos == null || buildingPos.equals(getPosition()))
+        {
+            buildingPos = getColony().getServerBuildingManager().getRandomBuilding(b -> b.getBuildingLevel() >= 1);
+        }
 
         return patrolPointForBuilding(buildingPos);
     }

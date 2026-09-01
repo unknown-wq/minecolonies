@@ -80,21 +80,20 @@ public class JobKnight extends AbstractJobGuard<JobKnight> implements IJobWithCo
     @Override
     public boolean ignoresDamage(@NotNull final DamageSource damageSource)
     {
+        // The shield has to actually be up. This used to accept a shield anywhere in the knight's pack -- and then
+        // equip and raise it as a side effect of being asked whether the damage counted -- so a researched knight
+        // standing idle with a spare shield in his bag was simply immune to creepers, ghasts and TNT, facing away or
+        // not. MeleeCombatAI#attackProtect is what raises the shield, every eight ticks while the knight is fighting
+        // and not about to swing, so a knight in a fight still shrugs off a creeper and one caught unawares does not.
         if (damageSource.is(DamageTypeTags.IS_EXPLOSION) && this.getColony().getResearchManager().getResearchEffects().getEffectStrength(SHIELD_USAGE) > 0
-            && InventoryUtils.findFirstSlotInItemHandlerWith(this.getCitizen().getInventory(), Items.SHIELD) != -1)
+              && this.getCitizen().getEntity().isPresent())
         {
-            if (!this.getCitizen().getEntity().isPresent())
+            final AbstractEntityCitizen worker = this.getCitizen().getEntity().get();
+            if (worker.isUsingItem() && worker.getUsedItemHand() == InteractionHand.OFF_HAND
+                  && worker.getInventoryCitizen().getHeldItem(InteractionHand.OFF_HAND).is(Items.SHIELD))
             {
                 return true;
             }
-            final AbstractEntityCitizen worker = this.getCitizen().getEntity().get();
-            CitizenItemUtils.setHeldItem(worker, InteractionHand.OFF_HAND, InventoryUtils.findFirstSlotInItemHandlerWith(this.getCitizen().getInventory(), Items.SHIELD));
-            worker.startUsingItem(InteractionHand.OFF_HAND);
-
-            ItemStack shieldStack = worker.getInventoryCitizen().getHeldItem(InteractionHand.OFF_HAND);
-            shieldStack.set(DataComponents.BANNER_PATTERNS, getColony().getColonyFlag());
-
-            return true;
         }
         return super.ignoresDamage(damageSource);
     }

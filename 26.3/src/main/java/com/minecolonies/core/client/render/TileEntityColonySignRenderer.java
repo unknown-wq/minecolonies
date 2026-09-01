@@ -159,7 +159,7 @@ public class TileEntityColonySignRenderer implements BlockEntityRenderer<TileEnt
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.5, 0.5);
-        poseStack.mulPose(Axis.YP.rotationDegrees(state.rotation));
+        poseStack.rotate(Axis.YP.rotationDegrees(state.rotation));
         poseStack.translate(-0.5, -0.5, -0.5);
         state.model.submit(poseStack, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();
@@ -179,10 +179,10 @@ public class TileEntityColonySignRenderer implements BlockEntityRenderer<TileEnt
     {
         poseStack.pushPose();
         poseStack.translate(0.5f, 0.5F, 0.5f);
-        poseStack.mulPose(Axis.YP.rotationDegrees(state.rotation));
+        poseStack.rotate(Axis.YP.rotationDegrees(state.rotation));
         if (mirrored)
         {
-            poseStack.mulPose(Axis.YP.rotationDegrees(180));
+            poseStack.rotate(Axis.YP.rotationDegrees(180));
         }
         poseStack.translate(-0.0f, -0.1F, 0.2f);
         poseStack.scale(0.007F, -0.007F, 0.007F);

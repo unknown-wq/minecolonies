@@ -3,13 +3,13 @@
   "id": "domum_ornamentum",
   "version": "${version}",
 
-  "name": "Domum Ornamentum Fabric 26.2 (Unofficial)",
-  "description": "An unofficial port of Domum Ornamentum to the Fabric loader on Minecraft 26.2. Decorative building blocks: timber frames, shingles, paper walls, bricks and materially textured variants of the vanilla shapes. The mod itself is the work of the LDT Team; this port is not affiliated with, endorsed by or supported by them.",
+  "name": "Domum Ornamentum Fabric 26.3 (Unofficial)",
+  "description": "An unofficial port of Domum Ornamentum to the Fabric loader on Minecraft 26.3. Decorative building blocks: timber frames, shingles, paper walls, bricks and materially textured variants of the vanilla shapes. The mod itself is the work of the LDT Team; this port is not affiliated with, endorsed by or supported by them.",
   "authors": [
     "LDT Team"
   ],
   "contributors": [
-    "unknown-wq (Fabric 26.2 port)"
+    "unknown-wq (Fabric 26.3 port)"
   ],
   "contact": {
     "homepage": "https://github.com/unknown-wq/Domum-Ornamentum",

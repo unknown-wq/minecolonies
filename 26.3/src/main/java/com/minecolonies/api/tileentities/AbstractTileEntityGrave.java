@@ -54,6 +54,22 @@ public abstract class AbstractTileEntityGrave extends TileEntityRack implements 
     }
 
     /**
+     * How many ticks of life this grave has left, counting both phases: the countdown to turning decayed and, if it
+     * has not turned yet, the second full countdown from there to being removed. A grave with the timer disabled
+     * reports {@link Integer#MAX_VALUE}, which sorts it last among things that need attention.
+     *
+     * @return remaining life in ticks.
+     */
+    public int getRemainingDecayTicks()
+    {
+        if (decay_timer == -1)
+        {
+            return Integer.MAX_VALUE;
+        }
+        return decayed ? decay_timer : decay_timer + DEFAULT_DECAY_TIMER;
+    }
+
+    /**
      * Get the graveData of the saved citizen
      */
     public IGraveData getGraveData()

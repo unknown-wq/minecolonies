@@ -54,6 +54,25 @@ public class AbstractTileEntityNamedGrave extends BlockEntity
         setChanged();
     }
 
+    /**
+     * The name of the citizen resting under this headstone, as the graveyard's resting list spells it.
+     * <p>
+     * The stone carries the name split across its first two lines - a first name and everything after it, the second
+     * still holding the space that separated them - so joining the two reproduces the name exactly as
+     * {@code GraveyardManagementModule} recorded it. A stone that has never been written on has one line and no
+     * name.
+     *
+     * @return the citizen's name, or an empty string if this stone names nobody.
+     */
+    public String getRestingCitizenName()
+    {
+        if (textLines.size() < 2)
+        {
+            return "";
+        }
+        return textLines.get(0) + textLines.get(1);
+    }
+
     @Override
     protected void loadAdditional(@NotNull final ValueInput input)
     {

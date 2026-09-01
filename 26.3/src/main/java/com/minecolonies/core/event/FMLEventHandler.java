@@ -3,6 +3,7 @@ package com.minecolonies.core.event;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.colony.HeadlessColonyMode;
 import com.minecolonies.core.datalistener.*;
 import com.minecolonies.core.entity.pathfinding.Pathfinding;
 import com.minecolonies.core.util.BackUpHelper;
@@ -66,15 +67,31 @@ public class FMLEventHandler
         registerReloadListeners();
 
         // was: @SubscribeEvent onServerAboutToStart(ServerAboutToStartEvent)
-        ServerLifecycleEvents.SERVER_STARTING.register(server -> IColonyManager.getInstance().getRecipeManager().reset());
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            IColonyManager.getInstance().getRecipeManager().reset();
+            // Both ends of the lifecycle, not only shutdown: an integrated server starts and stops repeatedly inside
+            // one JVM, and headless colony mode must not carry from one world into the next.
+            HeadlessColonyMode.reset(server);
+        });
 
         // was: @SubscribeEvent onServerStarted(ServerStartedEvent)
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> BackUpHelper.loadMissingColonies());
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            BackUpHelper.loadMissingColonies();
+            HeadlessColonyMode.onServerStarted(server);
+        });
+
+        // Nothing is installed for headless colony mode unless this JVM was started asking for it, so an ordinary
+        // server does not carry the per-tick callback either.
+        if (HeadlessColonyMode.isArmed())
+        {
+            ServerTickEvents.START_SERVER_TICK.register(HeadlessColonyMode::onServerTick);
+        }
 
         // was: @SubscribeEvent onServerStopped(ServerStoppingEvent)
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             Pathfinding.shutdown();
             DataPackSyncEventHandler.ServerEvents.reset();
+            HeadlessColonyMode.reset(server);
             // do not keep the reloaded world's registries alive past its server (matters on an integrated one)
             DataListenerUtils.setReloadLookup(null);
         });

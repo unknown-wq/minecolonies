@@ -106,6 +106,10 @@ public class CommandTranslationConstants
     @NonNls
     public static final String COMMAND_CAN_RAIDER_SPAWN_SUCCESS              = "com.minecolonies.command.canspawnraider.success";
     @NonNls
+    public static final String COMMAND_CAMP_PLACED                           = "com.minecolonies.command.camp.placed";
+    @NonNls
+    public static final String COMMAND_CAMP_FAILED                           = "com.minecolonies.command.camp.failed";
+    @NonNls
     public static final String COMMAND_OWNER_CHANGE_SUCCESS                  = "com.minecolonies.command.ownerchange.success";
     @NonNls
     public static final String COMMAND_CLAIM_SUCCESS                         = "com.minecolonies.command.claim.success";
@@ -446,6 +450,43 @@ public class CommandTranslationConstants
     @NonNls
     public static final String COMMAND_COLONY_REPAIRALL_SKIP_OTHER           = "com.minecolonies.command.colonyrepairall.skip.other";
 
+    /** Title line of the colony buildnow command. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_HEADER                = "com.minecolonies.command.colonybuildnow.header";
+    /** Shown when the colony buildnow command is run against a colony that is not in free mode. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_NO_FREEMODE           = "com.minecolonies.command.colonybuildnow.nofreemode";
+    /** Shown when the colony buildnow command found no open work order to finish. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_NOTHING               = "com.minecolonies.command.colonybuildnow.nothing";
+    /** Counts of what the colony buildnow command did. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_SUMMARY               = "com.minecolonies.command.colonybuildnow.summary";
+    /** Shown when a buildnow list was cut off for chat. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_MORE                  = "com.minecolonies.command.colonybuildnow.more";
+    /** Shown when the work order id given to the colony buildnow command is not one of this colony's. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_NO_ORDER              = "com.minecolonies.command.colonybuildnow.noorder";
+    /** Shown when the position given to the colony buildnow command holds no building. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_NO_BUILDING           = "com.minecolonies.command.colonybuildnow.nobuilding";
+    /** Shown when the building named to the colony buildnow command has no blueprint path recorded. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_NO_BLUEPRINT_PATH     = "com.minecolonies.command.colonybuildnow.noblueprintpath";
+    /** Shown when the level asked of the colony buildnow command is above what the building can reach. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_TOO_HIGH              = "com.minecolonies.command.colonybuildnow.toohigh";
+    /** Shown when the work manager refused the work order the colony buildnow command filed. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_ORDER_REFUSED         = "com.minecolonies.command.colonybuildnow.orderrefused";
+    /** Shown when a level is asked of the colony buildnow command for a decoration, which has none. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_DECO_LEVEL            = "com.minecolonies.command.colonybuildnow.decolevel";
+    /** Shown when the colony buildnow command is asked to take down a building that cannot be taken down. */
+    @NonNls
+    public static final String COMMAND_COLONY_BUILDNOW_NO_DECONSTRUCT        = "com.minecolonies.command.colonybuildnow.nodeconstruct";
+
     /** Translation key for the citizen fill command reporting what it spawned and hired. */
     @NonNls
     public static final String COMMAND_CITIZEN_FILL_SUCCESS                  = "com.minecolonies.command.citizenfill.success";
@@ -595,6 +636,48 @@ public class CommandTranslationConstants
     @NonNls
     public static final String COMMAND_BOATSPEED_SET                         = "com.minecolonies.command.boatspeed.set";
 
+    /** Translation key for the pool size command reporting the size the pool has now. */
+    @NonNls
+    public static final String COMMAND_MAXPOOL_CURRENT                       = "com.minecolonies.command.maxpool.current";
+    /** Translation key for the pool size command confirming a switch, carrying the old and the new size. */
+    @NonNls
+    public static final String COMMAND_MAXPOOL_SET                           = "com.minecolonies.command.maxpool.set";
+    /** Translation key for the pool size command saying the pool already has the size asked for. */
+    @NonNls
+    public static final String COMMAND_MAXPOOL_UNCHANGED                     = "com.minecolonies.command.maxpool.unchanged";
+    /** Translation key for the pool size command naming the pools that have not finished draining yet. */
+    @NonNls
+    public static final String COMMAND_MAXPOOL_DRAINING                      = "com.minecolonies.command.maxpool.draining";
+
+    /** Translation key for the headless command reporting that the mode is on. */
+    @NonNls
+    public static final String COMMAND_HEADLESS_ON                           = "com.minecolonies.command.headless.on";
+    /** Translation key for the headless command reporting that the mode is off. */
+    @NonNls
+    public static final String COMMAND_HEADLESS_OFF                          = "com.minecolonies.command.headless.off";
+    /** Translation key for the headless command confirming that it just switched the mode on. */
+    @NonNls
+    public static final String COMMAND_HEADLESS_SWITCHED_ON                  = "com.minecolonies.command.headless.switchedon";
+    /** Translation key for the headless command confirming that it just switched the mode off. */
+    @NonNls
+    public static final String COMMAND_HEADLESS_SWITCHED_OFF                 = "com.minecolonies.command.headless.switchedoff";
+    /** Translation key for the headless command's reminder that the mode ends with the server. */
+    @NonNls
+    public static final String COMMAND_HEADLESS_NOT_PERSISTED                = "com.minecolonies.command.headless.notpersisted";
+    /** Translation key for the headless command's pointer at the setting that decides which chunks stay loaded. */
+    @NonNls
+    public static final String COMMAND_HEADLESS_CLAIMS_HINT                  = "com.minecolonies.command.headless.claimshint";
+    /** Translation key for the headless command refusing to run on an integrated server. */
+    @NonNls
+    public static final String COMMAND_HEADLESS_NOT_DEDICATED                = "com.minecolonies.command.headless.notdedicated";
+    /** Translation key for the headless command refusing because the JVM was not started with the arming property. */
+    @NonNls
+    public static final String COMMAND_HEADLESS_NOT_ARMED                    = "com.minecolonies.command.headless.notarmed";
+
+    /** Translation key for the diagnose report's line saying the colony is ticking without anybody watching it. */
+    @NonNls
+    public static final String COMMAND_COLONY_DIAGNOSE_HEADLESS              = "com.minecolonies.command.colony.diagnose.headless";
+
     /** Translation key for the pathfinding stats report header, carrying the length of the window. */
     @NonNls
     public static final String COMMAND_PATHSTATS_HEADER                      = "com.minecolonies.command.pathstats.header";
@@ -625,6 +708,9 @@ public class CommandTranslationConstants
     /** Translation key for the pool occupancy and backlog line. */
     @NonNls
     public static final String COMMAND_PATHSTATS_POOL                        = "com.minecolonies.command.pathstats.pool";
+    /** Translation key for the line naming a pool that is still finishing what it held when it was replaced. */
+    @NonNls
+    public static final String COMMAND_PATHSTATS_DRAINING                    = "com.minecolonies.command.pathstats.draining";
     /** Translation key for the search outcome breakdown. */
     @NonNls
     public static final String COMMAND_PATHSTATS_OUTCOME                     = "com.minecolonies.command.pathstats.outcome";
@@ -693,4 +779,26 @@ public class CommandTranslationConstants
     /** Translation key for the keep buildings switch reporting that it was thrown. */
     @NonNls
     public static final String COMMAND_COLONY_KEEPBUILDINGS_SUCCESS          = "com.minecolonies.command.colony.keepbuildings.success";
+
+    /** Translation key for the hire command finding no building at the given position. */
+    @NonNls
+    public static final String COMMAND_CITIZEN_HIRE_NO_BUILDING              = "com.minecolonies.command.citizenhire.nobuilding";
+    /** Translation key for the hire command finding no such job at that building. */
+    @NonNls
+    public static final String COMMAND_CITIZEN_HIRE_NO_JOB                   = "com.minecolonies.command.citizenhire.nojob";
+    /** Translation key for the hire command finding the job's slot already taken. */
+    @NonNls
+    public static final String COMMAND_CITIZEN_HIRE_FULL                     = "com.minecolonies.command.citizenhire.full";
+    /** Translation key for the hire command being refused by the assignment module itself. */
+    @NonNls
+    public static final String COMMAND_CITIZEN_HIRE_REFUSED                  = "com.minecolonies.command.citizenhire.refused";
+    /** Translation key for the hire command reporting the assignment. */
+    @NonNls
+    public static final String COMMAND_CITIZEN_HIRE_SUCCESS                  = "com.minecolonies.command.citizenhire.success";
+    /** Translation key for the fire command finding the citizen has no job to give up. */
+    @NonNls
+    public static final String COMMAND_CITIZEN_FIRE_NO_JOB                   = "com.minecolonies.command.citizenfire.nojob";
+    /** Translation key for the fire command reporting the dismissal. */
+    @NonNls
+    public static final String COMMAND_CITIZEN_FIRE_SUCCESS                  = "com.minecolonies.command.citizenfire.success";
 }

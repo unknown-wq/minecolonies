@@ -117,6 +117,15 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
     public static final ISettingKey<BoolSetting> USE_SHEARS = new SettingKey<>(BoolSetting.class, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "useshears"));
 
     /**
+     * Whether a herder ties the animals in its hut to the fences around them.
+     * <p>
+     * Off by default and read through {@code getSettingValueOrDefault}, because it is only registered on the five
+     * farm animal huts; the stable is deliberately not one of them (see
+     * {@code AbstractEntityAIHerder#leashAnimal}).
+     */
+    public static final ISettingKey<BoolSetting> LEASHING = new SettingKey<>(BoolSetting.class, Identifier.fromNamespaceAndPath(MOD_ID, "leashing"));
+
+    /**
      * Best possible standing pos score.
      */
     private static final int BEST_STANDING_SCORE = 10;
