@@ -11,6 +11,7 @@ import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
 import com.minecolonies.api.equipment.ModEquipmentTypes;
 import com.minecolonies.api.util.InventoryUtils;
+import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.StatsUtil;
 import com.minecolonies.api.util.Tuple;
@@ -29,6 +30,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -61,6 +63,13 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
      * A counter to delay some task.
      */
     private int effortCounter = 0;
+
+    /**
+     * The state the effort currently accumulated was earned in. One counter is shared by emptying, resurrecting and
+     * burying, and it used to be reset only on completion, so a task abandoned midway - the inventory filling during
+     * EMPTY_GRAVE, a null grave sending him to IDLE - left its partial credit lying around for whatever ran next.
+     */
+    private IAIState effortState = null;
 
     /**
      * Changed after finished digging in order to dump the inventory.
@@ -114,6 +123,8 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
     {
         worker.getCitizenData().setVisibleStatus(VisibleCitizenStatus.WORKING);
 
+        requestTotemsIfNeeded();
+
         @Nullable final BlockPos currentGrave = building.getGraveToWorkOn();
         if (currentGrave != null)
         {
@@ -132,6 +143,33 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
         }
         worker.getCitizenData().setJobStatus(JobStatus.IDLE);
         return WANDER;
+    }
+
+    /**
+     * Ask the colony for the totems the resurrection ritual runs on.
+     * <p>
+     * Nothing used to put one in his hands. The Raising the Dead research turns the totem bonus on, keepX holds two
+     * back out of his dump once he has them, and the break roll spends them - but the building filed no request and
+     * the AI never went looking, so the entire research came down to "the player must remember to open the
+     * undertaker's inventory and place them by hand", with no bubble and no hint that it wanted anything. He now
+     * asks for them the way every other worker asks for what it consumes: only while the research is on, only up to
+     * the two he is allowed to keep, and asynchronously, so a colony that cannot find a totem does not stall the
+     * only worker who empties graves.
+     */
+    private void requestTotemsIfNeeded()
+    {
+        if (worker.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(USE_TOTEM) <= 0)
+        {
+            return;
+        }
+
+        final int held = InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), ItemStackUtils::hasDeathProtection);
+        if (held >= TOTEMS_TO_KEEP)
+        {
+            return;
+        }
+
+        checkIfRequestForItemExistOrCreateAsync(new ItemStack(Items.TOTEM_OF_UNDYING), TOTEMS_TO_KEEP - held, 1);
     }
 
     /**
@@ -197,13 +235,11 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
                 return INVENTORY_FULL;
             }
 
-            if (effortCounter < EFFORT_EMPTY_GRAVE)
+            if (!spendEffort(EFFORT_EMPTY_GRAVE, getPrimarySkillLevel()))
             {
                 worker.swing(InteractionHand.MAIN_HAND);
-                effortCounter += getPrimarySkillLevel();
                 return getState();
             }
-            effortCounter = 0;
 
             //at position - try to take all item
             if (InventoryUtils.transferAllItemHandler(((TileEntityGrave) entity).getInventory(), worker.getInventoryCitizen()))
@@ -257,7 +293,13 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
             }
 
             worker.decreaseSaturationForAction();
-            worker.getCitizenData().getCitizenSkillHandler().addXpToSkill(getModuleForJob().getPrimarySkill(), XP_PER_DIG, worker.getCitizenData());
+            // Through the experience handler, not addXpToSkill(primary): the flat form put all 7.5 into Strength and
+            // left Mana with nothing but the 0.05 per block that mineBlock grants, which is 0.075 a grave at best.
+            // Mana is the stat that sets the ritual length and feeds the resurrection chance, so an undertaker's
+            // Mana was in practice whatever it happened to be on the day he was hired - about 21,000 graves to move
+            // it from 1 to 25. The handler applies the usual building, intelligence and research modifiers and gives
+            // the secondary skill its normal half share, exactly as it does for every other worker.
+            worker.getCitizenExperienceHandler().addExperience(XP_PER_DIG);
             StatsUtil.trackStat(building, GRAVES_DUG, 1);
             building.getColony().getStatisticsManager().increment(GRAVES_DUG, worker.getCitizenColonyHandler().getColonyOrRegister().getDay());
             return BURY_CITIZEN;
@@ -324,22 +366,21 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
         final BlockEntity entity = world.getBlockEntity(gravePos);
         if (entity instanceof TileEntityGrave)
         {
-            if (effortCounter < EFFORT_RESURRECT)
+            if (!spendEffort(EFFORT_RESURRECT, getSecondarySkillLevel()))
             {
                 worker.getLookControl().setLookAt(gravePos.getX(), gravePos.getY(), gravePos.getZ(), FACING_DELTA_YAW, worker.getMaxHeadXRot());
                 worker.swing(InteractionHand.MAIN_HAND);
                 new VanillaParticleMessage(gravePos.getX() + 0.5f, gravePos.getY() + 0.05f, gravePos.getZ() + 0.5f, ParticleTypes.ENCHANT).sendToTrackingEntity(worker);
-                effortCounter += getSecondarySkillLevel();
                 return getState();
             }
-            effortCounter = 0;
 
             shouldDumpInventory = true;
             final double chance = getResurrectChance(buildingGraveyard);
 
             if (getTotemResurrectChance() > 0 && random.nextDouble() <= TOTEM_BREAK_CHANCE)
             {
-                worker.getInventoryCitizen().extractItem(InventoryUtils.findFirstSlotInItemHandlerWith(worker.getInventoryCitizen(), Items.TOTEM_OF_UNDYING), 1, false);
+                worker.getInventoryCitizen()
+                  .extractItem(InventoryUtils.findFirstSlotInItemHandlerWith(worker.getInventoryCitizen(), ItemStackUtils::hasDeathProtection), 1, false);
                 worker.playSound(SoundEvents.TOTEM_USE, 1.0f, 1.0f);
             }
 
@@ -381,7 +422,9 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
                           totemChance;
 
         final double cap =
-          MAX_RESURRECTION_CHANCE + worker.getCitizenColonyHandler().getColonyOrRegister().getServerBuildingManager().getMysticalSiteMaxBuildingLevel() * MAX_RESURRECTION_CHANCE_MYSTICAL_LVL_BONUS
+          MAX_RESURRECTION_CHANCE
+            + buildingGraveyard.getBuildingLevel() * MAX_RESURRECTION_CHANCE_GRAVEYARD_LVL_BONUS
+            + worker.getCitizenColonyHandler().getColonyOrRegister().getServerBuildingManager().getMysticalSiteMaxBuildingLevel() * MAX_RESURRECTION_CHANCE_MYSTICAL_LVL_BONUS
             + totemChance;
         if (chance > cap)
         {
@@ -399,7 +442,7 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
     {
         if (worker.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(USE_TOTEM) > 0)
         {
-            final int totems = InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), Items.TOTEM_OF_UNDYING);
+            final int totems = InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), ItemStackUtils::hasDeathProtection);
 
             if (totems > 0)
             {
@@ -454,14 +497,12 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
             return getState();
         }
 
-        if (effortCounter < EFFORT_BURY)
+        if (!spendEffort(EFFORT_BURY, getPrimarySkillLevel()))
         {
             equipShovel();
             CitizenItemUtils.hitBlockWithToolInHand(worker, burialPos.getA(), false);
-            effortCounter += getPrimarySkillLevel();
             return getState();
         }
-        effortCounter = 0;
         unequip();
 
         module.buryCitizenHere(burialPos, worker);
@@ -473,6 +514,35 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
         shouldDumpInventory = true;
 
         return INVENTORY_FULL;
+    }
+
+    /**
+     * Put one call's worth of work into the current task and report whether it is finished.
+     * <p>
+     * The credit belongs to the state that earned it: arriving in a different state throws away whatever the
+     * previous one had accumulated rather than handing it over.
+     *
+     * @param required  the effort the task takes.
+     * @param perCall   the effort this call contributes, normally a skill level.
+     * @return true when the task is done and the counter has been cleared.
+     */
+    private boolean spendEffort(final int required, final int perCall)
+    {
+        if (effortState != getState())
+        {
+            effortState = getState();
+            effortCounter = 0;
+        }
+
+        if (effortCounter >= required)
+        {
+            effortCounter = 0;
+            effortState = null;
+            return true;
+        }
+
+        effortCounter += perCall;
+        return false;
     }
 
     /**

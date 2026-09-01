@@ -35,6 +35,28 @@ public class GuardTaskSetting extends StringSettingWithDesc
     public static final String PATROL_MINE = "com.minecolonies.core.guard.setting.patrol_mine";
 
     /**
+     * A patrol that never stands down: the unit walks from one patrol point to the next for as long as it is on duty,
+     * and comes off the route only for the things that take any guard off it - a fight, a meal, a nap.
+     * <p>
+     * Offered by the Stable, where it is the difference between a cavalry unit that sorties and one that screens.
+     * Every other guard building is registered with an explicit list of task options that does not contain it, so
+     * nothing else in the colony gains an option it has no behaviour for.
+     */
+    public static final String PATROL_PERMANENT = "com.minecolonies.core.guard.setting.patrol_permanent";
+
+    /**
+     * A patrol whose route is the colony's own border rather than a wander between its buildings.
+     * <p>
+     * Offered by the Stable, where a mounted unit is fast enough for a frontier to be a route rather than a
+     * destination. It answers <em>where</em> the route comes from and nothing else: whether the unit ever stands down
+     * is still the Stable's rest interval, so a border screen that never comes in is this task with the interval at
+     * zero. {@link #PATROL_PERMANENT} stays what it always was - the same "never stand down" with the ordinary route -
+     * and is listed before this one because a stored setting is an index into this list and a value that moves
+     * retasks every Stable in every existing save.
+     */
+    public static final String PATROL_BORDER = "com.minecolonies.core.guard.setting.patrol_border";
+
+    /**
      * Different trigger button widths.
      */
     private static final int SET_POS_BUTTON_WIDTH = 60;
@@ -103,7 +125,7 @@ public class GuardTaskSetting extends StringSettingWithDesc
 
         switch (getValue())
         {
-            case PATROL ->
+            case PATROL, PATROL_PERMANENT, PATROL_BORDER ->
             {
                 final String patrolMode = settingsModuleView.getSetting(PATROL_MODE).getValue();
                 setPositionsButton.setVisible(patrolMode.equals(MANUAL));
@@ -129,7 +151,7 @@ public class GuardTaskSetting extends StringSettingWithDesc
     {
         return switch (getValue())
         {
-            case PATROL ->
+            case PATROL, PATROL_PERMANENT, PATROL_BORDER ->
             {
                 final String patrolMode = settingsModuleView.getSetting(PATROL_MODE).getValue();
                 yield patrolMode.equals(MANUAL) ? SET_POS_BUTTON_WIDTH : MAX_BUTTON_WIDTH;

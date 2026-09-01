@@ -292,8 +292,11 @@ public abstract class AbstractCraftingRequestResolver extends AbstractRequestRes
         for (final ICraftingBuildingModule module : building.getModulesByType(ICraftingBuildingModule.class))
         {
             final IRecipeStorage craftableCrafting = module.getFirstRecipe(stackPrecicate);
-            if (craftableCrafting == null)
+            if (craftableCrafting == null || !canBuildingCraftRecipe(building, craftableCrafting))
             {
+                // canResolveForBuilding() only says yes for a recipe that passes canBuildingCraftRecipe(), but this
+                // step took the first recipe matching the item and never asked again. A private crafter, whose check
+                // rejects anything with an intermediate, could be handed the furnace recipe it had refused.
                 continue;
             }
             return createRequestsForRecipe(manager, craftableCrafting, count, minCount);

@@ -16,11 +16,6 @@ public class UndertakerConstants
     public static final double XP_PER_DIG = 7.5;
 
     /**
-     * The EXP Earned per wander.
-     */
-    public static final double XP_PER_WANDER = 2;
-
-    /**
      * The weigth of each building level on the resurrection chances.
      */
     public static final double RESURRECT_BUILDING_LVL_WEIGHT = 0.005;
@@ -31,9 +26,20 @@ public class UndertakerConstants
     public static final double RESURRECT_WORKER_MANA_LVL_WEIGHT = 0.00125;
 
     /**
-     * The max resurrection chance cap [0.0 min equals 1.0 max]
+     * The base of the max resurrection chance cap [0.0 min equals 1.0 max]
      */
     public static final double MAX_RESURRECTION_CHANCE = 0.025;
+
+    /**
+     * The bonus to the max resurrection chance cap per level of the graveyard.
+     * <p>
+     * This exists because the cap used to be the flat {@link #MAX_RESURRECTION_CHANCE} plus the Mystical Site term,
+     * and a level 5 graveyard reaches 0.025 out of its own building-level weight alone. Every other term - the two
+     * Resurrection Chance researches and every point of the undertaker's Mana - was therefore bought and then thrown
+     * away in any colony without a Mystical Site, which is most of them. The graveyard now raises its own ceiling
+     * faster than it fills it, so the research and the worker have somewhere to go.
+     */
+    public static final double MAX_RESURRECTION_CHANCE_GRAVEYARD_LVL_BONUS = 0.0125;
 
     /**
      * The bonus to max resurrection chance cap per max lvl of Mystical Site in the city
@@ -54,6 +60,12 @@ public class UndertakerConstants
      * The chance that a used totem of undying breaks on each resurrection attempt
      */
     public static final double TOTEM_BREAK_CHANCE = 0.01;
+
+    /**
+     * How many totems the undertaker keeps on him. Two is where the resurrection bonus stops growing, and it is what
+     * the graveyard's keepX entry holds back out of his dump.
+     */
+    public static final int TOTEMS_TO_KEEP = 2;
 
     /**
      * Effort needed to empty a grave

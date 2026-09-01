@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.minecolonies.api.util.constant.TranslationConstants.LABEL_GRAVEYARD_TAB;
+
 public class GraveyardManagementModuleView extends AbstractBuildingModuleView
 {
     /**
@@ -68,7 +70,7 @@ public class GraveyardManagementModuleView extends AbstractBuildingModuleView
     @Override
     public Component getDesc()
     {
-        return Component.translatable("com.minecolonies.gui.workerhuts.enchanter.workers");
+        return Component.translatable(LABEL_GRAVEYARD_TAB);
     }
 
     /**

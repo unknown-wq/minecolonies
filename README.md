@@ -97,7 +97,7 @@ integrated server ticking well inside its 50 ms budget.
 **The built mod jar lives in [`dist/`](dist/).** One file, nothing else to assemble.
 
 ```
-dist/minecolonies-26.2-0.0.58.jar          44 MB
+dist/minecolonies-26.2-0.0.61.jar          44 MB
 ```
 
 The jar carries its three dependencies inside it through Fabric's Jar-in-Jar, and the loader brings
@@ -343,7 +343,7 @@ Domum Ornamentum ──────────────┘
 ```
 mods/
 ├── fabric-api-0.154.2+26.2.jar
-└── minecolonies-26.2-0.0.58.jar
+└── minecolonies-26.2-0.0.61.jar
 ```
 
 3. Launch. In the loaded-mod list, `blockui`, `domum_ornamentum` and `structurize` must appear

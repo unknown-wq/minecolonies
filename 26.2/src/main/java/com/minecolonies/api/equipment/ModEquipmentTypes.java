@@ -27,6 +27,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static com.minecolonies.api.util.constant.EquipmentLevelConstants.BASIC_TOOL_LEVEL;
+
 /**
  * Class used for storing and registering any EquipmentTypes.
  */
@@ -167,13 +169,9 @@ public class ModEquipmentTypes
         spear = register("spear",
           builder -> builder.setDisplayName(Component.translatable(ToolTranslationConstants.TOOL_TYPE_SPEAR))
                       // 26.2 ships seven spears of its own (wood through netherite) and a #minecraft:spears tag to
-                      // hold them, so a cavalryman is no longer restricted to the mod's one. The level yardstick
-                      // stays the mod spear's durability on purpose: measured against it a netherite spear comes out
-                      // at level 5, so only a fully upgraded hut will accept one. That is the ordinary "this tool is
-                      // too good for this worker" rule the mod applies to every other equipment type, not an
-                      // oversight.
+                      // hold them, so a cavalryman is no longer restricted to the mod's one.
                       .setIsEquipment((itemStack, equipmentType) -> itemStack.is(ModItems.spear) || itemStack.is(ItemTags.SPEARS))
-                      .setEquipmentLevel((itemStack, equipmentType) -> durabilityBasedLevel(itemStack, new ItemStack(ModItems.spear).getMaxDamage()))
+                      .setEquipmentLevel((itemStack, equipmentType) -> spearLevel(itemStack))
                   .build());
 
     }
@@ -218,6 +216,39 @@ public class ModEquipmentTypes
             return Compatibility.getToolLevel(itemStack);
         }
         return Compatibility.getItemLevel(itemStack);
+    }
+
+    /**
+     * The equipment level of a spear.
+     * <p>
+     * Spears used to be scored on durability against the mod spear's 250, which is not a measure of how well a spear
+     * fights and gave a scale with no middle: gold, wooden, stone and copper spears all came out at 0, iron at 1,
+     * and diamond and netherite both jumped to 5. Hut levels 2, 3 and 4 licensed nothing a level-1 hut did not
+     * already licence, and a diamond spear was refused until the hut was maxed while a diamond *sword* was allowed
+     * at level 3. Scoring off the material's attack bonus, exactly as swords and every other tool are scored, gives
+     * wood and gold 0, stone and copper 1, iron 2, diamond 3 and netherite 4 -- one rung per hut level.
+     * <p>
+     * The mod's own spear is pinned rather than measured. Its durability is the iron spear's, so the material match
+     * below would call it iron; keeping it at the basic tool level is what it has always scored and what lets a
+     * level-one guard tower arm a spearman with the spear the player can actually craft at that point.
+     *
+     * @param itemStack the spear.
+     * @return the equipment level.
+     */
+    public static int spearLevel(final ItemStack itemStack)
+    {
+        if (itemStack.is(ModItems.spear))
+        {
+            return BASIC_TOOL_LEVEL;
+        }
+
+        final ToolMaterial material = toolMaterialOf(itemStack);
+        if (material != null)
+        {
+            return (int) material.attackDamageBonus();
+        }
+
+        return durabilityBasedLevel(itemStack, new ItemStack(ModItems.spear).getMaxDamage());
     }
 
     /**
@@ -334,7 +365,7 @@ public class ModEquipmentTypes
     public static ToolMaterial toolMaterialOf(final ItemStack stack)
     {
         if (!stack.is(ItemTags.PICKAXES) && !stack.is(ItemTags.AXES) && !stack.is(ItemTags.SHOVELS)
-              && !stack.is(ItemTags.HOES) && !stack.is(ItemTags.SWORDS))
+              && !stack.is(ItemTags.HOES) && !stack.is(ItemTags.SWORDS) && !stack.is(ItemTags.SPEARS))
         {
             return null;
         }

@@ -17,6 +17,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 
+import static com.minecolonies.api.util.constant.TranslationConstants.LABEL_GRAVEYARD_GRAVE_OF;
+import static com.minecolonies.api.util.constant.TranslationConstants.LABEL_GRAVEYARD_UNKNOWN_NAME;
+
 /**
  * BOWindow for the Graveyard building.
  */
@@ -93,10 +96,10 @@ public class GraveyardManagementWindow extends AbstractModuleWindow<GraveyardMan
                 final BlockEntity entity = world.getBlockEntity(grave);
                 if (entity instanceof TileEntityGrave)
                 {
-                    rowPane.findPaneOfTypeByID(TAG_NAME, Text.class).setText(Component.literal("Grave of " +
-                            ((((TileEntityGrave) entity).getGraveData() != null) ?
-                             ((TileEntityGrave) entity).getGraveData().getCitizenName() :
-                             "Unknown Citizen")));
+                    final Component name = ((TileEntityGrave) entity).getGraveData() != null
+                                             ? Component.literal(((TileEntityGrave) entity).getGraveData().getCitizenName())
+                                             : Component.translatable(LABEL_GRAVEYARD_UNKNOWN_NAME);
+                    rowPane.findPaneOfTypeByID(TAG_NAME, Text.class).setText(Component.translatable(LABEL_GRAVEYARD_GRAVE_OF, name));
                     rowPane.findPaneOfTypeByID(TAG_DISTANCE, Text.class).setText(Component.literal(distance + "m"));
                     rowPane.findPaneOfTypeByID(TAG_DIRECTION, Text.class).setText(direction);
                 }

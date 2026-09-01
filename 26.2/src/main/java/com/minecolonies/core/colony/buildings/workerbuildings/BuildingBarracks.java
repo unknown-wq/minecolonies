@@ -397,7 +397,7 @@ public class BuildingBarracks extends AbstractBuilding
         // by nearest waypoint index rather than by position keeps the assignment stable across recomputes as long as
         // the line has not changed shape.
         final List<BlockPos> ordered = new ArrayList<>(live);
-        ordered.sort(Comparator.comparingInt(pos -> nearestIndex(line, pos)));
+        ordered.sort(Comparator.comparingInt(pos -> BorderPatrol.nearestIndex(line, pos)));
 
         final int count = ordered.size();
         for (int i = 0; i < count; i++)
@@ -411,30 +411,6 @@ public class BuildingBarracks extends AbstractBuilding
         }
     }
 
-    /**
-     * The index of the waypoint nearest a position.
-     *
-     * @param line the waypoints.
-     * @param pos  the position.
-     * @return the index, 0 for an empty line.
-     */
-    private static int nearestIndex(@NotNull final List<BlockPos> line, @NotNull final BlockPos pos)
-    {
-        int best = 0;
-        long bestDistance = Long.MAX_VALUE;
-        for (int i = 0; i < line.size(); i++)
-        {
-            final long dx = (long) line.get(i).getX() - pos.getX();
-            final long dz = (long) line.get(i).getZ() - pos.getZ();
-            final long distance = dx * dx + dz * dz;
-            if (distance < bestDistance)
-            {
-                bestDistance = distance;
-                best = i;
-            }
-        }
-        return best;
-    }
 
     /**
      * Barracks building View.

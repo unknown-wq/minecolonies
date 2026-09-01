@@ -13,6 +13,13 @@ import static com.minecolonies.api.util.constant.PathingConstants.SHIFT_Y_BY;
 public class MNode implements Comparable<MNode>
 {
     /**
+     * Which slot of the {@link OpenNodeHeap} this node currently occupies, -1 while it is not queued. Owned and
+     * maintained exclusively by the heap; nothing else may write it. Stored on the node so taking an open node out
+     * of the queue to re-cost it is a heap removal instead of a linear scan.
+     */
+    int heapIndex = -1;
+
+    /**
      * Values used in the generation of the hash of the node.
      */
     private static final int HASH_A = 12;

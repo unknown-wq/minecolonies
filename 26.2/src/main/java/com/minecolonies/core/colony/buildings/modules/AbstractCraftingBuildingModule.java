@@ -678,8 +678,11 @@ public abstract class AbstractCraftingBuildingModule extends AbstractBuildingMod
             boolean didReduction = false;
             for(ItemStorage input : inputs)
             {
-                // Check against excluded products
-                if (input.getAmount() > 1 && ModTags.crafterIngredient.containsKey(CRAFTING_REDUCEABLE) && input.getItemStack().is(ModTags.crafterIngredient.get(CRAFTING_REDUCEABLE)))
+                // Check against excluded products. Only one ingredient is reduced per improvement: this used to cut
+                // every eligible input at once, and reduceable_ingredient covers both #minecraft:planks and
+                // #minecraft:logs, so a single lucky roll took a step off the whole recipe. The inputs are sorted by
+                // amount descending above, so the largest one goes first.
+                if (!didReduction && input.getAmount() > 1 && ModTags.crafterIngredient.containsKey(CRAFTING_REDUCEABLE) && input.getItemStack().is(ModTags.crafterIngredient.get(CRAFTING_REDUCEABLE)))
                 {
                     reducedItem = input.copy();
                     reducedItem.setAmount(input.getAmount() - 1);
@@ -1022,6 +1025,24 @@ public abstract class AbstractCraftingBuildingModule extends AbstractBuildingMod
     @Override
     public List<IRequestResolver<?>> createResolvers()
     {
+        // A building can carry several crafting modules for the same job -- the sawmill has two, and so do the
+        // stonemason, fletcher, mechanic and glassblower. The two resolvers below are keyed on the building's
+        // location and the job, not on the module, and AbstractCraftingRequestResolver#canResolveForBuilding walks
+        // every crafting module of the building for each request anyway. A pair per module was therefore a pure
+        // duplicate that made the request system walk both modules twice over. Only the first module of a job builds
+        // them.
+        for (final ICraftingBuildingModule other : building.getModulesByType(ICraftingBuildingModule.class))
+        {
+            if (other == this)
+            {
+                break;
+            }
+            if (other instanceof AbstractCraftingBuildingModule module && Objects.equals(module.jobEntry, jobEntry))
+            {
+                return Collections.emptyList();
+            }
+        }
+
         final List<IRequestResolver<?>> resolvers = new ArrayList<>();
         resolvers.add(new PublicWorkerCraftingRequestResolver(building.getRequester().getLocation(),
           building.getColony().getRequestManager().getFactoryController().getNewInstance(TypeConstants.ITOKEN), jobEntry));

@@ -82,21 +82,24 @@ public class IntSetting implements ISetting<Integer>
       final IBuildingView building, final BOWindow window)
     {
         pane.findPaneOfTypeByID("trigger", TextField.class).setHandler(input -> {
+            // An empty box is a half-finished edit, not a value of zero. Writing zero here and letting render() paint
+            // it straight back put a "0" under the caret the instant the player cleared the field, so a fresh number
+            // could never be typed - it had to be typed around the digit that reappeared.
+            if (input.getText().isEmpty())
+            {
+                return;
+            }
+
             try
             {
-                if (input.getText().isEmpty())
-                {
-                    this.value = 0;
-                }
-                else
-                {
-                    this.value = Integer.parseInt(input.getText());
-                    settingsModuleView.trigger(key);
-                }
+                // Through setValue rather than the field, so a subclass that constrains its value constrains what
+                // the text field can produce as well.
+                setValue(Integer.parseInt(input.getText()));
+                settingsModuleView.trigger(key);
             }
             catch (final NumberFormatException ex)
             {
-                //Noop
+                // A partially typed number ("-", "12x"); leave the last good value alone.
             }
         });
     }
@@ -112,7 +115,12 @@ public class IntSetting implements ISetting<Integer>
         final TextField field = pane.findPaneOfTypeByID("trigger", TextField.class);
         field.setEnabled(isActive((ISettingsModuleView) settingsModuleView));
         setHoverPane(key, field, settingsModuleView);
-        if (!field.getText().equals(String.valueOf(this.value)))
+
+        // Never repaint the box the player is typing in. This runs once per frame, and the value behind it is
+        // overwritten by every building view the server sends; a sync that landed mid-edit used to drop the old
+        // number back into the field and move the caret to the end of it, which reads as the field refusing the edit.
+        // Once focus moves on, the field is brought back into agreement with the value.
+        if (!field.isFocus() && !field.getText().equals(String.valueOf(this.value)))
         {
             field.setText(String.valueOf(value));
         }

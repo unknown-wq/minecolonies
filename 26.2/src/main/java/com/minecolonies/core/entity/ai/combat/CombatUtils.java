@@ -2,6 +2,7 @@ package com.minecolonies.core.entity.ai.combat;
 
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.buildings.IBuilding;
+import com.minecolonies.api.colony.buildings.IGuardBuilding;
 import com.minecolonies.api.entity.ModEntities;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.mobs.AbstractEntityMinecoloniesRaider;
@@ -146,12 +147,15 @@ public class CombatUtils
 
         if (target instanceof AbstractEntityMinecoloniesRaider)
         {
-            for (final Map.Entry<BlockPos, IBuilding> entry : user.getCitizenColonyHandler().getColonyOrRegister().getServerBuildingManager().getBuildings().entrySet())
+            // The cached guard-building list, not the whole building map. This runs on every target change to a
+            // raider -- up to once per five ticks per guard during a raid -- and it exists to set one BlockPos on the
+            // handful of guard buildings within forty blocks, so walking every hut in the colony to find them was
+            // the largest avoidable number on the guard path. Buildings whose task does not walk a patrol never read
+            // the point, so they are skipped too.
+            for (final IGuardBuilding building : user.getCitizenColonyHandler().getColonyOrRegister().getServerBuildingManager().getGuardBuildings())
             {
-                if (entry.getValue() instanceof AbstractBuildingGuards &&
-                      user.blockPosition().distSqr(entry.getKey()) < callRange)
+                if (building.walksAPatrol() && user.blockPosition().distSqr(building.getID()) < callRange)
                 {
-                    final AbstractBuildingGuards building = (AbstractBuildingGuards) entry.getValue();
                     building.setTempNextPatrolPoint(target.blockPosition());
                 }
             }

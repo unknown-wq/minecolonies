@@ -63,6 +63,11 @@ public final class TranslationConstants
     public static final String COM_MINECOLONIES_COREMOD_WAREHOUSE_FULL_LEVEL5_UPGRADE               = "com.minecolonies.coremod.warehouse.full.level5";
     @NonNls
     public static final String BAKER_HAS_NO_FURNACES_MESSAGE                                        = "com.minecolonies.coremod.bakery.nofurnace";
+    public static final String BAKERY_MENU_ADDED_MESSAGE                                            = "com.minecolonies.coremod.bakery.menuadded";
+    @NonNls
+    public static final String ALCHEMIST_HAS_NO_BREWING_STAND_MESSAGE                               = "com.minecolonies.coremod.alchemist.nobrewingstand";
+    @NonNls
+    public static final String CRAFTER_IS_OUT_OF_MATERIALS_MESSAGE                                  = "com.minecolonies.coremod.crafter.outofmaterials";
     @NonNls
     public static final String COM_MINECOLONIES_COREMOD_JOB_DELIVERYMAN                             = "com.minecolonies.job.deliveryman";
     @NonNls
@@ -815,6 +820,7 @@ public final class TranslationConstants
     public static final String PARTIAL_STATS_MODIFIER_NAME                = "com.minecolonies.coremod.gui.townhall.stats.";
     @NonNls
     public static final String CAVALRY_NOHORSE                            = "entity.cavalry.nohorse";
+    public static final String STABLE_BORDER_UNREACHABLE                  = "com.minecolonies.coremod.stable.borderpatrol.unreachable";
     @NonNls
     public static final String STABLEMASTER_NEEDED_READYITEMS             = "com.minecolonies.coremod.stablemaster.needed.readyitems";
     @NonNls
@@ -854,6 +860,13 @@ public final class TranslationConstants
     public static final String MESSAGE_INFO_CITIZEN_UNDERTAKER_BURYING             = "com.minecolonies.coremod.status.burying";
     @NonNls
     public static final String MESSAGE_INFO_CITIZEN_UNDERTAKER_GRAVEYARD_NO_SPACE  = "com.minecolonies.coremod.nospaceforgrave";
+
+    @NonNls
+    public static final String LABEL_GRAVEYARD_TAB           = "com.minecolonies.gui.workerhuts.graveyard.graves";
+    @NonNls
+    public static final String LABEL_GRAVEYARD_GRAVE_OF      = "com.minecolonies.gui.workerhuts.graveyard.graveof";
+    @NonNls
+    public static final String LABEL_GRAVEYARD_UNKNOWN_NAME  = "com.minecolonies.gui.workerhuts.graveyard.unknowncitizen";
 
     //<editor-fold desc="Citizen status keys">
 

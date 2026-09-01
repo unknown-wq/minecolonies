@@ -1,6 +1,7 @@
 package com.minecolonies.core.commands;
 
 import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.colony.HeadlessColonyMode;
 import com.minecolonies.core.commands.citizencommands.*;
 import com.minecolonies.core.commands.colonycommands.*;
 import com.minecolonies.core.commands.colonycommands.requestsystem.CommandRSReset;
@@ -80,6 +81,9 @@ public class EntryPoint
             .addNode(new CommandRSResetAll().build())
             .addNode(new CommandSetAbandoned().build())
             .addNode(new CommandColonyTerritory().build())
+            .addNode(new CommandColonyFound().build())
+            .addNode(new CommandColonyHut().build())
+            .addNode(new CommandColonyBuildNow().build())
             .addNode(new CommandExportColony().build());
 
         /*
@@ -101,6 +105,21 @@ public class EntryPoint
             .addNode(new CommandTrackType().build());
 
         /*
+         * Debug commands subtree. Operator knobs that exist to be turned while watching a running server, rather than
+         * settings a server is configured with.
+         */
+        final CommandTree debugCommands = new CommandTree("debug")
+            .addNode(new CommandMaxPool().build());
+
+        // Headless colony mode is the one thing here that changes what the mod does rather than how fast it does it,
+        // so it is not offered unless the JVM was started asking for it. On every other install the literal is absent
+        // from the tree: it cannot be run, completed or mistyped into, and there is no other way to reach the mode.
+        if (HeadlessColonyMode.isArmed())
+        {
+            debugCommands.addNode(new CommandHeadless().build());
+        }
+
+        /*
          * Root minecolonies command tree, all subtrees are added here.
          */
         final CommandTree minecoloniesRoot = new CommandTree(Constants.MOD_ID)
@@ -118,6 +137,7 @@ public class EntryPoint
             .addNode(new CommandHelp().build())
             .addNode(new CommandPathStats().build())
             .addNode(new CommandBoatSpeed().build())
+            .addNode(debugCommands)
             .addNode(ScanCommand.build())
             .addNode(new CommandPruneWorld().build());
 
@@ -140,6 +160,7 @@ public class EntryPoint
             .addNode(new CommandHelp().build())
             .addNode(new CommandPathStats().build())
             .addNode(new CommandBoatSpeed().build())
+            .addNode(debugCommands)
             .addNode(new CommandToggleDebug().build())
             .addNode(new CommandPruneWorld().build());
 

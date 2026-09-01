@@ -66,6 +66,7 @@ import java.util.stream.Collectors;
 
 import static com.minecolonies.api.items.ModTags.fungi;
 import static com.minecolonies.api.util.constant.Constants.*;
+import static com.minecolonies.api.util.constant.EquipmentLevelConstants.*;
 import static com.minecolonies.api.util.constant.HappinessConstants.HADGREATFOOD;
 import static java.util.Map.entry;
 
@@ -98,36 +99,57 @@ public final class ItemStackUtils
         return "tag.item." + tag.location().getNamespace() + "." + tag.location().getPath().replace('/', '.');
     }
 
-    private static final Map<Item, Integer> VANILLA_ARMOR_DISTRIBUTION = Map.ofEntries(entry(Items.LEATHER_HELMET, 1),
-      entry(Items.LEATHER_CHESTPLATE, 1),
-      entry(Items.LEATHER_LEGGINGS, 1),
-      entry(Items.LEATHER_BOOTS, 1),
-      entry(Items.GOLDEN_HELMET, 1),
-      entry(Items.GOLDEN_CHESTPLATE, 1),
-      entry(Items.GOLDEN_LEGGINGS, 1),
-      entry(Items.GOLDEN_BOOTS, 1),
-      entry(Items.CHAINMAIL_HELMET, 2),
-      entry(Items.CHAINMAIL_CHESTPLATE, 2),
-      entry(Items.CHAINMAIL_LEGGINGS, 2),
-      entry(Items.CHAINMAIL_BOOTS, 2),
-      entry(Items.IRON_HELMET, 3),
-      entry(Items.IRON_CHESTPLATE, 3),
-      entry(Items.IRON_LEGGINGS, 3),
-      entry(Items.IRON_BOOTS, 3),
-      entry(Items.DIAMOND_HELMET, 4),
-      entry(Items.DIAMOND_CHESTPLATE, 4),
-      entry(Items.DIAMOND_LEGGINGS, 4),
-      entry(Items.DIAMOND_BOOTS, 4),
-      entry(Items.NETHERITE_HELMET, 5),
-      entry(Items.NETHERITE_CHESTPLATE, 5),
-      entry(Items.NETHERITE_LEGGINGS, 5),
-      entry(Items.NETHERITE_BOOTS, 5));
+    /**
+     * The rung each vanilla armour piece occupies on the {@code ARMOR_LEVEL_*} ladder.
+     * <p>
+     * The ladder is ordered by the protection a full set gives, not by the order the materials appear in the tool
+     * tiers: leather 7, copper 10, gold 11, chain 12, iron 15, diamond 20 (+2 toughness), netherite 20 (+3).
+     * Copper is vanilla armour as of this snapshot and belongs between leather and gold; gold used to share a rung
+     * with leather, which cost a player who stocked gold four armour points he had paid for.
+     */
+    private static final Map<Item, Integer> VANILLA_ARMOR_DISTRIBUTION = Map.ofEntries(entry(Items.LEATHER_HELMET, ARMOR_LEVEL_LEATHER),
+      entry(Items.LEATHER_CHESTPLATE, ARMOR_LEVEL_LEATHER),
+      entry(Items.LEATHER_LEGGINGS, ARMOR_LEVEL_LEATHER),
+      entry(Items.LEATHER_BOOTS, ARMOR_LEVEL_LEATHER),
+      entry(Items.COPPER_HELMET, ARMOR_LEVEL_COPPER),
+      entry(Items.COPPER_CHESTPLATE, ARMOR_LEVEL_COPPER),
+      entry(Items.COPPER_LEGGINGS, ARMOR_LEVEL_COPPER),
+      entry(Items.COPPER_BOOTS, ARMOR_LEVEL_COPPER),
+      entry(Items.GOLDEN_HELMET, ARMOR_LEVEL_GOLD),
+      entry(Items.GOLDEN_CHESTPLATE, ARMOR_LEVEL_GOLD),
+      entry(Items.GOLDEN_LEGGINGS, ARMOR_LEVEL_GOLD),
+      entry(Items.GOLDEN_BOOTS, ARMOR_LEVEL_GOLD),
+      entry(Items.CHAINMAIL_HELMET, ARMOR_LEVEL_CHAIN),
+      entry(Items.CHAINMAIL_CHESTPLATE, ARMOR_LEVEL_CHAIN),
+      entry(Items.CHAINMAIL_LEGGINGS, ARMOR_LEVEL_CHAIN),
+      entry(Items.CHAINMAIL_BOOTS, ARMOR_LEVEL_CHAIN),
+      entry(Items.IRON_HELMET, ARMOR_LEVEL_IRON),
+      entry(Items.IRON_CHESTPLATE, ARMOR_LEVEL_IRON),
+      entry(Items.IRON_LEGGINGS, ARMOR_LEVEL_IRON),
+      entry(Items.IRON_BOOTS, ARMOR_LEVEL_IRON),
+      entry(Items.DIAMOND_HELMET, ARMOR_LEVEL_DIAMOND),
+      entry(Items.DIAMOND_CHESTPLATE, ARMOR_LEVEL_DIAMOND),
+      entry(Items.DIAMOND_LEGGINGS, ARMOR_LEVEL_DIAMOND),
+      entry(Items.DIAMOND_BOOTS, ARMOR_LEVEL_DIAMOND),
+      entry(Items.NETHERITE_HELMET, ARMOR_LEVEL_NETHERITE),
+      entry(Items.NETHERITE_CHESTPLATE, ARMOR_LEVEL_NETHERITE),
+      entry(Items.NETHERITE_LEGGINGS, ARMOR_LEVEL_NETHERITE),
+      entry(Items.NETHERITE_BOOTS, ARMOR_LEVEL_NETHERITE));
 
+    /**
+     * The yardsticks {@link #getArmorLevel} measures unrecognised (i.e. modded) armour against, per slot, in
+     * ascending order of protection. A piece is given the rung of the first yardstick it does not beat, so a tie
+     * resolves to the lower rung.
+     */
     private static final Map<EquipmentSlot, List<Item>> VANILLA_ARMOR_MAPPING =
-      Map.ofEntries(entry(EquipmentSlot.HEAD, List.of(Items.LEATHER_HELMET, Items.CHAINMAIL_HELMET, Items.IRON_HELMET, Items.DIAMOND_HELMET)),
-        entry(EquipmentSlot.CHEST, List.of(Items.LEATHER_CHESTPLATE, Items.CHAINMAIL_CHESTPLATE, Items.IRON_CHESTPLATE, Items.DIAMOND_CHESTPLATE)),
-        entry(EquipmentSlot.LEGS, List.of(Items.LEATHER_LEGGINGS, Items.CHAINMAIL_LEGGINGS, Items.IRON_LEGGINGS, Items.DIAMOND_LEGGINGS)),
-        entry(EquipmentSlot.FEET, List.of(Items.LEATHER_BOOTS, Items.CHAINMAIL_BOOTS, Items.IRON_BOOTS, Items.DIAMOND_BOOTS)));
+      Map.ofEntries(entry(EquipmentSlot.HEAD,
+          List.of(Items.LEATHER_HELMET, Items.COPPER_HELMET, Items.GOLDEN_HELMET, Items.CHAINMAIL_HELMET, Items.IRON_HELMET, Items.DIAMOND_HELMET)),
+        entry(EquipmentSlot.CHEST,
+          List.of(Items.LEATHER_CHESTPLATE, Items.COPPER_CHESTPLATE, Items.GOLDEN_CHESTPLATE, Items.CHAINMAIL_CHESTPLATE, Items.IRON_CHESTPLATE, Items.DIAMOND_CHESTPLATE)),
+        entry(EquipmentSlot.LEGS,
+          List.of(Items.LEATHER_LEGGINGS, Items.COPPER_LEGGINGS, Items.GOLDEN_LEGGINGS, Items.CHAINMAIL_LEGGINGS, Items.IRON_LEGGINGS, Items.DIAMOND_LEGGINGS)),
+        entry(EquipmentSlot.FEET,
+          List.of(Items.LEATHER_BOOTS, Items.COPPER_BOOTS, Items.GOLDEN_BOOTS, Items.CHAINMAIL_BOOTS, Items.IRON_BOOTS, Items.DIAMOND_BOOTS)));
 
     /**
      * Variable representing the empty itemstack in 1.10. Used for easy updating to 1.11
@@ -274,6 +296,23 @@ public final class ItemStackUtils
     }
 
     /**
+     * Whether this stack will pull its holder back from a lethal blow - a Totem of Undying, or anything a datapack
+     * or another mod has given the same behaviour.
+     * <p>
+     * Match the component, not {@code Items.TOTEM_OF_UNDYING}. The totem has had no special case in the entity code
+     * since the behaviour moved into {@code minecraft:death_protection}; vanilla itself looks for the component
+     * ({@code LivingEntity#checkTotemDeathProtection}), and an item identity check silently ignores every other item
+     * that carries it.
+     *
+     * @param stack the stack to check.
+     * @return true if it carries death protection.
+     */
+    public static boolean hasDeathProtection(@Nullable final ItemStack stack)
+    {
+        return isNotEmpty(stack) && stack.has(DataComponents.DEATH_PROTECTION);
+    }
+
+    /**
      * Verifies if an item has an appropriated grade.
      *
      * @param itemStack    the equipment
@@ -333,7 +372,7 @@ public final class ItemStackUtils
         final List<Item> armorItems = VANILLA_ARMOR_MAPPING.get(targetEquipmentSlot);
         if (armorItems == null)
         {
-            return 5;
+            return ARMOR_LEVEL_NETHERITE;
         }
 
         final double targetArmorLevel = getArmorValue(itemStack, targetEquipmentSlot);
@@ -352,7 +391,7 @@ public final class ItemStackUtils
             }
         }
 
-        return 5;
+        return ARMOR_LEVEL_NETHERITE;
     }
 
     /**
@@ -431,7 +470,7 @@ public final class ItemStackUtils
      */
     public static MutableComponent swapArmorGrade(final int toolGrade)
     {
-        if (toolGrade >= 0 && toolGrade <= 4)
+        if (toolGrade >= 0 && toolGrade <= ARMOR_LEVEL_NETHERITE)
         {
             return Component.translatableEscape("com.minecolonies.coremod.armorlevel." + toolGrade);
         }
@@ -745,6 +784,21 @@ public final class ItemStackUtils
     {
         return ItemStackUtils.isEmpty(entity.getItem(SMELTABLE_SLOT))
                  && !ItemStackUtils.isEmpty(entity.getItem(FUEL_SLOT));
+    }
+
+    /**
+     * Check whether a stack can fuel a brewing stand.
+     * <p>
+     * This used to name blaze powder. Vanilla does not: the brewing stand's own {@code canPlaceItem(4, stack)}
+     * accepts anything in {@code #minecraft:brewing_fuel}, so a datapack that adds a second fuel makes the two
+     * answers disagree and the alchemist then refuses fuel the stand would have taken. Ask vanilla's own test.
+     *
+     * @param stack the stack to check.
+     * @return true if a brewing stand would take it as fuel.
+     */
+    public static boolean isBrewingFuel(final ItemStack stack)
+    {
+        return !isEmpty(stack) && stack.is(ItemTags.BREWING_FUEL);
     }
 
     /**

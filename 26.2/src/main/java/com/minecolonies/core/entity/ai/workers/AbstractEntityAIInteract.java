@@ -201,13 +201,13 @@ public abstract class AbstractEntityAIInteract<J extends AbstractJob<?, J>, B ex
             //add the drops to the citizen
             for (final ItemStack item : localItems)
             {
-                if (item.getItem() instanceof IDoItem)
+                final ItemStack toStore = item.getItem() instanceof IDoItem ? getCorrectDOItem(item, curBlockState, false) : item;
+                final ItemStack remainder = InventoryUtils.transferItemStackIntoNextBestSlotInItemHandlerWithResult(toStore, worker.getInventoryCitizen());
+                if (!ItemStackUtils.isEmpty(remainder))
                 {
-                    InventoryUtils.transferItemStackIntoNextBestSlotInItemHandler(getCorrectDOItem(item, curBlockState, false), worker.getInventoryCitizen());
-                }
-                else
-                {
-                    InventoryUtils.transferItemStackIntoNextBestSlotInItemHandler(item, worker.getInventoryCitizen());
+                    // The worker's inventory filled up mid-block. Dropping the rest on the floor leaves it for the
+                    // gathering sweep; ignoring the return value, as this did, deleted it outright.
+                    InventoryUtils.spawnItemStack(world, worker.getX(), worker.getY(), worker.getZ(), remainder);
                 }
             }
             onBlockDropReception(localItems);
@@ -305,7 +305,11 @@ public abstract class AbstractEntityAIInteract<J extends AbstractJob<?, J>, B ex
         }
         currentWorkingLocation = blockToMine;
 
-        return hasNotDelayed(getBlockMiningTime(curBlock, blockToMine));
+        // A worker fast enough to need no delay at all still burned a whole pass of the calling state here:
+        // hasNotDelayed() returns true the first time it is asked and only lets the block break on the second.
+        // With nothing to wait for there is nothing to come back for either.
+        final int miningTime = getBlockMiningTime(curBlock, blockToMine);
+        return miningTime > 0 && hasNotDelayed(miningTime);
     }
 
     /**
@@ -336,7 +340,10 @@ public abstract class AbstractEntityAIInteract<J extends AbstractJob<?, J>, B ex
      */
     private int calculateWorkerMiningDelay(@NotNull final BlockState state, @NotNull final BlockPos pos)
     {
-        final double reduction = 1 - worker.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(BLOCK_BREAK_SPEED);
+        // The last level of the block break speed research is worth 2.0, which without the clamp turns the whole
+        // product negative rather than simply removing the delay.
+        final double reduction =
+          Math.max(0.0D, 1 - worker.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(BLOCK_BREAK_SPEED));
 
         return (int) (((BLOCK_MINING_DELAY * Math.pow(LEVEL_MODIFIER, getBreakSpeedLevel() / 2.0))
                          * (double) world.getBlockState(pos).getDestroySpeed(world, pos) / (double) (worker.getMainHandItem()

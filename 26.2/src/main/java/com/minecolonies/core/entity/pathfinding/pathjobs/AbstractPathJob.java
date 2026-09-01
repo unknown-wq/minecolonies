@@ -114,6 +114,12 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
     private static final int MAX_CACHE_MARGIN = 128;
 
     /**
+     * What one diagonal step costs before the surface multipliers, against 1 for a cardinal step: the length of
+     * the ground it actually covers.
+     */
+    private static final double DIAGONAL_COST = Math.sqrt(2);
+
+    /**
      * The four horizontal directions, held as an array so walking a track allocates no iterator.
      */
     private static final Direction[] HORIZONTAL_DIRECTIONS = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
@@ -184,7 +190,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
     /**
      * Queue of all open nodes.
      */
-    private Queue<MNode> nodesToVisit;
+    private OpenNodeHeap nodesToVisit;
 
     /**
      * Queue of all the visited nodes.
@@ -360,7 +366,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         this.hostileGround = hostileGroundFor(world, entity);
 
         this.maxNodes = Math.min(MAX_NODES, range * range);
-        nodesToVisit = new PriorityQueue<>(range * 2);
+        nodesToVisit = new OpenNodeHeap(range * 2);
         this.start = new BlockPos(start);
 
         cachedBlockLookup = new CachingBlockLookup(start, this.world);
@@ -390,7 +396,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
     {
         range = Math.max(10, range);
         this.maxNodes = Math.min(MAX_NODES, range * range);
-        nodesToVisit = new PriorityQueue<>(range * 2);
+        nodesToVisit = new OpenNodeHeap(range * 2);
         this.start = new BlockPos(start);
 
         world = chunkCache;
@@ -440,7 +446,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         final int estimate = 300 + directDistance * 16 + corridorVolume * 2;
         this.maxNodes = Math.min(MAX_NODES, estimate);
 
-        nodesToVisit = new PriorityQueue<>(maxNodes / 4);
+        nodesToVisit = new OpenNodeHeap(maxNodes / 4);
         this.start = new BlockPos(start);
 
         cachedBlockLookup = new CachingBlockLookup(start, this.world);
@@ -763,8 +769,8 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
             if (!nodesToVisit.isEmpty())
             {
                 // Search only closest nodes to the goal
-                final Queue<MNode> original = nodesToVisit;
-                nodesToVisit = new PriorityQueue<>(nodesToVisit.size(), (a, b) -> {
+                final OpenNodeHeap original = nodesToVisit;
+                nodesToVisit = new OpenNodeHeap(nodesToVisit.size(), (a, b) -> {
                     if ((a.getHeuristic()) < (b.getHeuristic()))
                     {
                         return -1;
@@ -964,7 +970,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
             }
 
             // Fix up existing heuristic values
-            final List<MNode> nodes = new ArrayList<>(nodesToVisit);
+            final List<MNode> nodes = nodesToVisit.toList();
             nodesToVisit.clear();
             for (final MNode recalc : nodes)
             {
@@ -1050,6 +1056,35 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         if (dX <= 0)
         {
             exploreInDirection(node, -1, 0, 0);
+        }
+
+        // Diagonals, under the same forward-half-plane pruning the four cardinals above express with their
+        // sign tests: a candidate direction is explored when its dot product with the arrival direction is not
+        // negative. The signum is taken because a node at the end of a macro edge arrives with a delta of up to
+        // sixty-four, and only the heading matters. Not from a node on rails -- a cart cannot leave the track
+        // sideways, and the rail walk lays its own edges -- and exploreInDirection itself refuses every diagonal
+        // that would change height, so stairs and drops keep their cardinal decomposition and the corner-node
+        // machinery never sees a diagonal.
+        if (!node.isOnRails())
+        {
+            final int sX = Integer.signum(dX);
+            final int sZ = Integer.signum(dZ);
+            if (sX - sZ >= 0)
+            {
+                exploreInDirection(node, 1, 0, -1);
+            }
+            if (sX + sZ >= 0)
+            {
+                exploreInDirection(node, 1, 0, 1);
+            }
+            if (sZ - sX >= 0)
+            {
+                exploreInDirection(node, -1, 0, 1);
+            }
+            if (-sX - sZ >= 0)
+            {
+                exploreInDirection(node, -1, 0, -1);
+            }
         }
 
         exploreBoatEdges(node);
@@ -1837,7 +1872,31 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         int nextX = node.x + dX;
         int nextY = node.y + dY;
         int nextZ = node.z + dZ;
-        
+
+        // A diagonal step is accepted under two extra conditions, both checked here so every caller gets them.
+        //
+        // It must not cut a corner: the body sweeps past the two cardinal columns on the way, so both have to be
+        // open at foot and head height. Without this a citizen slices through the corner of a wall -- the walk
+        // target is fine, the route to it is not -- which is why every grid pathfinder that admits diagonals
+        // carries this test.
+        //
+        // And it must not change height (enforced after getGroundHeight below): a diagonal jump or drop would
+        // have to prove clearance over both swept columns at both heights and thread the corner-node machinery,
+        // which decomposes vertical moves into cardinal pieces. The cardinal steps still exist and still find
+        // those routes; the stairs simply stay stair-shaped.
+        final boolean diagonal = dX != 0 && dZ != 0;
+        if (diagonal)
+        {
+            if (node.isCornerNode()
+                  || !isPassable(node.x + dX, node.y, node.z, false, node.parent)
+                  || !isPassable(node.x + dX, node.y + 1, node.z, true, node.parent)
+                  || !isPassable(node.x, node.y, node.z + dZ, false, node.parent)
+                  || !isPassable(node.x, node.y + 1, node.z + dZ, true, node.parent))
+            {
+                return;
+            }
+        }
+
         final int newY;
         //  Can we traverse into this node?  Fix the y up, skip on already explored nodes
         if (node.isVisited())
@@ -1872,6 +1931,11 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         }
 
         if (newY < world.getMinY())
+        {
+            return;
+        }
+
+        if (diagonal && newY != nextY)
         {
             return;
         }
@@ -2208,7 +2272,10 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
       final BlockState state, final BlockState below,
       final int x, final int y, final int z)
     {
-        double cost = 1;
+        // A diagonal covers root-two blocks of ground, and every surface multiplier below scales it the same way
+        // it scales a cardinal step. Safe to key on the raw deltas because this method's one caller hands in unit
+        // steps -- macro edges price themselves per swept cell.
+        double cost = (dX != 0 && dZ != 0) ? DIAGONAL_COST : 1;
 
         // Only once the run is long enough to clear minimumWaterToBoat is this node going to be travelled in a boat.
         // Everything before that is water the citizen will swim, because a shorter run never becomes a boat leg, so

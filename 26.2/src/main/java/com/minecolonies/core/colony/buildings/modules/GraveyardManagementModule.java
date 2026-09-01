@@ -131,12 +131,18 @@ public class GraveyardManagementModule extends AbstractBuildingModule implements
 
     /**
      * Setter for the last grave data.
+     * <p>
+     * Deliberately does not mark the module dirty. Nothing about the last grave reaches
+     * {@link #serializeToView(RegistryFriendlyByteBuf)} - the view carries the colony's live graves and this
+     * graveyard's resting list, and neither depends on it - while the building's NBT is written on every colony save
+     * whether it is dirty or not. Marking dirty here only pushed the whole resting list, every name in it, to every
+     * subscribed client once per grave dug.
+     *
      * @param graveData the last grave the worker has dug.
      */
     public void setLastGraveData(final GraveData graveData)
     {
         this.lastGraveData = graveData;
-        markDirty();
     }
 
     /**
@@ -166,11 +172,33 @@ public class GraveyardManagementModule extends AbstractBuildingModule implements
     }
 
     /**
+     * Take a citizen off the list of those resting in this graveyard.
+     * <p>
+     * The headstone is what holds a slot in a graveyard, and the name in this list is what holds the mourners'
+     * destination. Both used to be one-way: nothing removed a headstone and nothing shrank the list, so a graveyard
+     * filled up permanently and its list of names grew for the life of the world. Breaking a headstone - which a
+     * player could always do, and which already freed the slot for the next burial - now takes the name with it.
+     *
+     * @param citizenName the name to remove; one entry only, because two citizens may genuinely share a name.
+     */
+    public void removeRestingCitizen(final String citizenName)
+    {
+        if (restingCitizen.remove(citizenName))
+        {
+            markDirty();
+        }
+    }
+
+    /**
      * Add a citizen to the list of resting citizen in this graveyard
      */
     public void buryCitizenHere(final Tuple<BlockPos, Direction> positionAndDirection, final AbstractEntityCitizen worker)
     {
-        if(lastGraveData != null && !restingCitizen.contains(lastGraveData.getCitizenName()))
+        // No !restingCitizen.contains(name) guard. Citizen names come from a fixed pool of first and last names, so
+        // a colony of any size and age repeats one sooner or later, and the guard silently placed no headstone at
+        // all for the second bearer of a name - while the AI counted the burial done, cleared its grave data and
+        // walked off. Two people with the same name get two headstones; the list may hold the name twice.
+        if (lastGraveData != null)
         {
             final IColony colony = building.getColony();
             Direction facing = positionAndDirection.getB();

@@ -13,9 +13,11 @@ import com.minecolonies.api.colony.workorders.IServerWorkOrder;
 import com.minecolonies.api.entity.ai.ITickingStateAI;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.colony.buildings.workerbuildings.IWareHouse;
+import com.minecolonies.core.colony.HeadlessColonyMode;
 import com.minecolonies.core.colony.buildings.modules.CourierAssignmentModule;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingBarracks;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingBarracksTower;
+import com.minecolonies.core.colony.buildings.workerbuildings.BuildingStable;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.core.colony.jobs.JobDeliveryman;
 import com.minecolonies.core.colony.territory.BorderPatrol;
@@ -191,6 +193,14 @@ public class CommandColonyDiagnose implements IMCOPCommand
 
         // Summary first, then the lists.
         report.emit(Component.translatable(COMMAND_COLONY_DIAGNOSE_HEADER, colony.getName(), colony.getID()), ChatFormatting.GOLD);
+
+        // Right under the header, because it changes how every number below it should be read: this colony is
+        // running with nobody watching it, which is not something an ordinary server does. Nobody should be able to
+        // read a diagnosis off a server in that state without being told.
+        if (HeadlessColonyMode.isRunning())
+        {
+            report.emit(Component.translatable(COMMAND_COLONY_DIAGNOSE_HEADLESS), ChatFormatting.YELLOW);
+        }
         report.emit(Component.translatable(COMMAND_COLONY_DIAGNOSE_CITIZENS,
           colony.getCitizenManager().getCurrentCitizenCount(),
           colony.getCitizenManager().getMaxCitizens(),
@@ -375,11 +385,17 @@ public class CommandColonyDiagnose implements IMCOPCommand
      * the mode is one string compare and the method returns.
      *
      * @param colony   the colony.
-     * @param building the building to look at; only a barracks contributes.
+     * @param building the building to look at; only a barracks or a stable contributes.
      * @param patrols  the list to add to.
      */
     private void collectPatrols(@NotNull final IColony colony, @NotNull final IBuilding building, @NotNull final List<String> patrols)
     {
+        if (building instanceof final BuildingStable stable)
+        {
+            collectStablePatrol(stable, patrols);
+            return;
+        }
+
         if (!(building instanceof final BuildingBarracks barracks))
         {
             return;
@@ -439,6 +455,44 @@ public class CommandColonyDiagnose implements IMCOPCommand
                   at.toShortString(),
                   off < 0 ? " (no stretch assigned)" : off > PATROL_STRAY_BLOCKS ? " -- " + off + " blocks OFF its stretch" : " (" + off + " blocks off the line)"));
             }
+        }
+    }
+
+    /**
+     * Report where a stable's cavalry is along the border and what arc each rider holds.
+     * <p>
+     * A stable is one building with a troop in it rather than a barracks with a tower per man, so the interesting
+     * line is per rider: whose arc is whose, and whether two of them have ended up on the same piece of frontier,
+     * which is the failure this route exists to make impossible and therefore the one worth being able to see.
+     *
+     * @param stable  the stable.
+     * @param patrols the list to add to.
+     */
+    private void collectStablePatrol(@NotNull final BuildingStable stable, @NotNull final List<String> patrols)
+    {
+        if (stable.getBorderPatrolMode() == BorderPatrol.Mode.OFF)
+        {
+            return;
+        }
+
+        final BorderPatrol.Plan plan = stable.getBorderPlan();
+        patrols.add(String.format("stable at %s mode=%s border=%s",
+          stable.getPosition().toShortString(),
+          stable.getBorderPatrolMode().name().toLowerCase(java.util.Locale.ROOT),
+          plan == null ? "not computed yet" : plan.isUsable() ? plan.waypoints().size() + " waypoints" : plan.failure().toString()));
+
+        for (final ICitizenData rider : stable.getAllAssignedCitizen())
+        {
+            final List<BlockPos> arc = stable.getStretchFor(rider);
+            final BlockPos at = rider.getEntity().map(entity -> entity.blockPosition()).orElse(rider.getLastPosition());
+            final int off = distanceToLine(arc, at);
+            patrols.add(String.format("  #%s %s at %s: %s waypoints%s%s",
+              rider.getId(),
+              rider.getName(),
+              at.toShortString(),
+              arc.size(),
+              arc.isEmpty() ? "" : " from " + arc.get(0).toShortString() + " to " + arc.get(arc.size() - 1).toShortString(),
+              off < 0 ? " (no arc assigned)" : off > PATROL_STRAY_BLOCKS ? " -- " + off + " blocks OFF its arc" : " (" + off + " blocks off the line)"));
         }
     }
 

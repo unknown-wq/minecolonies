@@ -197,3 +197,188 @@ jar {
 		rename { "${it}_${project.base.archivesName.get()}"}
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Datagen output guard.
+//
+// src/main/generated is mounted as a second resource root, and only half of it is in
+// git: generated/data and generated/.cache are committed, generated/assets is ignored
+// (see .gitignore) and has to be recreated by runDatagen in every fresh checkout.
+// Nothing used to verify that this had happened. A `build` in a tree where runDatagen
+// had never run produced a perfectly ordinary, perfectly quiet jar that was simply
+// missing the 235 generated item models -- so every item in the game rendered as the
+// missing-texture checkerboard. Three releases went out that way before anyone
+// unpacked a jar and counted.
+//
+// No hand-maintained list of expected files is needed, and no magic file counts are
+// hard-coded here. Minecraft's own HashCache manifests under src/main/generated/.cache
+// are committed, and every non-comment line in them is "<sha1> <path>" for one file the
+// generators produce. That is the contract: each of those paths must exist on disk
+// before a jar is assembled, and must be present inside the finished jar afterwards.
+// When a generator is added or removed, the committed manifests move with it and the
+// check follows along on its own.
+// ---------------------------------------------------------------------------
+
+def generatedDir = file("src/main/generated")
+
+// Reads every committed HashCache manifest and returns the set of paths, relative to
+// src/main/generated, that runDatagen is expected to have written.
+def readDatagenManifest = { ->
+	final File cacheDir = new File(generatedDir, ".cache")
+	if (!cacheDir.isDirectory()) {
+		throw new GradleException(
+			"Datagen guard: ${cacheDir} is missing, so there is nothing to check the build against.\n" +
+			"src/main/generated/.cache is committed to this repository -- restore it from git " +
+			"(git checkout -- src/main/generated/.cache) and run:\n" +
+			"    tools/mc-build.sh ${projectDir} runDatagen")
+	}
+	final Set<String> expected = new TreeSet<String>()
+	cacheDir.listFiles()?.sort { it.name }?.each { File manifest ->
+		if (!manifest.isFile()) {
+			return
+		}
+		manifest.eachLine("UTF-8") { String rawLine ->
+			final String line = rawLine.trim()
+			if (line.isEmpty() || line.startsWith("//")) {
+				return
+			}
+			final int sep = line.indexOf(' ')
+			if (sep > 0) {
+				expected.add(line.substring(sep + 1).trim())
+			}
+		}
+	}
+	if (expected.isEmpty()) {
+		throw new GradleException(
+			"Datagen guard: the HashCache manifests in ${cacheDir} list no files at all.\n" +
+			"They are committed and should never be empty; restore them from git and re-run runDatagen.")
+	}
+	if (expected.every { !it.startsWith("assets/") }) {
+		throw new GradleException(
+			"Datagen guard: the HashCache manifests in ${cacheDir} name no assets/ files.\n" +
+			"The client-side providers (item models, entity icons, lang) write under assets/, so a\n" +
+			"manifest set without them is truncated and cannot be used to verify this build.\n" +
+			"Restore src/main/generated/.cache from git and re-run runDatagen.")
+	}
+	return expected
+}
+
+// A short, readable sample of what is missing -- the full list is 300+ lines when the
+// assets half of the tree is absent, which is the usual case.
+def sampleOf = { Collection<String> paths, int limit ->
+	final List<String> sorted = new ArrayList<String>(paths).sort()
+	final StringBuilder sb = new StringBuilder()
+	sorted.take(limit).each { sb.append("    ").append(it).append('\n') }
+	if (sorted.size() > limit) {
+		sb.append("    ... and ").append(sorted.size() - limit).append(" more\n")
+	}
+	return sb.toString()
+}
+
+// Groups missing paths by their top two directory levels, so the message says
+// "assets/minecolonies/items: 235 missing" rather than listing them one by one.
+def summariseByDir = { Collection<String> paths ->
+	final Map<String, Integer> counts = new TreeMap<String, Integer>()
+	paths.each { String p ->
+		final String[] parts = p.split('/')
+		final String key = parts.length >= 3 ? "${parts[0]}/${parts[1]}/${parts[2]}" : p
+		counts.put(key, (counts.get(key) ?: 0) + 1)
+	}
+	final StringBuilder sb = new StringBuilder()
+	counts.sort { -it.value }.each { k, v -> sb.append("    ").append(k).append(": ").append(v).append(" missing\n") }
+	return sb.toString()
+}
+
+def verifyDatagenOutput = tasks.register("verifyDatagenOutput") {
+	group = "verification"
+	description = "Fails the build when runDatagen's output is missing from src/main/generated."
+	// Never cached, never skipped: the whole point is to look at the tree as it is right now.
+	outputs.upToDateWhen { false }
+	doLast {
+		final Set<String> expected = readDatagenManifest()
+		final Set<String> missing = new TreeSet<String>()
+		expected.each { String rel ->
+			if (!new File(generatedDir, rel).isFile()) {
+				missing.add(rel)
+			}
+		}
+		if (!missing.isEmpty()) {
+			throw new GradleException(
+				"Datagen output is missing: ${missing.size()} of ${expected.size()} generated files are not on disk.\n" +
+				"\n" +
+				summariseByDir(missing) +
+				"\n" +
+				"First few:\n" +
+				sampleOf(missing, 10) +
+				"\n" +
+				"src/main/generated/assets is not stored in git and is rebuilt per checkout, so this is\n" +
+				"what a tree looks like when runDatagen has not been run in it. Building now would\n" +
+				"produce a jar without those files and every affected item would render untextured.\n" +
+				"\n" +
+				"Run the generators first, as their own separate invocation:\n" +
+				"    tools/mc-build.sh ${projectDir} runDatagen\n" +
+				"and only then:\n" +
+				"    tools/mc-build.sh ${projectDir} build")
+		}
+		logger.lifecycle("Datagen guard: all ${expected.size()} generated files present in src/main/generated.")
+	}
+}
+
+// Assembling a jar is what must not happen with the generated tree half empty, so the
+// guard hangs off `jar` -- which is upstream of assemble, build and publish alike, and
+// is not on runDatagen's own path, so the generators can still be run in a tree that
+// does not pass the check yet.
+tasks.named("jar") {
+	dependsOn verifyDatagenOutput
+}
+
+// Ordering only, no dependency: when a jar is being built, say so before spending five
+// minutes compiling 2060 files that are then thrown away. Ignored when the guard is not
+// in the graph at all, as for a bare `compileJava`.
+tasks.named("compileJava") {
+	mustRunAfter verifyDatagenOutput
+}
+
+// ...and the same manifest is checked once more against the finished artifact. The
+// disk check above cannot see a resource root that failed to mount or a filter that
+// dropped the files on the way in; this one looks at what a player would actually
+// install. A jar that fails here is deleted, so a red build cannot leave a shippable
+// file lying in build/libs.
+def verifyJarContents = { File archive ->
+	final Set<String> expected = readDatagenManifest()
+	final Set<String> present = new HashSet<String>()
+	new java.util.zip.ZipFile(archive).withCloseable { zip ->
+		zip.entries().each { entry ->
+			if (!entry.isDirectory()) {
+				present.add(entry.name)
+			}
+		}
+	}
+	final Set<String> missing = new TreeSet<String>(expected.findAll { !present.contains(it) })
+	if (!missing.isEmpty()) {
+		archive.delete()
+		throw new GradleException(
+			"Generated files are missing from ${archive.name}: ${missing.size()} of ${expected.size()}.\n" +
+			"\n" +
+			summariseByDir(missing) +
+			"\n" +
+			"First few:\n" +
+			sampleOf(missing, 10) +
+			"\n" +
+			"src/main/generated is a resource root and everything runDatagen writes there belongs in\n" +
+			"the jar. The jar has been deleted rather than left behind to be shipped by mistake.\n" +
+			"Re-run the generators and build again, as two separate invocations:\n" +
+			"    tools/mc-build.sh ${projectDir} runDatagen\n" +
+			"    tools/mc-build.sh ${projectDir} build")
+	}
+	logger.lifecycle("Datagen guard: ${archive.name} carries all ${expected.size()} generated files.")
+}
+
+// 26.1+ is unobfuscated, so this Loom registers no remapJar and `jar` is the artifact
+// that ships; the name is matched rather than resolved so that the check follows the
+// final jar by itself should a remapping step ever come back.
+tasks.matching { it.name == "jar" || it.name == "remapJar" }.configureEach {
+	doLast {
+		verifyJarContents(archiveFile.get().asFile)
+	}
+}

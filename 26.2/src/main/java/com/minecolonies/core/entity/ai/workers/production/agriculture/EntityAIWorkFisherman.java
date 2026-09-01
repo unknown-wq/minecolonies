@@ -705,7 +705,7 @@ public class EntityAIWorkFisherman extends AbstractEntityAISkill<JobFisherman, B
           worker);
         job.setPathingOptions(worker.getNavigation().getPathingOptions());
         final WaterPathResult waterPathresult = job.getResult();
-        waterPathresult.startJob(Pathfinding.getExecutor());
+        Pathfinding.submit(waterPathresult);
         return waterPathresult;
     }
 

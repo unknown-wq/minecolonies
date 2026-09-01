@@ -16,7 +16,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.minecolonies.api.util.constant.EquipmentLevelConstants.TOOL_LEVEL_WOOD_OR_GOLD;
+import static com.minecolonies.api.util.constant.UndertakerConstants.TOTEMS_TO_KEEP;
 
 /**
  * Class which handles the graveyard building.
@@ -83,7 +83,7 @@ public class BuildingGraveyard extends AbstractBuilding
     {
         super(c, l);
         keepX.put(itemStack -> ItemStackUtils.hasEquipmentLevel(itemStack, ModEquipmentTypes.shovel.get(), TOOL_LEVEL_WOOD_OR_GOLD, getMaxEquipmentLevel()), new com.minecolonies.api.util.Tuple<>(1, true));
-        keepX.put(itemStack -> itemStack.getItem() == Items.TOTEM_OF_UNDYING, new com.minecolonies.api.util.Tuple<>(2, true));
+        keepX.put(ItemStackUtils::hasDeathProtection, new com.minecolonies.api.util.Tuple<>(TOTEMS_TO_KEEP, true));
     }
 
     /**
@@ -91,7 +91,30 @@ public class BuildingGraveyard extends AbstractBuilding
      */
     public void ClearCurrentGrave()
     {
-        this.currentGrave = null;
+        // The reservation has to go with the pointer. The grave manager persists the reserved flag to the colony
+        // save and only ever clears it from getGraveToWorkOn below, so dropping the pointer on its own left a live
+        // grave marked as somebody's work with nobody holding it - reserved for ever, worked by no graveyard, and
+        // left to decay.
+        releaseCurrentGrave();
+    }
+
+    @Override
+    public void onDestroyed()
+    {
+        super.onDestroyed();
+        releaseCurrentGrave();
+    }
+
+    /**
+     * Drop the pointer to the grave being worked on and hand the reservation back to the colony.
+     */
+    private void releaseCurrentGrave()
+    {
+        if (currentGrave != null)
+        {
+            colony.getGraveManager().unReserveGrave(currentGrave);
+            currentGrave = null;
+        }
     }
 
     /**
@@ -171,6 +194,24 @@ public class BuildingGraveyard extends AbstractBuilding
     public Set<Tuple<BlockPos, Direction>> getGravePositions()
     {
         return visualGravePositions;
+    }
+
+    /**
+     * Whether this graveyard owns the headstone slot at the given position.
+     *
+     * @param pos the position to test.
+     * @return true if the blueprint put a headstone slot there.
+     */
+    public boolean isVisualGravePos(final BlockPos pos)
+    {
+        for (final Tuple<BlockPos, Direction> vgp : visualGravePositions)
+        {
+            if (vgp.getA().equals(pos))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     @NotNull

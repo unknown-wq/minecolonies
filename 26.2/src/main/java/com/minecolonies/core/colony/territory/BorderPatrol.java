@@ -5,9 +5,12 @@ import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.claim.IChunkClaimData;
 import com.minecolonies.api.colony.territory.HostileTerritory;
 import com.minecolonies.api.colony.territory.HostileTerritoryMap;
+import com.minecolonies.api.util.WorldUtil;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +35,10 @@ import java.util.List;
  *       of that line would make every guard pay the +25 per node hostile-ground surcharge and detour around the place
  *       he was sent, which reads as the guards being broken, so the line is deliberately the outside of it.</li>
  *   <li>{@link Mode#COLONY} — the edge of the colony's own claim, with no enemy involved. A chunk qualifies when this
- *       colony owns it and a neighbour of it does not.</li>
+ *       colony owns it and a neighbour of it does not. A claim is not necessarily one blob: chunks bought at a
+ *       distance, and chunks lost in the middle of one, leave a colony owning several regions that do not touch. Only
+ *       the region the asking building stands in is considered, so an exclave's edge is never handed to a guard who
+ *       would have to cross somebody else's ground to reach it — see {@link #restrictToComponent}.</li>
  * </ul>
  *
  * <h2>Cost</h2>
@@ -40,6 +46,9 @@ import java.util.List;
  * at most a few dozen of them. In {@link Mode#ENEMY} a probe is one {@code long} hash lookup into the immutable
  * territory index; in {@link Mode#COLONY} it is one lookup into the colony manager's claim map, which is
  * {@code getOrDefault} and therefore does not create anything. Nothing here loads a chunk or touches the world.
+ * <p>
+ * {@link Mode#COLONY} adds one flood fill over the same box before the border is marked — two more arrays of
+ * 1225 entries and at most that many pushes, with no allocation per cell.
  * <p>
  * This is <b>not</b> per tick work. {@code BuildingBarracks} caches the result and only asks again when the territory
  * index has actually been rebuilt or several minutes have passed — see {@code BuildingBarracks#borderPlan}.
@@ -81,6 +90,11 @@ public final class BorderPatrol
      * The eight neighbour offsets, edge-sharing first so a straight line is preferred to a corner cut.
      */
     private static final int[][] NEIGHBOURS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+
+    /**
+     * The four edge-sharing neighbour offsets, which is what "connected" means for a claim a citizen has to walk.
+     */
+    private static final int[][] ORTHOGONAL_NEIGHBOURS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
     /**
      * Private constructor to hide the implicit one.
@@ -265,6 +279,48 @@ public final class BorderPatrol
             }
         }
 
+        final List<BlockPos> line = trace(inside, side, originX, originZ, anchor, mode);
+        if (line.isEmpty())
+        {
+            return new Plan(mode,
+              List.of(),
+              mode == Mode.ENEMY ? Failure.NO_TERRITORY_IN_RANGE : Failure.NO_COLONY_BORDER,
+              mode.targetLength());
+        }
+
+        return new Plan(mode, line, Failure.NONE, mode.targetLength());
+    }
+
+    /**
+     * Turn a bitmap of what counts as inside into the ordered line to walk.
+     * <p>
+     * Split out of {@link #findStretch} because everything above it is world access and everything in it is geometry:
+     * the two answer to completely different failure modes, and only the geometry is worth reading twice.
+     *
+     * @param inside  the bitmap, one cell per chunk, which this may edit.
+     * @param side    the width and height of the bitmap.
+     * @param originX chunk x of the bitmap's first column.
+     * @param originZ chunk z of the bitmap's first row.
+     * @param anchor  the position the stretch should be nearest to, which is the centre cell of the bitmap.
+     * @param mode    which line to follow.
+     * @return the ordered waypoints, empty when there is no such line in the box.
+     */
+    @NotNull
+    private static List<BlockPos> trace(
+      @NotNull final boolean[] inside,
+      final int side,
+      final int originX,
+      final int originZ,
+      @NotNull final BlockPos anchor,
+      @NotNull final Mode mode)
+    {
+        if (mode == Mode.COLONY)
+        {
+            // Only the claim region the anchor is standing in. Done here rather than inside the ownership probe
+            // because the probe answers one chunk at a time and connectedness is a property of the whole bitmap.
+            restrictToComponent(inside, side, side / 2, side / 2);
+        }
+
         // A border chunk is one on the near side of a transition. For the enemy line that is a chunk nobody hostile
         // owns next to one they do; for our own it is a chunk we own next to one we do not.
         final LongOpenHashSet border = new LongOpenHashSet();
@@ -288,16 +344,120 @@ public final class BorderPatrol
             }
         }
 
-        if (border.isEmpty())
+        return border.isEmpty() ? List.of() : walkLine(border, anchor, Math.min(mode.targetLength(), MAX_STRETCH_BLOCKS));
+    }
+
+    /**
+     * Cut a claim bitmap down to the one connected region a given cell belongs to.
+     * <p>
+     * Four-connected on purpose: two blobs that meet only at a corner are two places to a citizen, who cannot walk a
+     * chunk diagonal that has unclaimed ground on both sides of it any more easily than he can walk to an island.
+     * Treating them as one region is what let a stretch grown from a seed in the first blob step across the corner
+     * and carry on around the second, which is the shape of "the patrol teleport-hopped between islands".
+     * <p>
+     * A cell that is not itself inside leaves the bitmap alone. That is the building standing on ground its colony
+     * does not own — a hut just outside the claim, or a claim map that has not caught up — and the honest answer
+     * there is the whole box, which is the line this returned before there was any of this.
+     *
+     * @param inside the bitmap, edited in place.
+     * @param side   the width and height of the bitmap.
+     * @param cellX  x of the cell whose region is kept.
+     * @param cellZ  z of the cell whose region is kept.
+     */
+    private static void restrictToComponent(@NotNull final boolean[] inside, final int side, final int cellX, final int cellZ)
+    {
+        final int start = cellZ * side + cellX;
+        if (!inside[start])
         {
-            return new Plan(mode,
-              List.of(),
-              mode == Mode.ENEMY ? Failure.NO_TERRITORY_IN_RANGE : Failure.NO_COLONY_BORDER,
-              mode.targetLength());
+            return;
         }
 
-        final List<BlockPos> line = walkLine(border, anchor, Math.min(mode.targetLength(), MAX_STRETCH_BLOCKS));
-        return new Plan(mode, line, line.isEmpty() ? Failure.NO_COLONY_BORDER : Failure.NONE, mode.targetLength());
+        final boolean[] reached = new boolean[inside.length];
+        final int[] stack = new int[inside.length];
+        int top = 0;
+        stack[top++] = start;
+        reached[start] = true;
+
+        while (top > 0)
+        {
+            final int current = stack[--top];
+            final int x = current % side;
+            final int z = current / side;
+
+            for (final int[] offset : ORTHOGONAL_NEIGHBOURS)
+            {
+                final int nx = x + offset[0];
+                final int nz = z + offset[1];
+                if (nx < 0 || nz < 0 || nx >= side || nz >= side)
+                {
+                    continue;
+                }
+
+                final int next = nz * side + nx;
+                if (inside[next] && !reached[next])
+                {
+                    reached[next] = true;
+                    stack[top++] = next;
+                }
+            }
+        }
+
+        for (int i = 0; i < inside.length; i++)
+        {
+            inside[i] &= reached[i];
+        }
+    }
+
+    /**
+     * The index of the waypoint nearest a position.
+     *
+     * @param line the waypoints, in order.
+     * @param pos  the position.
+     * @return the index, 0 for an empty line.
+     */
+    public static int nearestIndex(@NotNull final List<BlockPos> line, @NotNull final BlockPos pos)
+    {
+        int best = 0;
+        long bestDistance = Long.MAX_VALUE;
+        for (int i = 0; i < line.size(); i++)
+        {
+            final long dx = (long) line.get(i).getX() - pos.getX();
+            final long dz = (long) line.get(i).getZ() - pos.getZ();
+            final long distance = dx * dx + dz * dz;
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                best = i;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Put a waypoint on the ground, or on the water, of a chunk that is actually loaded.
+     * <p>
+     * A plan stores waypoints with the asking building's own Y because working one out needs the world and the plan
+     * is built without touching it. Resolving it here costs a heightmap read of a loaded chunk and is skipped
+     * entirely for one that is not: {@code AbstractEntityAIGuard#patrol} treats an unloaded patrol point as already
+     * arrived at and moves on, which is exactly the right thing for a stretch running out into ground nobody is
+     * standing near.
+     * <p>
+     * {@code MOTION_BLOCKING} counts fluids, so over sea this answers the water surface rather than the sea bed. That
+     * is what a guard crossing it wants: the navigator spawns a {@code MinecoloniesBoat} when a path runs over water
+     * and it has the Boats research, and a target on the surface is one it can sail to.
+     *
+     * @param world    the level, may be null.
+     * @param waypoint the waypoint.
+     * @return the same column, on the surface where that is known.
+     */
+    @NotNull
+    public static BlockPos surface(@Nullable final Level world, @NotNull final BlockPos waypoint)
+    {
+        if (world == null || !WorldUtil.isBlockLoaded(world, waypoint))
+        {
+            return waypoint;
+        }
+        return new BlockPos(waypoint.getX(), world.getHeight(Heightmap.Types.MOTION_BLOCKING, waypoint.getX(), waypoint.getZ()), waypoint.getZ());
     }
 
     /**

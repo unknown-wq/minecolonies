@@ -1,0 +1,29 @@
+{
+  "type": "recipe",
+  "crafter": "enchanter_custom",
+  "inputs": [
+    {
+      "count": 2,
+      "id": "minecolonies:ancienttome",
+      "matchType": "ignore"
+    },
+    {
+      "count": 16,
+      "id": "minecraft:lapis_lazuli"
+    },
+    {
+      "id": "minecraft:book"
+    }
+  ],
+  "intermediate": "minecraft:air",
+  "min-building-level": 5,
+  "result": {
+    "components": {
+      "minecraft:stored_enchantments": {
+        "minecolonies:raider_damage_enchant": 2
+      }
+    },
+    "id": "minecraft:enchanted_book"
+  },
+  "show-tooltip": true
+}

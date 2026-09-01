@@ -1404,25 +1404,11 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
             damageInc = damage;
         }
 
-        // For cavalry, allocate some of the damage to the horse.
-        if (citizenJobHandler.getColonyJob() instanceof JobCavalry cav && citizenData != null)
-        {
-            if (this.getVehicle() instanceof CavalryHorseEntity horse) 
-            {
-                if (damageSource.is(DamageTypeTags.IS_PROJECTILE))
-                {
-                    // Horses take more damage from fire, so increase the split.
-                    damageInc *= CAVALRY_RANGED_DAMAGE_VULNERABILITY;
-                }
-
-                float horseSplit = cav.getMountDamageSplit() * damageInc;
-                damageInc = damageInc - horseSplit;
-
-                horse.hurt(damageSource, horseSplit);
-            }
-        }
-
-        // For cavalry, allocate some of the damage to the horse.
+        // For cavalry, allocate some of the damage to the horse. Exactly once: this block used to appear twice in a
+        // row, which ran the whole split twice -- the projectile multiplier squared, the rider shielded a second
+        // time, and the horse charged two shares. At the stock 20 % split that had the horse taking 0.36 of a melee
+        // blow instead of 0.20, and 0.47 of an arrow instead of 0.24, so mounts died at roughly twice the intended
+        // rate while their riders quietly took less than they should.
         if (citizenJobHandler.getColonyJob() instanceof JobCavalry cav && citizenData != null)
         {
             if (this.getVehicle() instanceof CavalryHorseEntity horse) 
@@ -1680,7 +1666,7 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
                 else
                 {
                     gravePos = null;
-                    InventoryUtils.dropItemHandler(citizenData.getInventory(), level(), (int) getX(), (int) getY(), (int) getZ());
+                    InventoryUtils.dropCitizenInventory(citizenData.getInventory(), level(), (int) getX(), (int) getY(), (int) getZ());
                 }
             }
             else
@@ -1752,6 +1738,16 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
         }
     }
 
+    /**
+     * Unreachable, and deliberately left in place.
+     * <p>
+     * {@link #die(DamageSource)} calls {@code remove(RemovalReason.KILLED)} before it delegates to
+     * {@code super.die}, and vanilla's {@code LivingEntity#die} opens with {@code if (!this.isRemoved() &&
+     * !this.dead)} - so {@code dropAllDeathLoot}, and with it this method, is never reached for a citizen. That is
+     * load-bearing: the grave already holds the inventory, and letting this run would duplicate all of it. Three
+     * smaller things go with it - no kill score for the killer, no death animation broadcast, no wither rose - and
+     * none is worth the duplication.
+     */
     @Override
     protected void dropEquipment(@NotNull final ServerLevel serverLevel)
     {

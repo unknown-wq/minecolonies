@@ -356,6 +356,13 @@ public final class AnimalPen
             {
                 claim(pen, animal);
             }
+
+            // Stocked, not turned loose - the same thing conscript does for a stable's mounts below, and for the
+            // same reason. A hut is topped up a couple of animals at a time and they start strolling it the moment
+            // they land, so what free mode hands the player is a milling herd rather than a pen. Tied to the pen's
+            // own fencing they stand where they were put. A hut with no fence within reach of the spot gets the old
+            // behaviour, because Tether never places a block, and a species that refuses a lead is left alone.
+            Tether.tieUp(animal);
         }
     }
 

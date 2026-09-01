@@ -50,9 +50,13 @@ public class BrewingCraftingType extends CraftingType
                 final ItemStack output = world.potionBrewing().mix(ingredient, container);
                 if (!output.isEmpty() && output != container)
                 {
+                    // A brewing stand brews all three bottles from a single reagent. The bottle comes first: the
+                    // teaching GUI, the AI that loads the stand and the JEI display all read input 0 as the bottle
+                    // and input 1 as the reagent, and this enumerator is the only other thing that builds a brewing
+                    // recipe.
                     recipes.add(GenericRecipe.builder()
                             .withOutput(output.copyWithCount(3))
-                            .withInputs(List.of(List.of(ingredient), List.of(container.copyWithCount(3))))
+                            .withInputs(List.of(List.of(container.copyWithCount(3)), List.of(ingredient)))
                             .withIntermediate(Blocks.BREWING_STAND)
                             .build());
                 }

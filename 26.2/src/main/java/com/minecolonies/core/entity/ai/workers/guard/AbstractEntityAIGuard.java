@@ -17,7 +17,6 @@ import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.equipment.registry.EquipmentTypeEntry;
 import com.minecolonies.api.util.*;
-import com.minecolonies.api.util.constant.ColonyConstants;
 import com.minecolonies.core.colony.buildings.AbstractBuildingGuards;
 import com.minecolonies.core.colony.buildings.modules.BuildingModules;
 import com.minecolonies.core.colony.buildings.modules.EntityListModule;
@@ -50,6 +49,7 @@ import static com.minecolonies.api.util.constant.Constants.GLOW_EFFECT_DURATION;
 import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
 import static com.minecolonies.api.util.constant.GuardConstants.GUARD_FOLLOW_LOSE_RANGE;
 import static com.minecolonies.api.util.constant.GuardConstants.GUARD_FOLLOW_TIGHT_RANGE;
+import static com.minecolonies.api.util.constant.GuardConstants.DEFAULT_VISION;
 import static com.minecolonies.core.colony.buildings.AbstractBuildingGuards.HOSTILE_LIST;
 
 /**
@@ -85,14 +85,19 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
     private static final int MAX_GUARD_DERIVATION = 10;
 
     /**
+     * How far from his own hut a wounded guard has to be before running home is worth doing, in blocks.
+     * <p>
+     * The test it feeds is a squared distance, and it used to be compared against a bare 20 -- 4.47 blocks. A guard
+     * standing five blocks from his own door decided he was far from home, disengaged, and then spent about
+     * seventy-five seconds regenerating with his post empty. Every neighbouring constant here is a linear block
+     * count, which is what that 20 was plainly meant to be.
+     */
+    private static final int MIN_FLEE_HOME_DISTANCE = 20;
+
+    /**
      * The amount of time the guard counts as in combat after last combat action
      */
     protected static final int COMBAT_TIME = 30 * 20;
-
-    /**
-     * The current target for our guard.
-     */
-    protected LivingEntity target = null;
 
     /**
      * The current blockPos we're patrolling at.
@@ -118,6 +123,23 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
      * Interval between guard task updates
      */
     private static final int GUARD_TASK_INTERVAL = 100;
+
+    /**
+     * Interval between follow-target refreshes while the task is Follow.
+     * <p>
+     * Following used to be driven solely by {@link #decide()} on {@link #GUARD_TASK_INTERVAL}, so an escort noticed
+     * that its player had moved at most once every five seconds -- which read as guards standing around for ages and
+     * then teleporting to catch up. A tenth of that is enough to look attentive; it is deliberately not every tick,
+     * because each refresh of a moving target is a fresh path job.
+     */
+    private static final int FOLLOW_REFRESH_INTERVAL = 10;
+
+    /**
+     * How close to his guard post a guard stands before {@link #guardMovement()} stops ordering him about, in
+     * blocks. The same 5 the walk order has always used as its reach distance, named so the "am I there" test and
+     * the walk cannot drift apart.
+     */
+    private static final int GUARD_POST_RANGE = 5;
 
     /**
      * Interval between guard regen updates
@@ -177,6 +199,10 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
           new AITarget(CombatAIStates.ATTACKING, this::shouldFlee, () -> GUARD_FLEE, GUARD_REGEN_INTERVAL),
             new AITarget(CombatAIStates.NO_TARGET, this::shouldFlee, () -> GUARD_FLEE, GUARD_REGEN_INTERVAL),
           new AITarget(CombatAIStates.NO_TARGET, this::decide, GUARD_TASK_INTERVAL),
+          // The fast lane for Follow, behind decide() in the list so that everything decide() owns -- rallying,
+          // armour, the action counter, standing the glow effect up and down -- still runs on its own clock. This
+          // only keeps the walk target fresh between decides.
+          new AITarget(CombatAIStates.NO_TARGET, this::wantsFollowRefresh, this::follow, FOLLOW_REFRESH_INTERVAL),
           new AITarget(GUARD_WAKE, this::wakeUpGuard, TICKS_SECOND),
 
           new AITarget(CombatAIStates.ATTACKING, this::inCombat, 8)
@@ -223,6 +249,11 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
         worker.getNavigation().getPathingOptions().setCanUseRails(((EntityCitizen) worker).canPathOnRails());
         worker.getNavigation().getPathingOptions().setCanUseBoat(((EntityCitizen) worker).canPathOnBoat());
         worker.setCanBeStuck(true);
+
+        // Thirty seconds after the last combat action there is nothing in the threat table worth keeping: the guard
+        // will re-acquire from scratch, and every entry held a strong reference to an entity that is very likely
+        // already gone. resetTable() existed and was called from nowhere.
+        ((EntityCitizen) worker).getThreatTable().resetTable();
     }
 
     /**
@@ -280,7 +311,11 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
             return false;
         }
 
-        if (worker.getLastHurtByMob() != null || target != null || fighttimer > 0 || job.getCitizen().getCitizenDiseaseHandler().isSick())
+        // Used to read `|| target != null ||` as well, against a field declared on this class and assigned nowhere,
+        // so the clause was always false while looking like it worked. Nothing is lost by dropping it: this
+        // transition only fires out of NO_TARGET, and the combat timer below covers a guard who has just been in a
+        // fight.
+        if (worker.getLastHurtByMob() != null || fighttimer > 0 || job.getCitizen().getCitizenDiseaseHandler().isSick())
         {
             return false;
         }
@@ -371,13 +406,33 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
     }
 
     /**
+     * How far, horizontally, a guard working out of the given building can pick a target out.
+     * <p>
+     * {@code IGuardBuilding#getBonusVision} -- {@code BASE_VISION_RANGE + level * VISION_RANGE_PER_LEVEL}, so 18 at
+     * level one and 30 at level five -- existed but was read by nothing on the guard path, which meant upgrading a
+     * guard tower bought no extra sight at all. It is the floor here rather than the whole answer because a ranged
+     * guard's eyes also have to keep up with his weapon; see {@code RangeCombatAI#getSearchRange}.
+     *
+     * @param user the guard.
+     * @return the horizontal search range in blocks.
+     */
+    public static int getGuardVisionRange(final AbstractEntityCitizen user)
+    {
+        if (user.getCitizenData() != null && user.getCitizenData().getWorkBuilding() instanceof IGuardBuilding guardBuilding)
+        {
+            return Math.max(DEFAULT_VISION, guardBuilding.getBonusVision());
+        }
+        return DEFAULT_VISION;
+    }
+
+    /**
      * Whether the guard should flee
      *
      * @return
      */
     private boolean shouldFlee()
     {
-        if (buildingGuards.shallRetrieveOnLowHealth() && worker.getHealth() < ((int) worker.getMaxHealth() * 0.2D) && worker.distanceToSqr(Vec3.atCenterOf(building.getID())) > 20)
+        if (buildingGuards.shallRetrieveOnLowHealth() && worker.getHealth() < ((int) worker.getMaxHealth() * 0.2D) && worker.distanceToSqr(Vec3.atCenterOf(building.getID())) > MIN_FLEE_HOME_DISTANCE * MIN_FLEE_HOME_DISTANCE)
         {
             return worker.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(RETREAT) > 0;
         }
@@ -445,14 +500,31 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
     }
 
     /**
-     * Movement when guarding
+     * Movement when guarding.
+     * <p>
+     * This used to walk to the post on a 1-in-10 roll per decide(), i.e. once every fifty seconds on average and
+     * unboundedly worse on bad luck, which is what "my knight ignores his guard spot" looks like in play. Distance
+     * is what the roll was standing in for: a guard on his post has nothing to do here, a guard off it should not
+     * wait for dice. The ranger and druid overrides keep their own idle repositioning and are unaffected.
      */
     public void guardMovement()
     {
-        if (ColonyConstants.rand.nextInt(10) == 0)
+        final BlockPos guardPos = buildingGuards.getGuardPos(worker);
+        if (BlockPosUtil.getDistance2D(worker.blockPosition(), guardPos) > GUARD_POST_RANGE)
         {
-            walkToUnSafePos(buildingGuards.getGuardPos(worker), 5);
+            walkToUnSafePos(guardPos, GUARD_POST_RANGE);
         }
+    }
+
+    /**
+     * Whether the follow fast lane applies: the task is Follow and no rally banner overrides it. Kept cheap on
+     * purpose -- it is evaluated every {@link #FOLLOW_REFRESH_INTERVAL} ticks on every guard, following or not.
+     *
+     * @return true if the follow target should be refreshed.
+     */
+    private boolean wantsFollowRefresh()
+    {
+        return buildingGuards != null && buildingGuards.getRallyLocation() == null && GuardTaskSetting.FOLLOW.equals(buildingGuards.getTask());
     }
 
     /**
@@ -462,13 +534,23 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
      */
     private IAIState follow()
     {
-        if (BlockPosUtil.getDistance2D(worker.blockPosition(), buildingGuards.getPositionToFollow()) > MAX_FOLLOW_DERIVATION)
+        final BlockPos followPos = buildingGuards.getPositionToFollow();
+        final long distance = BlockPosUtil.getDistance2D(worker.blockPosition(), followPos);
+        if (distance > MAX_FOLLOW_DERIVATION)
         {
-            TeleportHelper.teleportCitizen(worker, worker.level(), buildingGuards.getPositionToFollow());
+            TeleportHelper.teleportCitizen(worker, worker.level(), followPos);
             return null;
         }
 
-        walkToUnSafePos(buildingGuards.getPositionToFollow(), buildingGuards.isTightGrouping() ? GUARD_FOLLOW_TIGHT_RANGE : GUARD_FOLLOW_LOSE_RANGE);
+        // Only walk while actually outside the formation range. The old code asked for the walk unconditionally,
+        // which the navigation deduplicated as long as the player stood still -- but the fast lane above calls this
+        // ten times as often, and a guard already in position must not pay a path job for each call just because
+        // its player shifted a block.
+        final int range = buildingGuards.isTightGrouping() ? GUARD_FOLLOW_TIGHT_RANGE : GUARD_FOLLOW_LOSE_RANGE;
+        if (distance > range)
+        {
+            walkToUnSafePos(followPos, range);
+        }
         return null;
     }
 
@@ -736,7 +818,7 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
 
         return switch (buildingGuards.getTask())
                  {
-                     case GuardTaskSetting.PATROL -> patrol();
+                     case GuardTaskSetting.PATROL, GuardTaskSetting.PATROL_PERMANENT, GuardTaskSetting.PATROL_BORDER -> patrol();
                      case GuardTaskSetting.GUARD -> guard();
                      case GuardTaskSetting.FOLLOW -> follow();
                      case GuardTaskSetting.PATROL_MINE -> patrolMine();
@@ -765,6 +847,8 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
         switch (buildingGuards.getTask())
         {
             case GuardTaskSetting.PATROL:
+            case GuardTaskSetting.PATROL_PERMANENT:
+            case GuardTaskSetting.PATROL_BORDER:
             case GuardTaskSetting.PATROL_MINE:
                 return lastGuardActionPos;
             case GuardTaskSetting.FOLLOW:
@@ -788,6 +872,8 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
         switch (buildingGuards.getTask())
         {
             case GuardTaskSetting.PATROL:
+            case GuardTaskSetting.PATROL_PERMANENT:
+            case GuardTaskSetting.PATROL_BORDER:
                 return MAX_PATROL_DERIVATION;
             case GuardTaskSetting.PATROL_MINE:
             case GuardTaskSetting.FOLLOW:
@@ -806,6 +892,29 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
             return false;
         }
         return super.canBeInterrupted();
+    }
+
+    /**
+     * Whether this guard may break off to eat.
+     * <p>
+     * Everything {@link #canBeInterrupted()} allows, plus the Follow task while the guard is not actually fighting.
+     * Follow is uninterruptible on purpose so an escort keeps up with the player, but eating was the only thing that
+     * could ever take a guard out of WORK, so a guard on Follow had no route to food at all.
+     *
+     * @return true if the guard may stop to eat.
+     */
+    public boolean canEat()
+    {
+        if (canBeInterrupted())
+        {
+            return true;
+        }
+
+        return buildingGuards.getTask().equals(GuardTaskSetting.FOLLOW)
+                 && fighttimer <= 0
+                 && getState() != CombatAIStates.ATTACKING
+                 && worker.getLastAttacker() == null
+                 && buildingGuards.getRallyLocation() == null;
     }
 
     /**

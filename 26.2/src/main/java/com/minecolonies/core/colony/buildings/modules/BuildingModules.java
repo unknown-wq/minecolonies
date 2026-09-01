@@ -174,7 +174,8 @@ public class BuildingModules
       new BuildingEntry.ModuleProducer<>("chickenherder_herding", BuildingChickenHerder.HerdingModule::new, null);
     public static final BuildingEntry.ModuleProducer<SettingsModule,SettingsModuleView> CHICKENHERDER_SETTINGS_BREEDING =
       new BuildingEntry.ModuleProducer<>("chickenherder_breeding_settings",
-        () -> new SettingsModule().with(AbstractBuilding.BREEDING, new BoolSetting(true)),
+        () -> new SettingsModule().with(AbstractBuilding.BREEDING, new BoolSetting(true))
+          .with(AbstractBuilding.LEASHING, new BoolSetting(false)),
         () -> SettingsModuleView::new);
 
     public static final BuildingEntry.ModuleProducer<WorkerBuildingModule,WorkerBuildingModuleView> COWHERDER_WORK      =
@@ -186,7 +187,8 @@ public class BuildingModules
         .with(BuildingCowboy.MILKING_AMOUNT, new IntSetting(1))
         .with(BuildingCowboy.STEWING_AMOUNT, new IntSetting(1))
         .with(BuildingCowboy.MILKING_DAYS, new IntSetting(1))
-       .with(BuildingCowboy.MILK_ITEM, new StringSetting("item.minecolonies.large_milk_bottle", "item.minecraft.milk_bucket")), () -> SettingsModuleView::new);
+       .with(BuildingCowboy.MILK_ITEM, new StringSetting("item.minecolonies.large_milk_bottle", "item.minecraft.milk_bucket"))
+        .with(AbstractBuilding.LEASHING, new BoolSetting(false)), () -> SettingsModuleView::new);
 
     public static final BuildingEntry.ModuleProducer<BuildingCowboy.HerdingModule,IBuildingModuleView> COWHERDER_HERDING   =
       new BuildingEntry.ModuleProducer<>("cowherder_herding", BuildingCowboy.HerdingModule::new, null);
@@ -202,11 +204,19 @@ public class BuildingModules
     public static final BuildingEntry.ModuleProducer<SettingsModule, SettingsModuleView> STABLE_SETTINGS =
       new BuildingEntry.ModuleProducer<>("stable_settings", () -> new SettingsModule()
         .with(AbstractBuilding.BREEDING, new BoolSetting(true))  
-        .with(AbstractBuildingGuards.GUARD_TASK, new GuardTaskSetting(GuardTaskSetting.PATROL, GuardTaskSetting.GUARD, GuardTaskSetting.FOLLOW))
+        .with(AbstractBuildingGuards.GUARD_TASK,
+          // Appended, not inserted: a saved StringSetting keeps its index and has the registered option list written
+          // over it on load, so putting a new option anywhere but the end would silently retask every stable in
+          // every existing colony to whatever slid into its slot.
+          new GuardTaskSetting(GuardTaskSetting.PATROL,
+            GuardTaskSetting.GUARD,
+            GuardTaskSetting.FOLLOW,
+            GuardTaskSetting.PATROL_PERMANENT,
+            GuardTaskSetting.PATROL_BORDER))
         .with(AbstractBuildingGuards.RETREAT, new BoolSetting(true))
         .with(AbstractBuildingGuards.HIRE_TRAINEE, new BoolSetting(true))
         .with(AbstractBuildingGuards.PATROL_MODE, new GuardPatrolModeSetting())
-        .with(BuildingStable.PATROL_INTERVAL, new IntSetting(6))
+        .with(BuildingStable.PATROL_INTERVAL, new PatrolIntervalSetting())
         .with(AbstractBuildingGuards.FOLLOW_MODE, new GuardFollowModeSetting()), () -> SettingsModuleView::new);
       
     // PORT-NOTE(26.2): upstream pins the fisherman hut at a single worker, the same way it pinned the
@@ -224,7 +234,8 @@ public class BuildingModules
       new BuildingEntry.ModuleProducer<>("rabbitherder_work", () -> new WorkerBuildingModule(ModJobs.rabbitHerder.get(), Skill.Agility, Skill.Athletics, false, (b) -> 1),
         () -> WorkerBuildingModuleView::new);
     public static final BuildingEntry.ModuleProducer<SettingsModule, SettingsModuleView>             RABBITHERDER_SETTINGS =
-      new BuildingEntry.ModuleProducer<>("rabbitherder_settings", () -> new SettingsModule().with(AbstractBuilding.BREEDING, new BoolSetting(true)), () -> SettingsModuleView::new);
+      new BuildingEntry.ModuleProducer<>("rabbitherder_settings", () -> new SettingsModule().with(AbstractBuilding.BREEDING, new BoolSetting(true))
+        .with(AbstractBuilding.LEASHING, new BoolSetting(false)), () -> SettingsModuleView::new);
     public static final BuildingEntry.ModuleProducer<AnimalHerdingModule, IBuildingModuleView>       RABBITHERDER_HERDING  =
       new BuildingEntry.ModuleProducer<>("rabbitherder_herding",
         () -> new AnimalHerdingModule(ModJobs.rabbitHerder.get(), a -> a instanceof Rabbit, new ItemStorage(Items.CARROT, 2), EntityTypes.RABBIT),
@@ -237,7 +248,8 @@ public class BuildingModules
     public static final BuildingEntry.ModuleProducer<SettingsModule,SettingsModuleView> SHEPERD_SETTINGS      =
       new BuildingEntry.ModuleProducer<>("sheperd_settings", () -> new SettingsModule().with(AbstractBuilding.BREEDING, new BoolSetting(true))
         .with(BuildingShepherd.DYEING, new BoolSetting(true))
-        .with(BuildingShepherd.SHEARING, new BoolSetting(true)), () -> SettingsModuleView::new);
+        .with(BuildingShepherd.SHEARING, new BoolSetting(true))
+        .with(AbstractBuilding.LEASHING, new BoolSetting(false)), () -> SettingsModuleView::new);
     public static final BuildingEntry.ModuleProducer<BuildingShepherd.HerdingModule,IBuildingModuleView> SHEPERD_HERDING       =
       new BuildingEntry.ModuleProducer<>("sheperd_herding", BuildingShepherd.HerdingModule::new, null);
 
@@ -245,7 +257,8 @@ public class BuildingModules
       new BuildingEntry.ModuleProducer<>("swineherder_work", () -> new WorkerBuildingModule(ModJobs.swineHerder.get(), Skill.Strength, Skill.Athletics, true, (b) -> 1),
         () -> WorkerBuildingModuleView::new);
     public static final BuildingEntry.ModuleProducer<SettingsModule, SettingsModuleView>             SWINEHERDER_SETTINGS =
-      new BuildingEntry.ModuleProducer<>("swineherder_settings", () -> new SettingsModule().with(AbstractBuilding.BREEDING, new BoolSetting(true)), () -> SettingsModuleView::new);
+      new BuildingEntry.ModuleProducer<>("swineherder_settings", () -> new SettingsModule().with(AbstractBuilding.BREEDING, new BoolSetting(true))
+        .with(AbstractBuilding.LEASHING, new BoolSetting(false)), () -> SettingsModuleView::new);
     public static final BuildingEntry.ModuleProducer<AnimalHerdingModule, IBuildingModuleView>       SWINEHERDER_HERDING  =
       new BuildingEntry.ModuleProducer<>("swineherder_herding",
         () -> new AnimalHerdingModule(ModJobs.swineHerder.get(), a -> a instanceof Pig, new ItemStorage(Items.CARROT, 2), EntityTypes.PIG),
@@ -267,8 +280,11 @@ public class BuildingModules
       new BuildingEntry.ModuleProducer<>("baker_craft", () -> new BuildingBaker.CraftingModule(ModJobs.baker.get()), () -> CraftingModuleView::new);
     public static final BuildingEntry.ModuleProducer<BuildingBaker.SmeltingModule,CraftingModuleView> BAKER_SMELT                     =
       new BuildingEntry.ModuleProducer<>("baker_smelt", () -> new BuildingBaker.SmeltingModule(ModJobs.baker.get()), () -> CraftingModuleView::new);
+    // Works during rain from level 1, like the cook: everything the baker does happens at a furnace inside his own
+    // hut, and the generic rule (only the top hut level ignores weather) was stopping him for no reason a player
+    // can act on. The dough and the oven are indoors either way.
     public static final BuildingEntry.ModuleProducer<CraftingWorkerBuildingModule,WorkerBuildingModuleView> BAKER_WORK                      = new BuildingEntry.ModuleProducer<>(
-      "baker_work", () -> new CraftingWorkerBuildingModule(ModJobs.baker.get(), Skill.Knowledge, Skill.Dexterity, false, (b) -> 1, Skill.Dexterity, Skill.Knowledge),
+      "baker_work", () -> new CraftingWorkerBuildingModule(ModJobs.baker.get(), Skill.Knowledge, Skill.Dexterity, true, (b) -> 1, Skill.Dexterity, Skill.Knowledge),
       () -> WorkerBuildingModuleView::new);
 
     public static final BuildingEntry.ModuleProducer<CraftingWorkerBuildingModule,WorkerBuildingModuleView> BLACKSMITH_WORK                 = new BuildingEntry.ModuleProducer<>(
@@ -640,6 +656,10 @@ public class BuildingModules
       new BuildingEntry.ModuleProducer<>("enchanter_craft", () -> new BuildingEnchanter.CraftingModule(ModJobs.enchanter.get()), () -> CraftingModuleView::new);
     public static final BuildingEntry.ModuleProducer<EnchanterStationsModule,EnchanterStationsModuleView> ENCHANTER_STATIONS    =
       new BuildingEntry.ModuleProducer<>("enchanter_stations", EnchanterStationsModule::new, () -> EnchanterStationsModuleView::new);
+    public static final BuildingEntry.ModuleProducer<SettingsModule,SettingsModuleView> ENCHANTER_SETTINGS    =
+      new BuildingEntry.ModuleProducer<>("enchanter_settings", () -> new SettingsModule()
+        .with(BuildingEnchanter.PRODUCE_BOOKS, new BoolSetting(true))
+        .with(BuildingEnchanter.VISIT_STATIONS, new BoolSetting(true)), () -> SettingsModuleView::new);
 
     public static final BuildingEntry.ModuleProducer<GraveyardManagementModule,GraveyardManagementModuleView> GRAVEYARD               =
       new BuildingEntry.ModuleProducer<>("graveyard", GraveyardManagementModule::new, () -> GraveyardManagementModuleView::new);

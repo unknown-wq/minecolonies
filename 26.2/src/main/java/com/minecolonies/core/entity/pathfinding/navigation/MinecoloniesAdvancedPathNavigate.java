@@ -201,7 +201,11 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
     /**
      * Average heuristic
      */
-    private double heuristicAvg = 1;
+    // Volatile: written by the server thread as finished paths report their real cost per block, and read by the
+    // pathfinding worker inside AbstractPathJob#reevaluteHeuristic while a later job for the same entity is being
+    // searched. Without it that cross-thread read of a double is a data race in the strict sense -- the JLS permits
+    // a torn word on a non-volatile long/double -- and at best sees a stale value.
+    private volatile double heuristicAvg = 1;
 
     /**
      * Paused ticks, during those no new pathjob is allowed
@@ -469,7 +473,7 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
 
         job.setPathingOptions(getOptionsForPathJob());
         pathResult = job.getResult();
-        pathResult.startJob(Pathfinding.getExecutor());
+        Pathfinding.submit(pathResult);
         return (PathResult<T>) pathResult;
     }
 

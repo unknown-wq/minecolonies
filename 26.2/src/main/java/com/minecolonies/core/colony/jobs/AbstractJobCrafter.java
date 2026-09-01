@@ -148,12 +148,12 @@ public abstract class AbstractJobCrafter<AI extends AbstractEntityAIBasic<J, ? e
 
         if (compound.contains(NbtTagConstants.TAG_MAX_COUNTER))
         {
-            this.progress = compound.getIntOr(NbtTagConstants.TAG_MAX_COUNTER, 0);
+            this.maxCraftingCount = compound.getIntOr(NbtTagConstants.TAG_MAX_COUNTER, 0);
         }
 
         if (compound.contains(NbtTagConstants.TAG_CRAFT_COUNTER))
         {
-            this.progress = compound.getIntOr(NbtTagConstants.TAG_CRAFT_COUNTER, 0);
+            this.craftCounter = compound.getIntOr(NbtTagConstants.TAG_CRAFT_COUNTER, 0);
         }
 
         if (compound.contains(NbtTagConstants.TAG_SECONDARY_OUTPUTS))
@@ -225,12 +225,19 @@ public abstract class AbstractJobCrafter<AI extends AbstractEntityAIBasic<J, ? e
             return null;
         }
 
-        // This cleans up the state after something went wrong.
-        IRequest<R> request = (IRequest<R>) getColony().getRequestManager().getRequestForToken(getTaskQueueFromDataStore().peekFirst());
-        while (request == null)
+        // This cleans up the state after something went wrong. A token whose request has gone
+        // away -- the identities store drops a request it cannot serialise, while this queue lives
+        // in a different store and keeps the token -- is discarded by position rather than by
+        // value: removing by value would remove nothing once peekFirst() returns null on the empty
+        // queue, and the loop would spin forever on the server thread.
+        IRequest<R> request = null;
+        while (request == null && !getTaskQueueFromDataStore().isEmpty())
         {
-            getTaskQueueFromDataStore().remove(getTaskQueueFromDataStore().peekFirst());
             request = (IRequest<R>) getColony().getRequestManager().getRequestForToken(getTaskQueueFromDataStore().peekFirst());
+            if (request == null)
+            {
+                getTaskQueueFromDataStore().removeFirst();
+            }
         }
 
         return request;

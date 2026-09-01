@@ -73,7 +73,13 @@ public class FemaleCourierModel extends CitizenModel<AbstractEntityCitizen>
     public void setupAnim(@NotNull final CitizenRenderState state)
     {
         super.setupAnim(state);
-        body.y += 12;
+
+        // No `body.y += 12` here, however much the shape of this class asks for one. The body's own PartPose already
+        // carries that 12, and since 26.2 every part is put back to its PartPose at the top of Model#setupAnim, so
+        // adding it a second time pushed the torso a full twelve pixels down - out of the chest and through the legs,
+        // taking the backpack with it and leaving the head and the arms hanging in the air above an empty ribcage.
+        // The line was correct where it came from: 1.21.1's HumanoidModel#setupAnim assigned `body.y = 0` on the
+        // not-crouching branch, so the offset had to be re-applied by hand once per frame. Nothing assigns it now.
 
         final boolean showBackPack = state.pose != Pose.SLEEPING && state.renderMetadata.contains(RENDER_META_BACKPACK);
         head.z = showBackPack ? -2.1f : 0;

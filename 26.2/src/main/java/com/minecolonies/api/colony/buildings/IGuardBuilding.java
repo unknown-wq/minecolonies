@@ -173,6 +173,14 @@ public interface IGuardBuilding extends IBuilding
     void setTempNextPatrolPoint(BlockPos pos);
 
     /**
+     * Whether this building's guards are currently set to a task that walks a patrol route, i.e. whether a patrol
+     * point handed to it will ever be read.
+     *
+     * @return true if the guards patrol.
+     */
+    boolean walksAPatrol();
+
+    /**
      * Get the position of the assigned mine
      *
      * @return the coords of the assigned mine

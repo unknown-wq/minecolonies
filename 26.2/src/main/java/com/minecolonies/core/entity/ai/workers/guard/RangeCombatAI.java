@@ -165,7 +165,7 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
     @Override
     protected void doAttack(final LivingEntity target)
     {
-        if (user.distanceToSqr(target) < RANGED_FLEE_SQDIST)
+        if (user.distanceToSqr(target) < getKiteDistanceSq())
         {
             if (user.getRandom().nextInt(FLEE_CHANCE) == 0 &&
                   !((AbstractBuildingGuards) user.getCitizenData().getWorkBuilding()).getTask().equals(GuardTaskSetting.GUARD))
@@ -241,19 +241,33 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
             attackDist += (user.getCitizenData().getCitizenSkillHandler().getLevel(Skill.Adaptability) / 50.0f) * 15;
         }
 
-        attackDist = Math.min(attackDist, MAX_DISTANCE_FOR_RANGED_ATTACK);
-
         if (target != null)
         {
             attackDist += user.getY() - target.getY();
         }
 
-        if (((AbstractBuildingGuards) user.getCitizenData().getWorkBuilding()).getTask().equals(GuardTaskSetting.GUARD))
+        // Null-safe: getSearchRange now calls this on every target scan, not only once a target exists, so the
+        // unguarded cast that used to sit here would have been reachable for a guard between buildings.
+        if (user.getCitizenData().getWorkBuilding() instanceof AbstractBuildingGuards guardBuilding
+              && guardBuilding.getTask().equals(GuardTaskSetting.GUARD))
         {
             attackDist += GUARD_BONUS_RANGE;
         }
 
-        return attackDist;
+        // The clamp belongs last. It used to be applied before the height difference and the guard-post bonus, so an
+        // archer twenty blocks above his target on Guard had an effective attack distance of 54 and the constant's
+        // own comment ("24 max arrow dist") was simply untrue. It did not show up in play only because his target
+        // search box could not reach that far either; now that getSearchRange follows this number, it would.
+        return Math.min(attackDist, MAX_DISTANCE_FOR_RANGED_ATTACK);
+    }
+
+    @Override
+    protected int getSearchRange()
+    {
+        // An archer's eyes have to keep up with his bow: the inherited 16 was less than half the distance
+        // getAttackDistance asks him to open fire at, so for most of the scan cycle a raid could walk to within
+        // sixteen blocks of a tower before anyone on it noticed.
+        return Math.max(AbstractEntityAIGuard.getGuardVisionRange(user), (int) Math.ceil(getAttackDistance()));
     }
 
     @Override
@@ -277,40 +291,14 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
         damage += EnchantmentHelper.getItemEnchantmentLevel(Utils.getRegistryValue(Enchantments.POWER, user.level()), heldItem);
         damage += user.getCitizenColonyHandler().getColony().getResearchManager().getResearchEffects().getEffectStrength(ARCHER_DAMAGE);
 
+        boolean consumesArrow = false;
         if (user.getCitizenColonyHandler().getColonyOrRegister().getResearchManager().getResearchEffects().getEffectStrength(ARCHER_USE_ARROWS) > 0)
         {
-            int slot = InventoryUtils.findFirstSlotInItemHandlerWith(user.getInventoryCitizen(), item -> item.getItem() instanceof ArrowItem);
-            if (slot != -1)
+            final int slot = InventoryUtils.findFirstSlotInItemHandlerWith(user.getInventoryCitizen(), item -> item.getItem() instanceof ArrowItem);
+            if (slot != -1 && !ItemStackUtils.isEmpty(user.getInventoryCitizen().extractItem(slot, 1, true)))
             {
-                if (!ItemStackUtils.isEmpty(user.getInventoryCitizen().extractItem(slot, 1, true)))
-                {
-                    damage += ARROW_EXTRA_DAMAGE;
-                    if (arrow instanceof CustomArrowEntity customArrowEntity)
-                    {
-                        customArrowEntity.setOnHitCallback(entityRayTraceResult ->
-                        {
-                            final int arrowSlot = InventoryUtils.findFirstSlotInItemHandlerWith(user.getInventoryCitizen(), item -> item.getItem() instanceof ArrowItem);
-                            if (arrowSlot != -1)
-                            {
-                                user.getInventoryCitizen().extractItem(arrowSlot, 1, false);
-                            }
-
-                            if (isMarksman())
-                            {
-                                // Calculate true damage from reduced arrow damage. The damage source comes from the
-                                // entity that was hit rather than from the guard's target: an arrow is still in the
-                                // air long after the guard has dropped that target, and reading target.level() then
-                                // threw a NullPointerException out of the arrow's tick, which crashes the server.
-                                // It is the same level either way, since something has just been shot in it.
-                                entityRayTraceResult.getEntity()
-                                  .hurt(entityRayTraceResult.getEntity().level().damageSources().source(DamageSourceKeys.PIERCE, user),
-                                    (float) ((CustomArrowEntity) arrow).getBaseDamage() * (float) marksManTrueDamageShare() * 10);
-                            }
-
-                            return true;
-                        });
-                    }
-                }
+                damage += ARROW_EXTRA_DAMAGE;
+                consumesArrow = true;
             }
         }
 
@@ -324,7 +312,48 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
             damage *= 1.5;
         }
 
-        return (RANGER_BASE_DMG + damage) * MineColonies.getConfig().getServer().guardDamageMultiplier.get() * ((isMarksman() ? 1 - marksManTrueDamageShare() : 1));
+        // A marksman splits his shot: `share` of it ignores armour, the rest is an ordinary arrow. The arrow below is
+        // launched carrying only the `1 - share` fraction, and the on-hit callback pays back the difference.
+        final double trueDamageShare = isMarksman() ? Math.min(marksManTrueDamageShare(), MARKSMAN_MAX_TRUE_DAMAGE_SHARE) : 0.0;
+
+        if (arrow instanceof CustomArrowEntity customArrowEntity && (consumesArrow || trueDamageShare > 0))
+        {
+            final boolean consumeArrow = consumesArrow;
+            customArrowEntity.setOnHitCallback(entityRayTraceResult ->
+            {
+                if (consumeArrow)
+                {
+                    final int arrowSlot = InventoryUtils.findFirstSlotInItemHandlerWith(user.getInventoryCitizen(), item -> item.getItem() instanceof ArrowItem);
+                    if (arrowSlot != -1)
+                    {
+                        user.getInventoryCitizen().extractItem(arrowSlot, 1, false);
+                    }
+                }
+
+                if (trueDamageShare > 0)
+                {
+                    // Reconstruct the undivided shot from the reduced figure the arrow is carrying, and hand the
+                    // whole of it to the armour-bypassing source. Vanilla's damage cooldown (LivingEntity#hurtServer)
+                    // has just been set by the arrow's own hit, so this call applies exactly the remainder --
+                    // `share` of the shot, through armour and shields. It used to read
+                    // `getBaseDamage() * share * 10`, a product that peaks at share 0.5 and decays to nothing as the
+                    // marksman trains: a level-99 marksman dealt about a fiftieth of what a level-1 one did, which
+                    // is why the research-locked late-game unit was worse than a fresh ranger.
+                    //
+                    // The damage source comes from the entity that was hit rather than from the guard's target: an
+                    // arrow is still in the air long after the guard has dropped that target, and reading
+                    // target.level() then threw a NullPointerException out of the arrow's tick, which crashes the
+                    // server. It is the same level either way, since something has just been shot in it.
+                    entityRayTraceResult.getEntity()
+                      .hurt(entityRayTraceResult.getEntity().level().damageSources().source(DamageSourceKeys.PIERCE, user),
+                        (float) (customArrowEntity.getBaseDamage() / (1.0 - trueDamageShare)));
+                }
+
+                return true;
+            });
+        }
+
+        return (RANGER_BASE_DMG + damage) * MineColonies.getConfig().getServer().guardDamageMultiplier.get() * (1.0 - trueDamageShare);
     }
 
     /**
@@ -344,12 +373,12 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
     @Override
     protected PathResult moveInAttackPosition(final LivingEntity target)
     {
-        if (BlockPosUtil.getDistanceSquared(target.blockPosition(), user.blockPosition()) <= 4.0)
+        if (BlockPosUtil.getDistanceSquared(target.blockPosition(), user.blockPosition()) <= getKiteDistanceSq())
         {
             final PathJobMoveAwayFromLocation job = new PathJobMoveAwayFromLocation(user.level(),
               PathfindingUtils.prepareStart(target),
               target.blockPosition(),
-              (int) 7.0,
+              (int) (getAttackDistance() / 2.0),
               (int) user.getAttribute(Attributes.FOLLOW_RANGE).getValue(),
               user);
             final PathResult pathResult = ((MinecoloniesAdvancedPathNavigate) user.getNavigation()).setPathJob(job, null, getCombatMovementSpeed(), true);

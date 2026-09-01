@@ -16,6 +16,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 
 import static com.minecolonies.api.util.constant.Constants.HALF_ROTATION;
+import static com.minecolonies.api.util.constant.GuardConstants.RANGED_FLEE_SQDIST;
 
 /**
  * Moves the entity and triggers the attack
@@ -41,7 +42,7 @@ public class AttackMoveAI<T extends Mob & IThreatTableEntity> extends TargetAI<T
 
     public AttackMoveAI(final T owner, final ITickRateStateMachine stateMachine)
     {
-        super(owner, 80, stateMachine);
+        super(owner, SCAN_INTERVAL, stateMachine);
 
         stateMachine.addTransition(new TickingTransition<>(CombatAIStates.ATTACKING, () -> true, this::tryAttack, 5));
         stateMachine.addTransition(new TickingTransition<>(CombatAIStates.ATTACKING, () -> true, this::move, 10));
@@ -193,6 +194,24 @@ public class AttackMoveAI<T extends Mob & IThreatTableEntity> extends TargetAI<T
     protected double getAttackDistance()
     {
         return 5;
+    }
+
+    /**
+     * The distance, squared, at which a ranged attacker is close enough to his target to want to give ground.
+     * <p>
+     * One number for both halves of the manoeuvre. They used to disagree: an archer decided to disengage only inside
+     * {@code RANGED_FLEE_SQDIST} = 7, i.e. 2.65 blocks, so a raider four blocks away was simply shot point-blank,
+     * while {@code moveInAttackPosition} started backing away at 2 blocks and ran to a fixed 7. The druid's pair was
+     * worse: he retreated to 12 blocks with an attack distance of at most 8, so he yo-yoed in and out of range for
+     * ever. Derived from {@link #getAttackDistance()} so it stays right for both, floored at the old constant so a
+     * short-ranged thrower never becomes jumpier than he was.
+     *
+     * @return the squared kite distance.
+     */
+    protected double getKiteDistanceSq()
+    {
+        final double kite = Math.max(Math.sqrt(RANGED_FLEE_SQDIST), getAttackDistance() / 3.0);
+        return kite * kite;
     }
 
     /**

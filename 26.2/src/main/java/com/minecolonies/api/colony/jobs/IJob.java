@@ -148,6 +148,22 @@ public interface IJob<AI extends ITickingStateAI> extends INBTSerializable<Compo
     boolean canAIBeInterrupted();
 
     /**
+     * Whether the worker may break off to eat.
+     * <p>
+     * Separate from {@link #canAIBeInterrupted()} because a guard on Follow is deliberately uninterruptible -- the
+     * player expects his escort to keep up, not to wander off -- while still needing to eat. Guards burn saturation
+     * 20 % faster than anyone else and lose a further point every 25 blocks walked, and Follow is the mode in which
+     * they walk furthest, so tying eating to interruptibility left a long expedition's escort permanently at zero
+     * saturation: Slowness I that never lifts, and out-of-combat regeneration scaled to nothing.
+     *
+     * @return true if the worker may stop to eat.
+     */
+    default boolean canEat()
+    {
+        return canAIBeInterrupted();
+    }
+
+    /**
      * Getter for the amount of actions done.
      *
      * @return the quantity.

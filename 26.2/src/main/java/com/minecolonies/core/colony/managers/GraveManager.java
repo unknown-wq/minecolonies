@@ -10,8 +10,10 @@ import com.minecolonies.api.colony.GraveData;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.managers.interfaces.IGraveManager;
+import com.minecolonies.api.inventory.InventoryCitizen;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.InventoryUtils;
+import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.core.blocks.BlockMinecoloniesGrave;
@@ -112,6 +114,13 @@ public class GraveManager implements IGraveManager
     @Override
     public void onColonyTick(final IColony colony)
     {
+        // A raid is when citizens die, and CitizenAI puts every non-guard - the undertaker with them - to sleep for
+        // the whole of it. The decay clock used to keep running through that, so a grave opened at the start of a
+        // raid could be most of the way to gone before the man whose job it is was allowed out of the door. Hold the
+        // clock while the colony is under attack; nothing else about the grave changes, and no citizen is sent
+        // anywhere he would not otherwise go.
+        final boolean raided = colony.getRaiderManager().isRaided();
+
         for (final Iterator<BlockPos> iterator = graves.keySet().iterator(); iterator.hasNext(); )
         {
             final BlockPos pos = iterator.next();
@@ -125,6 +134,11 @@ public class GraveManager implements IGraveManager
             {
                 iterator.remove();
                 colony.markDirty();
+                continue;
+            }
+
+            if (raided)
+            {
                 continue;
             }
 
@@ -222,6 +236,12 @@ public class GraveManager implements IGraveManager
     @Override
     public BlockPos reserveNextFreeGrave()
     {
+        // Take the grave closest to being gone, not the first one HashMap iteration order happens to produce. After
+        // a raid there are several outstanding at once and the undertaker used to walk past one with a minute left
+        // to reach one with twenty, which is how a player loses the gear off a dead guard.
+        BlockPos mostUrgent = null;
+        int leastRemaining = Integer.MAX_VALUE;
+
         for (@NotNull final BlockPos pos : new ArrayList<>(graves.keySet()))
         {
             if (!WorldUtil.isBlockLoaded(colony.getWorld(), pos))
@@ -230,16 +250,30 @@ public class GraveManager implements IGraveManager
             }
 
             final BlockEntity graveEntity = colony.getWorld().getBlockEntity(pos);
-            if (!(graveEntity instanceof TileEntityGrave))
+            if (!(graveEntity instanceof final TileEntityGrave grave))
             {
-                graves.remove(pos);
+                // removeGrave, not graves.remove: the bare map removal never marked the colony dirty, so a stale
+                // entry dropped here could come straight back on the next load.
+                removeGrave(pos);
                 continue;
             }
 
-            if (reserveGrave(pos))
+            if (Boolean.TRUE.equals(graves.get(pos)))
             {
-                return pos;
+                continue;
             }
+
+            final int remaining = grave.getRemainingDecayTicks();
+            if (mostUrgent == null || remaining < leastRemaining)
+            {
+                mostUrgent = pos;
+                leastRemaining = remaining;
+            }
+        }
+
+        if (mostUrgent != null && reserveGrave(mostUrgent))
+        {
+            return mostUrgent;
         }
 
         return null;
@@ -260,7 +294,12 @@ public class GraveManager implements IGraveManager
         final BlockState here = world.getBlockState(pos);
         if (here.getBlock() == Blocks.LAVA)
         {
+            // A grave placed in lava would be pointless, but returning without dropping anything used to make this
+            // the one death in the game that destroys fire-resistant gear. A player who falls in lava drops
+            // everything and walks back to find his netherite floating in it; a citizen's netherite was deleted.
+            // Drop the lot where he fell and let the lava decide, which is what vanilla does.
             MessageUtils.format(WARNING_GRAVE_LAVA).sendTo(colony).forManagers();
+            InventoryUtils.dropCitizenInventory(citizenData.getInventory(), world, pos.getX(), pos.getY(), pos.getZ());
             return null;
         }
 
@@ -269,9 +308,14 @@ public class GraveManager implements IGraveManager
         {
             for (int i = 1; i <= 10; i++)
             {
-                if (world.getBlockState(pos.above(i)).getBlock() instanceof AirBlock)
+                final BlockPos surface = pos.above(i);
+                if (world.getBlockState(surface).getBlock() instanceof AirBlock)
                 {
-                    firstValidPosition = BlockPosUtil.findAround(world, pos, 1, 16,
+                    // Search around the surface that was just found, not around the body. The old call centred the
+                    // box on the drowned citizen with a vertical range of 1 - three y-levels of water for anyone who
+                    // drowns in open water, and never able to contain the air block the loop had just located - so
+                    // the search failed every time and the whole inventory, armour included, went into the sea.
+                    firstValidPosition = BlockPosUtil.findAround(world, surface, 3, 16,
                       (blockAccess, current) ->
                         blockAccess.getBlockState(current).isAir() &&
                           BlockUtils.isAnySolid(blockAccess.getBlockState(current.below())));
@@ -302,9 +346,25 @@ public class GraveManager implements IGraveManager
             {
                 InventoryUtils.dropItemHandler(citizenData.getInventory(), world, pos.getX(), pos.getY(), pos.getZ());
             }
-            for (final EquipmentSlot equipmentSlot : EquipmentSlot.values())
+            // Two things this loop has to get right, and used to get wrong.
+            //
+            // It walks InventoryCitizen.ARMOR_SLOTS rather than EquipmentSlot.values() filtered by isArmor():
+            // BODY passes isArmor() and shares armour index 0 with FEET, so the old loop read the boots on the FEET
+            // iteration and again on the BODY one and put two pairs in the grave, on every death of a booted citizen.
+            //
+            // And it clears each slot as it copies it, because the citizen NBT the grave keeps for the resurrection
+            // is serialised further down. Copying without clearing left the armour in that snapshot as well, so a
+            // successful resurrection handed the colony one set out of the grave and put a second set back on the
+            // citizen who walked out of it.
+            for (final EquipmentSlot equipmentSlot : InventoryCitizen.ARMOR_SLOTS)
             {
                 final ItemStack stack = citizenData.getInventory().getArmorInSlot(equipmentSlot);
+                if (ItemStackUtils.isEmpty(stack))
+                {
+                    continue;
+                }
+
+                citizenData.getInventory().forceClearArmorInSlot(equipmentSlot, stack);
                 if (!InventoryUtils.addItemStackToItemHandler(graveEntity.getInventory(), stack))
                 {
                     InventoryUtils.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), stack);
@@ -329,7 +389,9 @@ public class GraveManager implements IGraveManager
         }
         else
         {
-            InventoryUtils.dropItemHandler(citizenData.getInventory(), world, pos.getX(), pos.getY(), pos.getZ());
+            // No room for a grave anywhere near. This is the only exit that does not reach the armour loop
+            // above, so it has to drop the worn pieces itself or they are destroyed.
+            InventoryUtils.dropCitizenInventory(citizenData.getInventory(), world, pos.getX(), pos.getY(), pos.getZ());
         }
         return null;
     }

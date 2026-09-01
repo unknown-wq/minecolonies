@@ -9,6 +9,138 @@ Versions below are this port's own numbering, newest first.
 
 ---
 
+## 0.0.60
+
+Six professions, ported over from the 26.3 tree: guards, enchanter, undertaker, alchemist, baker and
+the wood chain.
+
+**Guards.** Seventeen findings out of an end-to-end audit. The melee weapon term was silently doubled
+— `EnchantmentHelper.modifyDamage` returns the damage it was handed *plus* the enchantment
+contribution, and the result was being added to that same term again; the arithmetic is corrected
+without moving the numbers a player sees, through a named `MELEE_WEAPON_DAMAGE_SCALE`. Guards
+re-request armour as their hut levels: the old test only fired on an *empty* slot, so a guard issued
+leather on his first day in a level-one tower never asked for anything again, and upgrading the tower
+to level five left him in the same 7 armour points where the gear bands plainly intend 20. Copper
+joins the armour ladder between leather and gold, and gold leaves the rung it had been sharing with
+leather. Guard towers patrol instead of wandering. Vertical vision defaults to 12 rather than 3, so a
+mob on a roof is a target, and the melee search range follows the guard's own bonus vision instead of
+a hardcoded 16. The marksman's damage no longer falls as he levels; rangers gain health per level.
+Armour is no longer destroyed when a guard dies outside the colony claim. Guards set to Follow can
+eat. `shouldFlee` compared a squared distance against an unsquared one. The huscarl's second blow was
+always refused by vanilla's damage cooldown, costing him half his damage at low Adaptability and all
+of his ordinary damage at high. Spears are scored on the material's attack bonus like every other
+tool, so hut levels 2-4 licence something. Plus threat-table pruning, prompt consumption of the raid
+alert, druid vertical vision and throw accuracy, archer range clamp order, kite thresholds, shield
+immunity to explosions, and a `notifyGuardsOfTarget` that no longer walks every building in the
+colony.
+
+**Enchanter.** The five book tables were 278 hand-written entries; each is now two `minecraft:book`
+entries put through vanilla's own `enchant_with_levels`, drawing from `#minecraft:in_enchanting_table`
+at a cost band per hut level — so a level-one enchanter produces roughly what a bare enchanting table
+produces and a level-five one what a fully shelved one does, and a new vanilla enchantment needs no
+maintenance here. Which of the two bands wins is decided by the worker's Mana through the loot entry
+`quality` term. Hut level buys yield, not speed. An enchanted book plus three glass bottles becomes
+three bottles o' enchanting at hut 4, and hut 5 can order Mending and raider-bane books by name for
+ancient tomes. The enchanter's visit now enchants *another* worker's gear, capped against that
+worker's own building level, and counts as a service rather than crafting. There is a settings tab
+for what it does with its day, and guards prefer the enchanted piece over the plain one.
+
+**Undertaker.** Two item duplications: boots came back twice because `BODY` and `FEET` collided on the
+same armour index, and a resurrected citizen kept his whole armour set while the grave handed a second
+copy to the undertaker. The resurrection cap rises with the graveyard, which is what makes the
+researches and the undertaker's Mana worth buying. Lava deaths drop what vanilla says they drop, so
+fire-resistant gear survives. Graves stop decaying while the colony is being raided, and the
+undertaker goes to the one about to decay first. A graveyard can be cleared again by breaking a
+headstone, and stops sending its whole list of dead to every client. Two citizens with the same name
+get two headstones. Totems are recognised by what they do rather than by item identity, and there is a
+way for the undertaker to ask for one.
+
+**Alchemist.** Its own "no brewing stand" complaint instead of silence. A brewing recipe now lists its
+bottle before its reagent, which is the order the teaching GUI, the AI and the JEI view all read —
+before this the alchemist put nether wart in the bottle slots, was refused, and never brewed. Nether
+wart is harvested at full age. Duplicate brewing-stand positions are deduplicated on load. One dump
+trip per batch of mistletoe rather than one per mistletoe. The fuel request is no longer blocked by
+some other open stack request, and brewing fuel is asked of vanilla's `#minecraft:brewing_fuel` tag
+rather than named as blaze powder. Plus a dead state removed and seven smaller items.
+
+**Baker.** The "no furnaces" validator was registered against a predicate only the baker satisfied,
+which silenced that complaint for the seven other professions that raise it; it is gone. Furnace
+acceleration no longer burns fuel with an empty smeltable slot. The bakery can use a smoker: opt-in
+per building, the AI widened from `FurnaceBlockEntity` to `AbstractFurnaceBlockEntity`, the smoker
+preferred when the hut has both, and a one-off sweep of the hut so the smokers already standing in
+four shipped bakery blueprints are picked up. The baker works in the rain from level 1. And the
+restaurant menus are populated automatically from the baker's learned recipes, with a persisted record
+of the dishes the player deliberately removed so an automatic offer never puts one back.
+
+**Wood chain.** Species restrictions work from the first tree: the leaf-to-sapling table is discovered
+up front, because the pathfinding thread that consults it cannot roll loot tables and so used to get
+nothing back and cut the tree anyway. The leaf scan is bounded by the log bounding box — about 25 000
+block reads per tree down to about 1 000 — and the tree is walked once with hash sets. A real stuck
+detector, in place of one that could not fire. The wasted second mining pass is gone and a negative
+research reduction is clamped. Items that will not fit are dropped rather than deleted. Sapling
+reservation drops from 64 to 16 per species and the lumberjack now requests saplings. In the sawmill
+and the shared crafter base: `getCurrentTask()` could spin forever on the server thread when the queue
+held a token whose request had gone; duplicated resolvers removed; the "75 % wood" threshold measures
+against the whole recipe again; `improveRecipe` cut one ingredient instead of all of them; three NBT
+tags were read back into the same field; a visible "out of materials" complaint; and double experience
+per order.
+
+Two things from the 26.3 work did not come across. `DataComponents.BREWING_FUEL` does not exist in
+26.2 — but 26.2's own brewing stand tests `#minecraft:brewing_fuel` for its fuel slot, so the fix is
+the same question put to vanilla, asked of the tag instead of the component. And the shelf-mushroom
+filter in the sapling list is a no-op here: 26.2 has no shelf mushroom. Nothing else was dropped.
+
+Verified by a dedicated server boot: `Done (2.002s)`, no `/ERROR]` and no `/FATAL]` in the 198-line
+log, nine `/WARN]` lines all of them the usual offline-mode and pack-discovery notices. The leaf
+discovery is visible in that log — `Finished discovering leaves 15` — but nothing here has been played
+in a client, so the behaviour rests on the code and on the 26.3 tree it was ported from.
+
+---
+
+## 0.0.59
+
+Cavalry actually patrols, and the stable can be told how often.
+
+**Cavalry never walked a patrol leg.** One timestamp was doing two jobs. The stable reset it at the
+moment it dispatched a sortie, and the cavalry AI read that same timestamp to decide whether the unit
+was inside its rest window — so the act of dispatching a patrol put the unit straight back into rest.
+The cavalryman was handed a destination and, on his next AI tick, sent to loiter in the yard instead.
+A sortie is now explicit state rather than something inferred from a clock, the stable is the single
+authority on whether a unit is resting, and a sortie that never arrives is written off after five
+minutes.
+
+Two further defects sat in the same method. The building's patrol pump was set to 1200 colony ticks,
+which run from the slow world tick — so the pump was not delayed by a minute, it was off for hours of
+play. And the automatic patrol target was drawn from stables and gate houses only, so a colony with
+one stable and no gate house sent every cavalryman to the building he was already standing in. The
+target now falls back to the ordinary guard patrol point.
+
+**The stable's patrol interval is a real setting.** It was a bare int with no label and no tooltip, so
+the row rendered its raw translation key, and it could not usefully be edited: clearing the box wrote
+a zero back under the caret on the next frame, and a building sync landing mid-edit dropped the old
+value back in. It now clamps to 0-60 minutes at every write, keeps its default of 6, does not zero an
+empty box and does not repaint while focused.
+
+An existing colony's customised interval resets to 6 — the setting's type is part of its key, so a
+value saved under the old type is dropped on load. Colonies that left it at 6 notice nothing.
+
+**New guard task: permanent patrol.** Offered by the stable only, appended to the option list so no
+saved task is retasked. The unit patrols continuously and never stands down between legs; eating and
+sleeping still interrupt it, both verified through the state machine rather than assumed.
+
+**A cavalry sleep bug.** The nap dismounted on every tick, and for an already-dismounted cavalryman
+the thing being dismounted was the seat entity itself — standing him back up each tick and leaking a
+seat. It now dismounts the horse only.
+
+**Spear reach.** Every vanilla spear carries a mob reach factor of 0.5, giving a citizen about 2.85
+blocks centre to centre, while the cavalry attack distance was a flat 2.4: the rider closed half a
+block inside the reach of his own weapon. A cavalryman holding a spear now uses its real reach.
+
+Not verified in a running game — there is no client for the mod in the build environment — so this
+rests on a code trace and a clean server boot. The patrol change is worth a play test.
+
+---
+
 ## 0.0.58
 
 The restaurant stops ordering food nobody asked for.

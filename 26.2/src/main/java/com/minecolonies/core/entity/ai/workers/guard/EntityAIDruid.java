@@ -9,7 +9,6 @@ import com.minecolonies.core.entity.citizen.EntityCitizen;
 import com.minecolonies.core.entity.pathfinding.navigation.MinecoloniesAdvancedPathNavigate;
 import com.minecolonies.core.entity.pathfinding.pathjobs.PathJobWalkRandomEdge;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 
 import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.IDLE;
@@ -36,7 +35,9 @@ public class EntityAIDruid extends AbstractEntityAIGuard<JobDruid, AbstractBuild
     protected void updateRenderMetaData()
     {
         String renderMeta = getState() == IDLE ? "" : RENDER_META_WORKING;
-        if (worker.getCitizenInventoryHandler().hasItemInInventory(Items.POTION))
+        // What a druid stocks and throws is the alchemist's magic potion, not a vanilla one; testing Items.POTION
+        // meant the "carrying potions" overlay never appeared however well supplied the druid was.
+        if (worker.getCitizenInventoryHandler().hasItemInInventory(ModItems.magicpotion))
         {
             renderMeta += RENDER_META_POTION;
         }

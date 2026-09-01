@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -225,9 +226,25 @@ public class PathResult<T extends AbstractPathJob>
             checkDebugging();
             // Stamped before the submit, so the pool thread cannot start the job before the timestamp is on it.
             PathfindingStats.onSubmit(job);
-            pathCalculation = executorService.submit(job);
-            submittedTo = executorService;
-            PathfindingStats.onQueued(executorService);
+            try
+            {
+                pathCalculation = executorService.submit(job);
+                submittedTo = executorService;
+                PathfindingStats.onQueued(executorService);
+            }
+            catch (final RejectedExecutionException e)
+            {
+                // A pool refuses work when its queue is full, and this runs on the server thread inside an entity
+                // tick, where the exception would take the tick with it. Refusing one search costs a citizen a
+                // moment of standing still; letting it out costs the tick.
+                //
+                // A pool switch cannot land here -- Pathfinding submits under the same lock the switch takes, so the
+                // pool read is always one that is still accepting -- so reaching this really does mean ten thousand
+                // searches are already waiting, which is worth saying out loud.
+                setStatus(PathFindingStatus.CANCELLED);
+                pathingDoneAndProcessed = true;
+                Log.getLogger().warn("The pathfinding pool refused a search: its queue is full", e);
+            }
         }
     }
 

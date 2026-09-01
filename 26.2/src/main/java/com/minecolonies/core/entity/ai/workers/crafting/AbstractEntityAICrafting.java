@@ -1,6 +1,7 @@
 package com.minecolonies.core.entity.ai.workers.crafting;
 
 import com.google.common.collect.ImmutableList;
+import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.modules.ICraftingBuildingModule;
 import com.minecolonies.api.colony.requestsystem.request.IRequest;
@@ -19,6 +20,8 @@ import com.minecolonies.api.util.*;
 import com.minecolonies.core.colony.buildings.AbstractBuilding;
 import com.minecolonies.core.colony.buildings.modules.CraftingWorkerBuildingModule;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingWareHouse;
+import com.minecolonies.api.colony.interactionhandling.ChatPriority;
+import com.minecolonies.core.colony.interactionhandling.SimpleNotificationInteraction;
 import com.minecolonies.core.colony.jobs.AbstractJobCrafter;
 import com.minecolonies.core.entity.ai.workers.AbstractEntityAIInteract;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
@@ -29,6 +32,7 @@ import com.minecolonies.core.network.messages.client.BlockParticleEffectMessage;
 import com.minecolonies.core.network.messages.client.LocalizedParticleEffectMessage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -51,6 +55,7 @@ import static com.minecolonies.api.util.constant.Constants.DEFAULT_SPEED;
 import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
 import static com.minecolonies.api.util.constant.SchematicTagConstants.*;
 import static com.minecolonies.api.util.constant.StatisticsConstants.ITEMS_CRAFTED;
+import static com.minecolonies.api.util.constant.TranslationConstants.CRAFTER_IS_OUT_OF_MATERIALS_MESSAGE;
 import static com.minecolonies.core.util.WorkerUtil.hasTooManyExternalItemsInInv;
 
 import static com.minecolonies.api.util.constant.StatisticsConstants.ITEMS_CRAFTED_DETAIL;
@@ -425,6 +430,11 @@ public abstract class AbstractEntityAICrafting<J extends AbstractJobCrafter<?, J
                 }
                 else
                 {
+                    // The order dies here, and it used to die silently: the crafter chain has no "out of materials"
+                    // interaction at all, only the generic exception and the full-chest one, so an order whose
+                    // ingredients were taken between the delivery and the crafting simply vanished with the citizen
+                    // still reporting "Working". Say what is missing.
+                    complainAboutMissingMaterial(inputStorage.getItemStack());
                     currentRecipeStorage = null;
                     job.finishRequest(false);
                     incrementActionsDone(getActionRewardForCraftingSuccess());
@@ -563,17 +573,21 @@ public abstract class AbstractEntityAICrafting<J extends AbstractJobCrafter<?, J
         {
             toolSlot = InventoryUtils.findFirstSlotInItemHandlerWith(worker.getInventoryCitizen(), stack -> currentRecipeStorage.getRequiredTool().checkIsEquipment(stack));
         }
+        // Purely cosmetic: what the worker is seen holding while the animation plays. nextInt() throws on an empty
+        // list, though, and a recipe whose inputs are all tools or containers has one.
+        final List<ItemStorage> shownInput = currentRecipeStorage.getCleanedInput();
+        final ItemStack shownStack = shownInput.isEmpty()
+                                       ? currentRecipeStorage.getPrimaryOutput().copy()
+                                       : shownInput.get(worker.getRandom().nextInt(shownInput.size())).getItemStack().copy();
         if (toolSlot >= 0)
         {
             worker.getInventoryCitizen().setHeldItem(InteractionHand.MAIN_HAND, toolSlot);
             worker.setItemInHand(InteractionHand.MAIN_HAND, worker.getInventoryCitizen().getStackInSlot(toolSlot));
-            worker.setItemInHand(InteractionHand.OFF_HAND,
-              currentRecipeStorage.getCleanedInput().get(worker.getRandom().nextInt(currentRecipeStorage.getCleanedInput().size())).getItemStack().copy());
+            worker.setItemInHand(InteractionHand.OFF_HAND, shownStack);
         }
         else
         {
-            worker.setItemInHand(InteractionHand.MAIN_HAND,
-              currentRecipeStorage.getCleanedInput().get(worker.getRandom().nextInt(currentRecipeStorage.getCleanedInput().size())).getItemStack().copy());
+            worker.setItemInHand(InteractionHand.MAIN_HAND, shownStack);
             worker.setItemInHand(InteractionHand.OFF_HAND, currentRecipeStorage.getPrimaryOutput().copy());
         }
         hitBlockWithToolInHand(building.getPosition());
@@ -664,15 +678,30 @@ public abstract class AbstractEntityAICrafting<J extends AbstractJobCrafter<?, J
         }
     }
 
+    /**
+     * Tell the player that an order was dropped because an ingredient was not there.
+     *
+     * @param missing the ingredient that ran out.
+     */
+    private void complainAboutMissingMaterial(final ItemStack missing)
+    {
+        final ICitizenData citizenData = worker.getCitizenData();
+        if (citizenData != null)
+        {
+            citizenData.triggerInteraction(new SimpleNotificationInteraction(
+              Component.translatableEscape(CRAFTER_IS_OUT_OF_MATERIALS_MESSAGE, missing.getHoverName()), ChatPriority.IMPORTANT));
+        }
+    }
+
     public IAIState finalizeCraftingTask()
     {
         currentRecipeStorage = null;
         resetValues();
 
-        if (inventoryNeedsDump() && job.getMaxCraftingCount() == 0 && job.getProgress() == 0 && job.getCraftCounter() == 0 && currentRequest != null)
-        {
-            worker.getCitizenExperienceHandler().addExperience(currentRequest.getRequest().getCount() / 2.0);
-        }
+        // There used to be a second experience award here, guarded on the three counters being zero -- which
+        // resetValues() has just made true, so the guard never held anything back. Every order was paid twice: once
+        // here and once in afterDump(), which is where the request is actually finished. INVENTORY_FULL always leads
+        // there, so dropping this one leaves exactly one award per order.
         return INVENTORY_FULL;
     }
 

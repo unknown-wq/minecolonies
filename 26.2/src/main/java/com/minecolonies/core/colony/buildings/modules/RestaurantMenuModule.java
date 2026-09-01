@@ -57,9 +57,23 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
     private static final String TAG_MENU = "menu";
 
     /**
+     * Tag for the items a player has taken off the menu by hand.
+     */
+    private static final String TAG_REFUSED = "menurefused";
+
+    /**
      * The minimum stock.
      */
     protected final Set<ItemStorage> menu = new HashSet<>();
+
+    /**
+     * Everything a player has deliberately taken off this menu.
+     * <p>
+     * {@link #removeMenuItem} is only ever reached from the GUI, so every entry here is a decision somebody made.
+     * {@link #offerMenuItem} honours it: a producer that keeps offering the same loaf must not be able to undo a
+     * removal, or the button in the GUI would do nothing that lasts. Adding the item back by hand clears the entry.
+     */
+    protected final Set<ItemStorage> refused = new HashSet<>();
 
     /**
      * Whether the worker here can cook.
@@ -76,9 +90,9 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
      * <p>
      * Everything that decides whether a stack counts as servable food runs it past this menu -- the cook's
      * {@code FoodUtils#getBestFoodForCitizen} calls, its {@code canEat} check, and the eating task's {@code hasFood}.
-     * A fresh restaurant's menu is empty until the player fills it in the GUI (nothing else calls
-     * {@link #addMenuItem}), so in free mode the free meal is added here rather than to the stored menu: the switch
-     * then needs no menu set up, and turning it off leaves nothing behind.
+     * The menu is filled by the player in the GUI ({@link #addMenuItem}) and by the colony's own food producers
+     * ({@link #offerMenuItem}); in free mode the free meal is added here rather than to the stored menu, so the
+     * switch needs no menu set up and turning it off leaves nothing behind.
      *
      * @return the menu.
      */
@@ -121,7 +135,36 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
         }
 
         menu.add(new ItemStorage(itemStack));
+        refused.remove(new ItemStorage(itemStack));
         markDirty();
+    }
+
+    /**
+     * Offer a menu item on behalf of a building that produces it.
+     * <p>
+     * Unlike {@link #addMenuItem} this is not a player action, so it gives way to one: an item the player has taken
+     * off the menu is not put back, and the per-level menu size limit is respected so an automatic offer can never
+     * crowd out a hand-picked entry that comes later.
+     *
+     * @param itemStack the food being offered.
+     * @return true if the menu actually changed.
+     */
+    public boolean offerMenuItem(final ItemStack itemStack)
+    {
+        final ItemStorage storage = new ItemStorage(itemStack);
+        if (menu.contains(storage) || refused.contains(storage) || !FoodUtils.EDIBLE.test(itemStack))
+        {
+            return false;
+        }
+
+        if (menu.size() >= building.getBuildingLevel() * STOCK_PER_LEVEL)
+        {
+            return false;
+        }
+
+        menu.add(storage);
+        markDirty();
+        return true;
     }
 
     /**
@@ -132,6 +175,7 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
     {
         final ItemStorage removed = new ItemStorage(itemStack);
         menu.remove(removed);
+        refused.add(removed);
 
         // The orders this module files in onColonyTick are MinimumStack, and AbstractBuilding#addRequestToMaps
         // indexes an open request under its own concrete class, so a lookup under Stack.class matched nothing at
@@ -274,6 +318,21 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
                 menu.add(new ItemStorage(itemStack));
             }
         }
+
+        // Absent on a save written before producers could offer menu items, which is what makes the migration work:
+        // no refusals on record, so an existing restaurant -- empty menu or not -- gets the bakery's output on its
+        // next colony tick. The one thing that cannot be recovered is a removal made before this tag existed; such
+        // an item is offered once more and has to be removed again to stick.
+        refused.clear();
+        final ListTag refusedTagList = compound.getListOrEmpty(TAG_REFUSED);
+        for (int i = 0; i < refusedTagList.size(); i++)
+        {
+            final ItemStack itemStack = ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), refusedTagList.getCompoundOrEmpty(i)).result().orElse(ItemStack.EMPTY);
+            if (!itemStack.isEmpty())
+            {
+                refused.add(new ItemStorage(itemStack));
+            }
+        }
     }
 
     @Override
@@ -285,6 +344,13 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
             minimumStockTagList.add(ItemStack.OPTIONAL_CODEC.encodeStart(provider.createSerializationContext(NbtOps.INSTANCE), menuItem.getItemStack()).getOrThrow());
         }
         compound.put(TAG_MENU, minimumStockTagList);
+
+        @NotNull final ListTag refusedTagList = new ListTag();
+        for (final ItemStorage refusedItem : refused)
+        {
+            refusedTagList.add(ItemStack.OPTIONAL_CODEC.encodeStart(provider.createSerializationContext(NbtOps.INSTANCE), refusedItem.getItemStack()).getOrThrow());
+        }
+        compound.put(TAG_REFUSED, refusedTagList);
     }
 
     @Override

@@ -30,6 +30,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import com.minecolonies.api.inventory.api.InvWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -128,13 +129,21 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
             if (WorldUtil.isBlockLoaded(world, pos))
             {
                 final BlockEntity entity = world.getBlockEntity(pos);
-                if (entity instanceof FurnaceBlockEntity furnace)
+                if (entity instanceof AbstractFurnaceBlockEntity furnace)
                 {
                     for (int i = 0; i < accelerationTicks; i++)
                     {
-                        if (furnace.litTimeRemaining > 0)
+                        // The smeltable slot has to be checked as well as the burn timer: serverTick decrements
+                        // litTimeRemaining unconditionally, so ticking an empty but still-lit furnace burns off the
+                        // remainder of its fuel at the accelerated rate for no output. That is what happened after
+                        // every batch -- the worker paid for the tail of the last coal and got nothing back.
+                        if (furnace.litTimeRemaining > 0 && !furnace.getItem(SMELTABLE_SLOT).isEmpty())
                         {
-                            FurnaceBlockEntity.serverTick((ServerLevel) furnace.getLevel(), entity.getBlockPos(), entity.getBlockState(), furnace);
+                            AbstractFurnaceBlockEntity.serverTick((ServerLevel) furnace.getLevel(), entity.getBlockPos(), entity.getBlockState(), furnace);
+                        }
+                        else
+                        {
+                            break;
                         }
                     }
                 }
@@ -152,7 +161,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
             for (final BlockPos pos : building.getModule(FURNACE).getFurnaces())
             {
                 final BlockEntity entity = world.getBlockEntity(pos);
-                if (entity instanceof FurnaceBlockEntity furnaceBlockEntity)
+                if (entity instanceof AbstractFurnaceBlockEntity furnaceBlockEntity)
                 {
                     final ItemStack outputSlot = furnaceBlockEntity.getItem(SMELTABLE_SLOT);
                     final ItemStack resultSlot = furnaceBlockEntity.getItem(RESULT_SLOT);
@@ -205,7 +214,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
         if (WorldUtil.isBlockLoaded(world, furnacePos))
         {
             final BlockEntity entity = world.getBlockEntity(furnacePos);
-            if (entity instanceof FurnaceBlockEntity furnace)
+            if (entity instanceof AbstractFurnaceBlockEntity furnace)
             {
                 if (InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), isCorrectFuel(possibleFuels)) && isEmpty(furnace.getItem(FUEL_SLOT)))
                 {
@@ -234,7 +243,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
         }
 
         final BlockEntity entity = world.getBlockEntity(furnacePos);
-        if (!(entity instanceof FurnaceBlockEntity furnaceBlockEntity) || isEmpty(furnaceBlockEntity.getItem(RESULT_SLOT)))
+        if (!(entity instanceof AbstractFurnaceBlockEntity furnaceBlockEntity) || isEmpty(furnaceBlockEntity.getItem(RESULT_SLOT)))
         {
             furnacePos = null;
             return START_WORKING;
@@ -292,7 +301,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
         }
 
         final BlockEntity entity = world.getBlockEntity(furnacePos);
-        if (!(entity instanceof FurnaceBlockEntity furnaceBlockEntity)
+        if (!(entity instanceof AbstractFurnaceBlockEntity furnaceBlockEntity)
             || isEmpty(furnaceBlockEntity.getItem(SMELTABLE_SLOT))
             || (currentRecipeStorage != null
             && ItemStackUtils.compareItemStacksIgnoreStackSize(currentRecipeStorage.getCleanedInput().get(0).getItemStack(), furnaceBlockEntity.getItem(SMELTABLE_SLOT))))
@@ -381,14 +390,14 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
 
         final BlockEntity entity = world.getBlockEntity(furnacePos);
         furnacePos = null;
-        if (entity instanceof FurnaceBlockEntity furnace)
+        if (entity instanceof AbstractFurnaceBlockEntity furnace)
         {
             if (worker.getItemInHand(InteractionHand.MAIN_HAND).isEmpty())
             {
                 worker.setItemInHand(InteractionHand.MAIN_HAND, inputStack.copy());
             }
 
-            if (hasFuelInFurnaceAndNoSmeltable(furnace))
+            if (hasFuelAndNoSmeltable(furnace))
             {
                 int toTransfer = 0;
                 int availableFurnaces = maxFurnaces - burningFurnaces;
@@ -510,20 +519,31 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
     private BlockPos getEmptyFurnaceWithFuel()
     {
         final FurnaceUserModule module = building.getModule(FURNACE);
+        BlockPos plainFurnace = null;
         for (final BlockPos pos : module.getFurnaces())
         {
             final BlockEntity entity = world.getBlockEntity(pos);
-            if (entity instanceof FurnaceBlockEntity furnaceBlockEntity)
+            if (entity instanceof AbstractFurnaceBlockEntity furnaceBlockEntity)
             {
                 if (isEmpty(furnaceBlockEntity.getItem(SMELTABLE_SLOT))
                     && isEmpty(furnaceBlockEntity.getItem(RESULT_SLOT))
                     && !isEmpty(furnaceBlockEntity.getItem(FUEL_SLOT)))
                 {
-                    return pos;
+                    // A smoker cooks the same food in a third of the time, so when the hut has both, load it first
+                    // and keep the plain furnace as the fallback. Order within each kind stays the registration
+                    // order, so nothing else about the rotation changes.
+                    if (!(entity instanceof FurnaceBlockEntity))
+                    {
+                        return pos;
+                    }
+                    if (plainFurnace == null)
+                    {
+                        plainFurnace = pos;
+                    }
                 }
             }
         }
-        return null;
+        return plainFurnace;
     }
 
     /**
@@ -535,7 +555,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
         for (final BlockPos pos : building.getModule(FURNACE).getFurnaces())
         {
             final BlockEntity entity = world.getBlockEntity(pos);
-            if (entity instanceof FurnaceBlockEntity furnace && furnace.litTimeRemaining <= 0 && furnace.getItem(FUEL_SLOT).isEmpty())
+            if (entity instanceof AbstractFurnaceBlockEntity furnace && furnace.litTimeRemaining <= 0 && furnace.getItem(FUEL_SLOT).isEmpty())
             {
                 return pos;
             }
@@ -555,7 +575,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
         for (final BlockPos pos : building.getModule(FURNACE).getFurnaces())
         {
             final BlockEntity entity = world.getBlockEntity(pos);
-            if (entity instanceof FurnaceBlockEntity furnace && (furnace.litTimeRemaining <= 0 || furnace.getItem(SMELTABLE_SLOT).isEmpty()))
+            if (entity instanceof AbstractFurnaceBlockEntity furnace && (furnace.litTimeRemaining <= 0 || furnace.getItem(SMELTABLE_SLOT).isEmpty()))
             {
                 int countInResultSlot = 0;
                 if (!isEmpty(furnace.getItem(RESULT_SLOT)))
@@ -585,7 +605,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
         for (final BlockPos pos : building.getModule(FURNACE).getFurnaces())
         {
             final BlockEntity entity = world.getBlockEntity(pos);
-            if (entity instanceof FurnaceBlockEntity furnace)
+            if (entity instanceof AbstractFurnaceBlockEntity furnace)
             {
                 if (!furnace.getItem(SMELTABLE_SLOT).isEmpty()
                     && (currentRecipeStorage == null
@@ -608,7 +628,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
      *
      * @param furnace the furnace to retrieve from.
      */
-    private boolean extractFromFurnaceSlot(final FurnaceBlockEntity furnace, final int slot)
+    private boolean extractFromFurnaceSlot(final AbstractFurnaceBlockEntity furnace, final int slot)
     {
         ItemStack stack = furnace.getItem(slot);
         final Component name = stack.getHoverName();
@@ -656,7 +676,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
             if (WorldUtil.isBlockLoaded(world, pos))
             {
                 final BlockEntity entity = world.getBlockEntity(pos);
-                if (entity instanceof FurnaceBlockEntity furnace)
+                if (entity instanceof AbstractFurnaceBlockEntity furnace)
                 {
                     if (furnace.litTimeRemaining > 0 && !furnace.getItem(SMELTABLE_SLOT).isEmpty())
                     {
@@ -680,7 +700,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
         for (final BlockPos pos : building.getModule(FURNACE).getFurnaces())
         {
             final BlockEntity entity = world.getBlockEntity(pos);
-            if (entity instanceof FurnaceBlockEntity furnace && !furnace.getItem(FUEL_SLOT).isEmpty())
+            if (entity instanceof AbstractFurnaceBlockEntity furnace && !furnace.getItem(FUEL_SLOT).isEmpty())
             {
                 count++;
             }
@@ -728,6 +748,21 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
             possibleFuels.removeIf(stack -> ItemStackUtils.compareItemStacksIgnoreStackSize(stack, currentRecipeStorage.getCleanedInput().get(0).getItemStack()));
         }
         return possibleFuels;
+    }
+
+    /**
+     * Whether the cooking block has fuel in it and nothing to cook.
+     * <p>
+     * {@code ItemStackUtils#hasFuelInFurnaceAndNoSmeltable} takes a {@link FurnaceBlockEntity}; the baker also
+     * drives smokers, which share the slot layout but not that type, so the same two-slot test lives here against
+     * the common base class.
+     *
+     * @param entity the furnace or smoker.
+     * @return true if it is fuelled and idle.
+     */
+    private static boolean hasFuelAndNoSmeltable(final AbstractFurnaceBlockEntity entity)
+    {
+        return isEmpty(entity.getItem(SMELTABLE_SLOT)) && !isEmpty(entity.getItem(FUEL_SLOT));
     }
 
     /**

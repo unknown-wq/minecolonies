@@ -532,6 +532,12 @@ public class Colony implements IColony
 
     /**
      * Updates the state the colony is in.
+     * <p>
+     * Every test below asks the same thing in a different way: can somebody see this colony? That is the right
+     * question on a server people play on, and it is the only question asked, which is why a colony with nobody
+     * logged in runs nothing at all. {@link HeadlessColonyMode} is the one case where the other question -- should
+     * this colony run -- is answered on its own merits, and see that class for the chain an operator has to walk
+     * before it can be.
      *
      * @return the new colony state.
      */
@@ -542,6 +548,23 @@ public class Colony implements IColony
             return INACTIVE;
         }
         packageManager.updateAwayTime();
+
+        if (HeadlessColonyMode.isRunning())
+        {
+            // A level with nobody in it stops ticking its entities fifteen seconds later, whatever is force-loaded in
+            // it, so the ticket that says otherwise is renewed here rather than anywhere further down: this is the
+            // beat that decides the colony runs, and a colony that runs in a level that does not is worth nothing.
+            if (world instanceof final ServerLevel serverLevel)
+            {
+                HeadlessColonyMode.holdDimensionActive(serverLevel, ChunkPos.containing(getCenter()));
+            }
+
+            // The same flag the branches below set, and for the same reason: a running colony changes, so its saved
+            // data is stale from here on. Nothing is sent to anyone -- the subscriber sets are still empty, and every
+            // send path in ColonyPackageManager is conditional on them.
+            isDirty = true;
+            return ACTIVE;
+        }
 
         if (!packageManager.getCloseSubscribers().isEmpty() || (loadedChunks.size() > 40 && !packageManager.getImportantColonyPlayers().isEmpty()))
         {
@@ -659,30 +682,21 @@ public class Colony implements IColony
     {
         if (getConfig().getServer().forceLoadColony.get())
         {
+            // An officer walking around the colony is what keeps its ground loaded, and on a headless server there is
+            // nobody to walk. This stands in for that visit and nothing more: it refreshes the timer, and which
+            // chunks a running timer then tickets is left entirely to the ordinary rules, so a colony that would not
+            // have been force-loaded with an officer standing in it is not force-loaded here either.
+            if (HeadlessColonyMode.isRunning())
+            {
+                refreshForceLoadTimer();
+                return;
+            }
+
             for (final ServerPlayer sub : getPackageManager().getCloseSubscribers())
             {
                 if (getPermissions().getRank(sub).isColonyManager())
                 {
-                    this.forceLoadTimer = getConfig().getServer().loadtime.get() * 20 * 60;
-
-                    // First the claim, because it needs no chunk to be loaded to decide anything. Every chunk it
-                    // covers is then skipped below instead of being pulled off disk (or generated) purely to be asked
-                    // a question that has already been answered -- which matters here, since after the timer expired
-                    // every chunk the colony held is sitting in pendingToUnloadChunks waiting for exactly that.
-                    registerClaimedChunkTickets();
-
-                    pendingChunks.addAll(pendingToUnloadChunks);
-                    for (final long pending : pendingChunks)
-                    {
-                        if (ticketedChunks.contains(pending))
-                        {
-                            continue;
-                        }
-                        checkChunkAndRegisterTicket(pending, world.getChunk(ChunkPos.getX(pending), ChunkPos.getZ(pending)));
-                    }
-
-                    pendingToUnloadChunks.clear();
-                    pendingChunks.clear();
+                    refreshForceLoadTimer();
                     return;
                 }
             }
@@ -723,6 +737,36 @@ public class Colony implements IColony
                 }
             }
         }
+    }
+
+    /**
+     * Start the force-load timer over, and ticket the ground the colony is entitled to hold.
+     * <p>
+     * What an officer's presence buys the colony, in one place, because two different things now ask for it: the
+     * subscriber loop above and {@link HeadlessColonyMode}.
+     */
+    private void refreshForceLoadTimer()
+    {
+        this.forceLoadTimer = getConfig().getServer().loadtime.get() * 20 * 60;
+
+        // First the claim, because it needs no chunk to be loaded to decide anything. Every chunk it covers is then
+        // skipped below instead of being pulled off disk (or generated) purely to be asked a question that has
+        // already been answered -- which matters here, since after the timer expired every chunk the colony held is
+        // sitting in pendingToUnloadChunks waiting for exactly that.
+        registerClaimedChunkTickets();
+
+        pendingChunks.addAll(pendingToUnloadChunks);
+        for (final long pending : pendingChunks)
+        {
+            if (ticketedChunks.contains(pending))
+            {
+                continue;
+            }
+            checkChunkAndRegisterTicket(pending, world.getChunk(ChunkPos.getX(pending), ChunkPos.getZ(pending)));
+        }
+
+        pendingToUnloadChunks.clear();
+        pendingChunks.clear();
     }
 
     /**

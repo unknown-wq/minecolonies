@@ -443,7 +443,7 @@ public class ColonyConnectionManager implements IColonyConnectionManager
         final BlockPos lowestTargetPos = findLowestPoint(targetPos);
 
         final PathJobSignConnection job = new PathJobSignConnection(colony.getWorld(), lowestOriginPos, lowestTargetPos, 16);
-        job.getResult().startJob(Pathfinding.getExecutor());
+        Pathfinding.submit(job.getResult());
         return job.getResult();
     }
 

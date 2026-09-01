@@ -347,7 +347,7 @@ public abstract class AbstractBuildingGuards extends AbstractBuilding implements
     {
         super.onColonyTick(colony);
 
-        if (patrolTimer > 0 && getSetting(GUARD_TASK).getValue().equals(GuardTaskSetting.PATROL))
+        if (patrolTimer > 0 && walksAPatrol())
         {
             patrolTimer--;
             if (patrolTimer <= 0 && !getAllAssignedCitizen().isEmpty())
@@ -358,6 +358,41 @@ public abstract class AbstractBuildingGuards extends AbstractBuilding implements
         }
     }
 
+    /**
+     * Whether the building's guards are currently set to a task that walks a patrol route.
+     * <p>
+     * The patrol timer is what hands out the next patrol point, so it has to run for a permanent patrol as well as
+     * an ordinary one; leaving it gated on {@link GuardTaskSetting#PATROL} alone would have left a permanently
+     * patrolling unit walking to a single point and stopping there. A border patrol needs it for a second reason:
+     * the timer is also the clock that opens and closes a Stable's rest window, and a unit whose route comes from
+     * somewhere else still stands down on that clock.
+     *
+     * @return true if the guards patrol.
+     */
+    @Override
+    public boolean walksAPatrol()
+    {
+        final String task = getSetting(GUARD_TASK).getValue();
+        return task.equals(GuardTaskSetting.PATROL)
+                 || task.equals(GuardTaskSetting.PATROL_PERMANENT)
+                 || task.equals(GuardTaskSetting.PATROL_BORDER);
+    }
+
+    /**
+     * Whether this building's guards have to improvise their own patrol instead of walking the route
+     * {@link #getNextPatrolTarget} hands out.
+     * <p>
+     * False for every guard building but the gate house. The guard tower used to answer true whenever the player had
+     * not entered manual patrol points -- which is the stock configuration, since the task defaults to Patrol and the
+     * mode to Auto -- and that sent its guard into {@code AbstractEntityAIGuard#patrol}'s fallback: a 20-block random
+     * walk, re-rolled three times in five, and otherwise a hike to a uniformly random building in the colony with no
+     * level filter and no distance clamp. The real automatic patrol was reached only by barracks towers, which is why
+     * a barracks visibly walked a bounded circuit and a guard tower visibly did not. {@link #getNextPatrolTarget}
+     * already handles "manual mode with no points" by falling through to the automatic route, so there is nothing for
+     * an override to do here.
+     *
+     * @return true if the AI has to pick its own patrol destinations.
+     */
     @Override
     public boolean requiresManualTarget()
     {
@@ -406,15 +441,21 @@ public abstract class AbstractBuildingGuards extends AbstractBuilding implements
     @Nullable
     public BlockPos getNextPatrolTarget(final boolean newTarget)
     {
-        if (!newTarget && lastPatrolPoint != null)
-        {
-            return lastPatrolPoint;
-        }
-
+        // A raid alert is checked before the "keep walking the current leg" shortcut below, so it pre-empts the leg
+        // instead of waiting it out. It used to be read only by getNextPatrolTarget(true), which is reached when
+        // every assigned guard has reported arrival or when the building's patrol timer runs down -- five colony
+        // ticks, i.e. about 125 seconds. A lone guard part-way along an unreachable leg therefore learned about a
+        // raider up to two minutes after a colleague saw it. It is a one-shot field, so consuming it here costs the
+        // patrol nothing: the next call falls through to the ordinary route.
         if (tempNextPatrolPoint != null)
         {
             lastPatrolPoint = tempNextPatrolPoint;
             tempNextPatrolPoint = null;
+            return lastPatrolPoint;
+        }
+
+        if (!newTarget && lastPatrolPoint != null)
+        {
             return lastPatrolPoint;
         }
 

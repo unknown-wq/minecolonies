@@ -68,6 +68,17 @@ public class RegisteredStructureManager implements IRegisteredStructureManager
     private ImmutableMap<BlockPos, IBuilding> buildings = ImmutableMap.of();
 
     /**
+     * Just the guard buildings out of {@link #buildings}, kept in step with it.
+     * <p>
+     * Exists because {@code CombatUtils#notifyGuardsOfTarget} walked the whole building map on every target change
+     * to a raider -- once per five ticks per guard during a raid, times every building in the colony -- to set one
+     * BlockPos on the handful of guard buildings within forty blocks. Guard buildings are a small and rarely
+     * changing subset, so caching them is the whole fix.
+     */
+    @NotNull
+    private ImmutableList<IGuardBuilding> guardBuildings = ImmutableList.of();
+
+    /**
      * How many consecutive colony-tick failures of one building pass between repeat log lines. At one slow tick per 500
      * game ticks that is roughly one line every hour and a half.
      */
@@ -160,6 +171,7 @@ public class RegisteredStructureManager implements IRegisteredStructureManager
     public void read(@NotNull final HolderLookup.Provider provider, @NotNull final CompoundTag compound)
     {
         buildings = ImmutableMap.of();
+        rebuildGuardBuildingCache();
         maxChunkX = colony.getCenter().getX() >> 4;
         minChunkX = colony.getCenter().getX() >> 4;
         maxChunkZ = colony.getCenter().getZ() >> 4;
@@ -747,6 +759,30 @@ public class RegisteredStructureManager implements IRegisteredStructureManager
         return buildings;
     }
 
+    @NotNull
+    @Override
+    public List<IGuardBuilding> getGuardBuildings()
+    {
+        return guardBuildings;
+    }
+
+    /**
+     * Re-derive {@link #guardBuildings} from {@link #buildings}. Called from every place the building map is
+     * replaced.
+     */
+    private void rebuildGuardBuildingCache()
+    {
+        final ImmutableList.Builder<IGuardBuilding> builder = new ImmutableList.Builder<>();
+        for (final IBuilding building : buildings.values())
+        {
+            if (building instanceof IGuardBuilding guardBuilding)
+            {
+                builder.add(guardBuilding);
+            }
+        }
+        guardBuildings = builder.build();
+    }
+
     @Nullable
     @Override
     public ITownHall getTownHall()
@@ -861,6 +897,7 @@ public class RegisteredStructureManager implements IRegisteredStructureManager
             }
 
             buildings = builder.build();
+            rebuildGuardBuildingCache();
 
             new ColonyViewRemoveBuildingMessage(colony, building.getID()).sendToPlayer(subscribers);
 
@@ -994,6 +1031,7 @@ public class RegisteredStructureManager implements IRegisteredStructureManager
     private void addBuilding(@NotNull final IBuilding building)
     {
         buildings = new ImmutableMap.Builder<BlockPos, IBuilding>().putAll(buildings).put(building.getID(), building).build();
+        rebuildGuardBuildingCache();
 
         building.markDirty();
 

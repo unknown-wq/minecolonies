@@ -1012,6 +1012,79 @@ rather than deriving them. A fourth line appears only when children are homeless
 too — that means their parents are, and it is the one case the birth rule cannot
 house a child.
 
+### `/mc colony buildnow <colony> [order <id> | at <pos> [<level>]]`
+
+Finishes the colony's open work orders on the spot — no builder, no walking, no
+materials. A builder takes something like twenty minutes of server time to raise
+a level one hut, which is time every test that needs a *built* colony has to
+spend before it can begin.
+
+```
+/mc colony buildnow 1                              every open work order
+/mc colony buildnow 1 order 7                      just that one
+/mc colony buildnow 1 at 20 67 20                  that hut, one level up
+/mc colony buildnow 1 at 20 67 20 5                that hut, straight to level 5
+/mc colony buildnow 1 at 20 67 20 0                take that hut down
+/mc colony buildnow 1 at -50 67 -30                that decoration controller
+```
+
+**Operator, and free mode must be on for the colony.** Operator rights alone
+would be the wrong bar: free mode
+(`/mc colony freemode <colony> on`, above) is already the colony-wide "this
+colony is a test fixture, not an economy" switch — it is what the level argument
+on `hut` needs, and what conjures the materials a build would otherwise consume.
+Building for nothing is precisely a free-mode act, and requiring the switch means
+one mistyped colony id cannot flatten twenty minutes of somebody else's work on a
+server carrying real colonies.
+
+**It is the builder's own construction with the waiting taken out**, not a second
+one. The blocks go down through `PlaceStructureOperation` over
+`CreativeBuildingStructureHandler` — Structurize's instant-paste operation and
+MineColonies' own handler for it, the pair the build tool uses to paste a hut in
+creative — driven to the end of its last phase instead of one tick's worth per
+tick, so the whole structure is standing when the command returns. A `REMOVE`
+order runs the two removal stages of `AbstractEntityAIStructure` instead, with
+the builder's own `skipRemoval` deciding what is left standing (the hut block
+and anything else `IBuilderUndestroyable` stays, as it does for a builder).
+
+Closing the order is the other half, and it goes through the same calls
+`AbstractBuildingStructureBuilder#complete` makes: the decoration controllers get
+their schematic data, the order leaves the work manager — which unassigns
+whichever builder had claimed it and stops its AI mid-order — the construction
+tape comes down, the colony statistics and the event log are written, and
+`BuildingConstructionModEvent` is posted. The building's level rides in on the
+anchor's schematic data exactly as it does for a builder, and is set by hand if
+the blueprint did not carry it.
+
+All four work order types are handled — `BUILD`, `UPGRADE`, `REPAIR`, `REMOVE` —
+and all four work order classes: buildings (the town hall included), decorations,
+plantation fields and mine nodes. The last three have no `IBuilding` at their
+location, so for them the controller's own schematic data is the whole of their
+state, exactly as it is when a builder finishes one.
+
+**`at <pos>` files the order itself when there is none**, and that is not a
+convenience. A colony's *first* work order can never be created through the
+ordinary path: `requestWorkOrder` refuses one while no builder's hut with a
+builder in it stands within `maxbuilderdistance` of the site, and a builder is
+only hired into a hut that has been built. A colony raised with `found` is
+therefore deadlocked — no town hall, no builder's hut, nothing. `at` goes
+straight to `WorkOrderBuilding#create` and steps over that gate, and only that
+gate: an order whose footprint reaches onto ground the colony has not claimed is
+still refused.
+
+A position holding a decoration controller rather than a hut is answered the same
+way, with a `WorkOrderDecoration`. It takes no level: a decoration's level, where
+it has one, is already part of the path its controller records.
+
+**What it does not do.** It does not tidy up after a deconstruction any more than
+the builder does: `REMOVE` flags the building deconstructed and leaves its level
+where it was, which is what `AbstractEntityAIStructureWithWorkOrder` leaves too —
+so `/mc colony diagnose` reports "flagged as deconstructed but still at level N"
+afterwards, for a builder's deconstruction and for this one alike. A structure
+whose placement does not finish inside its step budget is reported as failed and
+its **work order is left open** on purpose: half a structure a builder can still
+be sent at is better than half a structure with its order closed.
+
 ### `/mc colony territory [create <name> [<pos>] [<colour>] | colour <colony> <colour> | grow <colony> <radius> | bind <colony> | delete <colony>]`
 
 Hostile territory: ground marked as an enemy's. It is a real colony underneath —

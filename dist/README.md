@@ -2,11 +2,124 @@
 
 Compiled build of the Fabric / Minecraft 26.2 port (source in `../26.2/`).
 
-Built 2026-08-23 from the branch of PR #14. Booted in a real Fabric dedicated server before being
-placed here: `Done (0.862s)`, no `/FATAL]` line, one `/ERROR]` — vanilla worldgen's `No key layers in
-MapLike[{}]`, which a stock server prints too. That boot deliberately carried a foreign mod shipping a
-`data/<ns>/compatibility/*.json` of the wrong shape, and the server still read all 1766 nbt-matching
-entries; the same boot against 0.0.55 read none at all.
+Two jars live here. `minecolonies-26.2-0.0.61.jar` is the current one;
+`minecolonies-26.2-0.0.60.jar` is kept beside it as the version to fall back to.
+
+Built 2026-08-28. Booted in a real Fabric dedicated server before being placed here:
+`Done (0.960s)`, **no `/FATAL]` and no `/ERROR]` at all** in the 198-line log, and nine `/WARN]`
+lines — the offline-mode notice, the structure-pack discovery lines and `Register mappings`, all of
+them ordinary. `sha256 1dab21c1c75311fb32a0652e25a4fc1abaf30026f0e89dd4ef914058961e8b35`
+
+**0.0.61 brings over the rest of the 26.3 day: the pathfinding pool becomes a setting rather than a
+constant, and two console commands make a colony without a client.** The pool size now comes from a
+new `pathfindingthreads` server setting, defaulting to 1 — the size it had always been hard-coded to,
+so a server that leaves it alone behaves exactly as before. `/mc debug maxpool` changes the size of a
+pool that is already running: a new pool is published first and the one it replaces is left to finish
+what it was already holding, so raising the size orphans nothing in flight and lowering it throws no
+backlog away. Every pool now owns its queue rather than sharing one, which is what makes "what is the
+old pool still working on" a question with an answer; `/mc pathstats` reports the drain when there is
+one. A search offered to a full queue is refused and logged instead of throwing
+`RejectedExecutionException` out of an entity tick.
+
+`/mc colony found <name> [pos]` makes an ordinary colony from the console — town hall placed, chunks
+claimed, building registered, owner left abandoned — where before the only console route made a
+hostile territory with no town hall and no citizens. `/mc colony hut <colony> <block> <pos> <blueprint>
+[level]` does what a player's placement would have done for every other hut, and with a level argument
+files the work order that builds it.
+
+Also here: cavalry split its damage with its horse twice in a row, because the block that does it
+appeared twice. At the stock 20 % split the horse took 0.36 of a melee blow instead of 0.20 and 0.47
+of an arrow instead of 0.24, so mounts died at roughly twice the intended rate while their riders
+quietly took less than they should. The block now appears once.
+
+Verified on a live dedicated server, not only by compiling: `/mc debug maxpool` reported 1, switched
+to 4, reported 4 and switched back to 1 with the old pool logged as drained; `/mc colony found` made
+colony 1 and `/mc colony hut` added a builder's hut to it and then filed a level-1 order for it. The
+jar carries the three jar-in-jar libraries and no assets beyond the set 0.0.60 already shipped —
+checked entry by entry against that jar.
+
+Nothing else from the 26.3 range needed porting: the undertaker, alchemist, baker and wood-chain
+fixes of that day were already in this tree from 0.0.60, and were re-checked file by file rather than
+assumed.
+
+---
+
+## 0.0.60
+
+Built 2026-08-28. Booted in a real Fabric dedicated server before being placed here:
+`Done (2.002s)`, **no `/FATAL]` and no `/ERROR]` at all** in the 198-line log, and nine `/WARN]`
+lines — the offline-mode notice, the structure-pack discovery lines and `Register mappings`, all of
+them ordinary. `sha256 556a9a13eaeb64f7a6616718a72d822ab9641889bdec16c717a12613e9cde319`
+
+**0.0.60 ports a day of 26.3 work into 26.2: guards, the enchanter, the undertaker, the alchemist,
+the baker and the wood chain.** Roughly eighty findings across the six. The headline ones: the melee
+weapon damage term was silently doubled and is corrected without moving the delivered numbers; guards
+re-request armour as their hut levels instead of wearing their first day's leather for ever, and
+copper joins the armour ladder; the enchanter's five book tables stop being 278 hand-written entries
+and are rolled by vanilla's own `enchant_with_levels` with the worker's Mana deciding quality; two
+item-duplication bugs around the grave; the alchemist could never brew a taught recipe because the
+bottle and the reagent were listed the wrong way round; the bakery can use a smoker and puts its bread
+on the colony's restaurant menus; and a crafter task queue that could hang the server thread in an
+infinite loop. The full list is in `../CHANGELOG.md`.
+
+Two pieces of the 26.3 work do not apply to 26.2. `DataComponents.BREWING_FUEL` is a 26.3 component;
+26.2's brewing stand tests the `#minecraft:brewing_fuel` item tag instead, so the alchemist asks the
+tag and gets the same answer. And the shelf-mushroom filter in the sapling list is inert here, because
+26.2 has no shelf mushroom. Nothing else was left behind.
+
+Not played in a client. The verification is the server boot above plus the fact that every one of
+these fixes was written and reviewed against the 26.3 tree first.
+
+---
+
+## 0.0.59
+
+**0.0.59 made cavalry actually patrol, and let the stable be told how often.** These fixes were
+written and verified against the 26.3 tree first and are ported here unchanged in substance; the two
+trees held the same code in every file involved.
+
+**Cavalry never walked a patrol leg.** One timestamp was doing two jobs: the stable reset it at the
+moment it dispatched a sortie, and the cavalry AI read that same timestamp to decide whether the unit
+was inside its rest window — so dispatching a patrol immediately put the unit back into rest. It was
+handed a destination and, on its next AI tick, sent to loiter in the yard. A sortie is now explicit
+state rather than something inferred from a clock, and the stable is the single authority on whether a
+unit is resting. A sortie that never arrives is written off after five minutes.
+
+Two further defects in the same method. The building's patrol pump was set to 1200 colony ticks, and
+those run once per colony tick from the slow world tick — so the pump was not delayed by a minute, it
+was off for hours of play. And the automatic patrol target was drawn from stables and gate houses
+only, so a colony with one stable and no gate house sent every cavalryman to the building he was
+already standing in; it now falls back to the ordinary guard patrol target.
+
+**The stable's patrol interval is editable, and says what it is.** The 6 was a bare int with no label
+and no tooltip, so the row rendered its raw translation key. Worse, clearing the box to type a new
+number wrote a zero back under the caret on the very next frame, and any building sync landing
+mid-edit dropped the old value back in. The field now clamps to 0-60 minutes at every write, keeps its
+default of 6, no longer zeroes an empty box and no longer repaints while focused.
+
+**Migration:** an existing colony's customised interval resets to 6. The setting's type is part of its
+key, so a value saved as a plain int setting no longer matches the registered one and is dropped on
+load. Colonies that left it at 6 notice nothing. Stable guard tasks are unaffected — the new task is
+appended to the option list, so every saved index still points where it did.
+
+**New guard task: permanent patrol.** Offered by the stable only; every other guard building's option
+list is unchanged. The unit patrols continuously and never stands down between legs. Eating and
+sleeping still interrupt it: a patrolling guard sits in a combat state declared safe to eat from, and
+the guard nap is driven by the guard's own state machine, which never consults the task.
+
+A cavalry sleep bug turned up while checking that and is fixed too: the nap dismounted on every tick,
+and for an already-dismounted cavalryman the thing being dismounted was the seat entity itself, which
+stood him back up each tick and leaked a seat.
+
+**Spear reach.** Every vanilla spear carries a mob reach factor of 0.5, giving a citizen about 2.85
+blocks centre to centre, while the cavalry attack distance was a flat 2.4 — the rider closed half a
+block inside the reach of the weapon in his hand. A cavalryman holding a spear now uses its real
+reach. 26.2 has the vanilla spear items and their attack-range component but not the spear-footwork
+helpers the 26.3 version leans on, so the two small helpers live privately in the cavalry combat AI
+here; the behaviour is the same.
+
+None of this was verified in a running game — there is no client for the mod in the build environment
+— so it rests on a code trace and a clean server boot. The patrol change is the one worth a play test.
 
 **0.0.58 stops the restaurant ordering food nobody asked for.** Taking a dish off the menu left its
 delivery order standing for ever, because the cancellation looked it up under the wrong requestable

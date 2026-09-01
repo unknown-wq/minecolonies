@@ -1,10 +1,8 @@
 package com.minecolonies.core.entity.ai.workers.crafting;
 
-import com.google.common.reflect.TypeToken;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
 import com.minecolonies.api.colony.requestsystem.request.IRequest;
 import com.minecolonies.api.colony.requestsystem.request.RequestState;
-import com.minecolonies.api.colony.requestsystem.requestable.Stack;
 import com.minecolonies.api.colony.requestsystem.requestable.crafting.PublicCrafting;
 import com.minecolonies.api.crafting.IRecipeStorage;
 import com.minecolonies.api.crafting.ItemStorage;
@@ -15,7 +13,6 @@ import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
 import com.minecolonies.api.equipment.ModEquipmentTypes;
 import com.minecolonies.api.items.ModItems;
-import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.StatsUtil;
@@ -41,7 +38,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import com.minecolonies.api.inventory.api.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -50,7 +46,7 @@ import static com.minecolonies.api.util.ItemStackUtils.*;
 import static com.minecolonies.api.util.constant.CitizenConstants.TICKS_20;
 import static com.minecolonies.api.util.constant.Constants.*;
 import static com.minecolonies.api.util.constant.EquipmentLevelConstants.TOOL_LEVEL_WOOD_OR_GOLD;
-import static com.minecolonies.api.util.constant.TranslationConstants.BAKER_HAS_NO_FURNACES_MESSAGE;
+import static com.minecolonies.api.util.constant.TranslationConstants.ALCHEMIST_HAS_NO_BREWING_STAND_MESSAGE;
 import static com.minecolonies.api.util.constant.StatisticsConstants.ITEMS_BREWED;
 import static com.minecolonies.api.util.constant.StatisticsConstants.INGREDIENTS_HARVESTED;
 
@@ -105,7 +101,6 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
           new AIEventTarget(AIBlockingEventType.EVENT, this::accelerateBrewingStand, this::getState, TICKS_SECOND),
           new AITarget(START_USING_BREWINGSTAND, this::fillUpBrewingStand, TICKS_SECOND),
           new AITarget(RETRIEVING_END_PRODUCT_FROM_BREWINGSTAMD, this::retrieveBrewableFromBrewingStand, TICKS_SECOND),
-          new AITarget(RETRIEVING_USED_FUEL_FROM_BREWINGSTAND, this::retrieveUsedFuel, TICKS_SECOND),
           new AITarget(ADD_FUEL_TO_BREWINGSTAND, this::addFuelToBrewingStand, TICKS_SECOND),
           new AITarget(HARVEST_MISTLETOE, this::harvestMistleToe, TICKS_SECOND),
           new AITarget(HARVEST_NETHERWART, this::harvestNetherWart, TICKS_SECOND)
@@ -166,20 +161,16 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
             final BlockState aboveState = world.getBlockState(walkTo.above());
             if (!(aboveState.getBlock() instanceof AirBlock))
             {
-                if (aboveState.getBlock() == Blocks.NETHER_WART && aboveState.getValue(NetherWartBlock.AGE) < 2)
+                // Only a fully grown plant pays 2-4 wart; the loot table's count function is conditional on
+                // AGE == MAX_AGE. Harvested a stage early it drops the single wart that replanting costs.
+                if (aboveState.getBlock() == Blocks.NETHER_WART && aboveState.getValue(NetherWartBlock.AGE) < NetherWartBlock.MAX_AGE)
                 {
                     walkTo = null;
                     return IDLE;
                 }
 
-                List<ItemStack> netherwartDrops = getNetherwartDrops(walkTo.above());
-                
                 if (mineBlock(walkTo.above()))
                 {
-                    for (ItemStack netherwartDrop : netherwartDrops)
-                    {
-                        StatsUtil.trackStatByName(building, INGREDIENTS_HARVESTED, netherwartDrop.getItem().getDescriptionId(), netherwartDrop.getCount());
-                    }
                     walkTo = null;
                     worker.decreaseSaturationForContinuousAction();
                     return IDLE;
@@ -216,13 +207,24 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
         return HARVEST_NETHERWART;
     }
 
-    private List<ItemStack> getNetherwartDrops(BlockPos blockToMine)
+    /**
+     * Record what the harvest actually produced.
+     * <p>
+     * The statistic used to be taken from a second, independent loot-table roll made before the block was mined,
+     * which is a different random sample from the one the citizen is handed - and it was rolled again on every
+     * pass through the state, including the passes where mineBlock is only counting down its mining delay. This
+     * is the list mineBlock put in the inventory.
+     *
+     * @param blockDrops the items the mined block produced.
+     */
+    @Override
+    public void onBlockDropReception(final List<ItemStack> blockDrops)
     {
-        final List<ItemStack> localItems = new ArrayList<>();
-        final ItemStack tool = worker.getMainHandItem();
-        localItems.addAll(BlockPosUtil.getBlockDrops(world, blockToMine, ItemStackUtils.getFortuneOf(tool, worker.level()), tool, worker));
-
-        return localItems;
+        super.onBlockDropReception(blockDrops);
+        for (final ItemStack drop : blockDrops)
+        {
+            StatsUtil.trackStatByName(building, INGREDIENTS_HARVESTED, drop.getItem().getDescriptionId(), drop.getCount());
+        }
     }
 
     /**
@@ -290,7 +292,10 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
                 InventoryUtils.addItemStackToItemHandler(worker.getInventoryCitizen(), mistletoe);
                 walkTo = null;
                 CitizenItemUtils.damageItemInHand(worker, InteractionHand.MAIN_HAND, 1);
-                return INVENTORY_FULL;
+                // Count the pick and hand back to decide(), the way the netherwart loop does. Returning
+                // INVENTORY_FULL here walked the citizen home and emptied it for a single item that stacks to 64.
+                incrementActionsDone();
+                return IDLE;
             }
         }
         else
@@ -535,11 +540,18 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
 
         final Level world = building.getColony().getWorld();
 
-        if (!InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), Items.BLAZE_POWDER)
-              && !InventoryUtils.hasItemInProvider(building, Items.BLAZE_POWDER)
-              && !building.hasWorkerOpenRequestsOfType(worker.getCitizenData().getId(), TypeToken.of(Stack.class)))
+        if (!InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), ItemStackUtils::isBrewingFuel)
+              && !InventoryUtils.hasItemInProvider(building, ItemStackUtils::isBrewingFuel))
         {
-            worker.getCitizenData().createRequestAsync(new Stack(new ItemStack(Items.BLAZE_POWDER), BREWING_MIN_FUEL_COUNT * building.getAllBrewingStandPositions().size(), 1));
+            // The old guard suppressed the fuel request while the citizen had any open Stack request at all, and
+            // the netherwart request the farming loop files is one of those. Nether wart cannot be bought or
+            // farmed outside the Nether, so that request can sit open indefinitely and the alchemist would never
+            // ask for fuel again. This helper filters the open requests by the stack being asked for.
+            // A request has to name a concrete item, and blaze powder is the only thing that carries the fuel
+            // component in the vanilla pack. Anything else a pack marks as brewing fuel is still accepted
+            // wherever fuel is looked for; it just is not what the alchemist asks the colony for.
+            checkIfRequestForItemExistOrCreateAsync(new ItemStack(Items.BLAZE_POWDER),
+              BREWING_MIN_FUEL_COUNT * building.getAllBrewingStandPositions().size(), 1);
             return getState();
         }
 
@@ -553,11 +565,11 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
                     final BrewingStandBlockEntity brewingStand = (BrewingStandBlockEntity) entity;
                     if (brewingStand.brewTime <= 0 && (hasBrewableAndNoFuel(brewingStand) || hasNeitherFuelNorBrewable(brewingStand)))
                     {
-                        if (!InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), Items.BLAZE_POWDER))
+                        if (!InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), ItemStackUtils::isBrewingFuel))
                         {
-                            if (InventoryUtils.hasItemInProvider(building, Items.BLAZE_POWDER))
+                            if (InventoryUtils.hasItemInProvider(building, ItemStackUtils::isBrewingFuel))
                             {
-                                needsCurrently = new Tuple<>(item -> item.getItem() == Items.BLAZE_POWDER, BREWING_MIN_FUEL_COUNT);
+                                needsCurrently = new Tuple<>(ItemStackUtils::isBrewingFuel, BREWING_MIN_FUEL_COUNT);
                                 walkTo = null;
                                 return GATHERING_REQUIRED_MATERIALS;
                             }
@@ -589,11 +601,11 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
      */
     private IAIState addFuelToBrewingStand()
     {
-        if (!InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), Items.BLAZE_POWDER))
+        if (!InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), ItemStackUtils::isBrewingFuel))
         {
-            if (InventoryUtils.hasItemInProvider(building, Items.BLAZE_POWDER))
+            if (InventoryUtils.hasItemInProvider(building, ItemStackUtils::isBrewingFuel))
             {
-                needsCurrently = new Tuple<>(item -> item.getItem() == Items.BLAZE_POWDER, STACKSIZE);
+                needsCurrently = new Tuple<>(ItemStackUtils::isBrewingFuel, STACKSIZE);
                 return GATHERING_REQUIRED_MATERIALS;
             }
             //We shouldn't get here, unless something changed between the checkBrewingStandFuel and the addFueltoBrewingStand calls
@@ -614,11 +626,11 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
             {
                 final BrewingStandBlockEntity brewingStand = (BrewingStandBlockEntity) entity;
                 //Stoke the brewing stands
-                if (InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), Items.BLAZE_POWDER)
+                if (InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), ItemStackUtils::isBrewingFuel)
                       && (hasBrewableAndNoFuel(brewingStand) || hasNeitherFuelNorBrewable(brewingStand)))
                 {
                     InventoryUtils.transferXOfFirstSlotInItemHandlerWithIntoInItemHandler(
-                      worker.getInventoryCitizen(), item -> item.getItem() == Items.BLAZE_POWDER, BREWING_MIN_FUEL_COUNT,
+                      worker.getInventoryCitizen(), ItemStackUtils::isBrewingFuel, BREWING_MIN_FUEL_COUNT,
                       new InvWrapper(brewingStand), BREWING_FUEL_SLOT);
 
                     if (preFuelState != null && preFuelState != ADD_FUEL_TO_BREWINGSTAND)
@@ -659,6 +671,11 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
 
         for (final BlockPos pos : building.getAllBrewingStandPositions())
         {
+            if (!WorldUtil.isBlockLoaded(world, pos))
+            {
+                continue;
+            }
+
             final BlockEntity entity = world.getBlockEntity(pos);
             if (entity instanceof BrewingStandBlockEntity)
             {
@@ -702,21 +719,38 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
             int inputInBrewingStand = getExtendedCount(inputStorage.getItemStack());
             int inputInInv = InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), predicate);
 
-            if (countInBewingStand + inputInBrewingStand + inputInInv + outputInInv < inputStorage.getAmount() * job.getMaxCraftingCount())
+            final int required = inputStorage.getAmount() * job.getMaxCraftingCount();
+            if (countInBewingStand + inputInBrewingStand + inputInInv + outputInInv < required)
             {
                 if (InventoryUtils.hasItemInProvider(building, predicate))
                 {
                     needsCurrently = new Tuple<>(predicate, inputStorage.getAmount() * (job.getMaxCraftingCount() - countInBewingStand - inputInBrewingStand));
                     return GATHERING_REQUIRED_MATERIALS;
                 }
+
+                // Free mode hands the material over rather than asking for it. The base class does this in both
+                // its own checkForItems and getRecipe; this override had it in neither, so a free-mode colony
+                // with an empty hut reached the cancel below instead of being supplied.
+                if (worksWithoutMaterials()
+                      && supplyMaterialWithoutRequest(inputStorage.getItemStack(),
+                  required - countInBewingStand - inputInBrewingStand - inputInInv - outputInInv) > 0)
+                {
+                    continue;
+                }
             }
 
             //if we don't have enough at all, cancel
             int countOfInput = inputInInv + InventoryUtils.getCountFromBuilding(building, predicate) + countInBewingStand + inputInBrewingStand + outputInInv;
-            if (countOfInput < inputStorage.getAmount() * job.getMaxCraftingCount())
+            if (countOfInput < required)
             {
+                // The request is finished here, so the recipe and the request have to go with it. resetValues
+                // leaves both standing, and without a return the loop carried on and then handed back CRAFT for
+                // an order that no longer exists.
                 job.finishRequest(false);
+                currentRecipeStorage = null;
+                currentRequest = null;
                 resetValues();
+                return START_WORKING;
             }
         }
 
@@ -793,37 +827,6 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
     }
 
     /**
-     * Retrieve used fuel from the brewingStand. If no position has been set return. Else navigate to the position of the brewingStand. On arrival execute the extract method of the
-     * specialized worker.
-     *
-     * @return the next state to go to.
-     */
-    private IAIState retrieveUsedFuel()
-    {
-        if (walkTo == null)
-        {
-            return START_WORKING;
-        }
-
-        if (!walkToWorkPos(walkTo))
-        {
-            return getState();
-        }
-
-        final BlockEntity entity = world.getBlockEntity(walkTo);
-        if (!(entity instanceof BrewingStandBlockEntity) || (ItemStackUtils.isEmpty(((BrewingStandBlockEntity) entity).getItem(BREWING_FUEL_SLOT))))
-        {
-            walkTo = null;
-            return START_WORKING;
-        }
-
-        walkTo = null;
-
-        extractFromBrewingStandSlot((BrewingStandBlockEntity) entity, BREWING_FUEL_SLOT);
-        return START_WORKING;
-    }
-
-    /**
      * Very simple action, straightly extract from a brewingStand slot.
      *
      * @param brewingStand the brewingStand to retrieve from.
@@ -894,7 +897,7 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
         {
             if (worker.getCitizenData() != null)
             {
-                worker.getCitizenData().triggerInteraction(new StandardInteraction(Component.translatableEscape(BAKER_HAS_NO_FURNACES_MESSAGE), ChatPriority.BLOCKING));
+                worker.getCitizenData().triggerInteraction(new StandardInteraction(Component.translatableEscape(ALCHEMIST_HAS_NO_BREWING_STAND_MESSAGE), ChatPriority.BLOCKING));
             }
             setDelay(STANDARD_DELAY);
             return START_WORKING;
@@ -992,9 +995,14 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
                 final ItemStack ingredientStack = currentRecipeStorage.getCleanedInput().get(1).getItemStack();
                 final Predicate<ItemStack> ingredient = stack -> ItemStackUtils.compareItemStacksIgnoreStackSize(ingredientStack, stack);
                 final int ingredientInBrewingStand = getExtendedCount(ingredientStack);
-                final int targetCount =
+                // Everything above this line counts bottles: the request, the output and what is already in the
+                // stand or the inventory, and one reagent in the stand covers three of them. The reagent count is
+                // therefore a third of the shortfall - the old code handed the bottle figure straight to
+                // needsCurrently and gathered three times the reagent it could use.
+                final int potionsStillNeeded =
                   currentRequest.getRequest().getCount() * currentRecipeStorage.getPrimaryOutput().getCount() - ingredientInBrewingStand * 3 - resultInBrewingStand
                     - resultInCitizenInv;
+                final int targetCount = (potionsStillNeeded + 2) / 3;
                 if (targetCount <= 0)
                 {
                     return START_WORKING;
@@ -1078,7 +1086,7 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
         {
             if (worker.getCitizenData() != null)
             {
-                worker.getCitizenData().triggerInteraction(new StandardInteraction(Component.translatableEscape(BAKER_HAS_NO_FURNACES_MESSAGE), ChatPriority.BLOCKING));
+                worker.getCitizenData().triggerInteraction(new StandardInteraction(Component.translatableEscape(ALCHEMIST_HAS_NO_BREWING_STAND_MESSAGE), ChatPriority.BLOCKING));
             }
             setDelay(STANDARD_DELAY);
             return START_WORKING;

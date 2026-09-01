@@ -613,7 +613,7 @@ public class RaidManager implements IRaiderManager
         final PathJobRaiderPathing job =
             new PathJobRaiderPathing(new ArrayList<>(colony.getServerBuildingManager().getBuildings().values()), colony.getWorld(), closestBuildingPos, targetSpawnPoint);
         job.getPathingOptions().withWalkUnderWater(underwater);
-        job.getResult().startJob(Pathfinding.getExecutor());
+        Pathfinding.submit(job.getResult());
         return job.getResult();
     }
 

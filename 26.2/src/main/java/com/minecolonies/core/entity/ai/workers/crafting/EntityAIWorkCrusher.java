@@ -46,8 +46,17 @@ public class EntityAIWorkCrusher extends AbstractEntityAICrafting<JobCrusher, Bu
     public EntityAIWorkCrusher(@NotNull final JobCrusher job)
     {
         super(job);
+        // No IDLE target of its own. The crusher used to carry an unconditional IDLE -> START_WORKING at one tick,
+        // to get itself back to work the moment there was crushing to do -- the daily quota resetting at dawn is not
+        // a task in the queue, so the plain crafter's "is there a task" test would have left it sitting there. That
+        // job now belongs to hasWorkToDo() below, which the base class tests from IDLE once a second and which
+        // answers for the daily quota as well.
+        //
+        // Kept as it was, the one-tick target beat both of the base transitions to the punch on nineteen ticks out
+        // of twenty, so START_WORKING -> decide() -> IDLE -> START_WORKING went round without pause and idle() was
+        // never reached: a crusher that had finished its day could not sit down, shelter from the rain or walk its
+        // hut like every other crafter.
         super.registerTargets(
-          new AITarget(IDLE, START_WORKING, 1),
           new AITarget(CRUSH, this::crush, TICK_DELAY)
         );
         worker.setCanPickUpLoot(true);
@@ -113,7 +122,15 @@ public class EntityAIWorkCrusher extends AbstractEntityAICrafting<JobCrusher, Bu
 
         final IRecipeStorage recipeMode = crusherBuilding.getSetting(BuildingCrusher.MODE).getValue(crusherBuilding);
         final int dailyLimit = crusherBuilding.getSetting(BuildingCrusher.DAILY_LIMIT).getValue();
-        if (currentRecipeStorage == null)
+        if (getState() != CRAFT)
+        {
+            // Free crushing follows the mode in the hut window, so re-read it every cycle. Picking it up only when
+            // currentRecipeStorage happened to be null meant the setting took hold when the material ran out and not
+            // before -- a crusher with a chest of gravel behind it went on making sand for as long as the gravel
+            // lasted after the player had switched it to something else.
+            currentRecipeStorage = recipeMode;
+        }
+        else if (currentRecipeStorage == null)
         {
             currentRecipeStorage = recipeMode;
         }
@@ -130,6 +147,25 @@ public class EntityAIWorkCrusher extends AbstractEntityAICrafting<JobCrusher, Bu
 
             if (check == CRAFT)
             {
+                // Nothing counts until the recipe has actually been fulfilled. fullfillRecipe answers false when the
+                // output does not fit or an input is no longer extractable, and every line below this one used to run
+                // ahead of it and regardless of its answer: the daily quota, the craft counter, the experience, the
+                // building statistics -- and addDelivery, which reports goods to the open request. A single false
+                // then fed itself, because checkForItems credits the craft counter it was just handed: the order ran
+                // to its end and closed on items that were never made. AbstractEntityAICrafting#executeCraftingAction
+                // gates the same bookkeeping the same way.
+                if (!currentRecipeStorage.fullfillRecipe(getLootContext(), ImmutableList.of(worker.getItemHandlerCitizen())))
+                {
+                    if (getState() == CRAFT)
+                    {
+                        currentRequest = null;
+                        incrementActionsDone(getActionRewardForCraftingSuccess());
+                        job.finishRequest(false);
+                        resetValues();
+                    }
+                    return START_WORKING;
+                }
+
                 if (getState() != CRAFT)
                 {
                     crusherBuilding.setCurrentDailyQuantity(crusherBuilding.getCurrentDailyQuantity() + 1);
@@ -145,7 +181,6 @@ public class EntityAIWorkCrusher extends AbstractEntityAICrafting<JobCrusher, Bu
 
                 worker.swing(InteractionHand.MAIN_HAND);
                 job.setCraftCounter(job.getCraftCounter() + 1);
-                currentRecipeStorage.fullfillRecipe(getLootContext(), ImmutableList.of(worker.getItemHandlerCitizen()));
 
                 worker.decreaseSaturationForContinuousAction();
                 worker.getCitizenExperienceHandler().addExperience(0.1);
@@ -219,28 +254,29 @@ public class EntityAIWorkCrusher extends AbstractEntityAICrafting<JobCrusher, Bu
         }
 
         final IAIState check = crush();
-        if (check == getState())
+        if (check != getState())
         {
-            if (job.getCraftCounter() >= job.getMaxCraftingCount())
+            // A state that is not this one is a detour, not a verdict on the order. checkForItems hands back
+            // GATHERING_REQUIRED_MATERIALS when the input is sitting in the hut a few blocks away, and GET_RECIPE
+            // when the recipe has to be picked again; crush() itself hands back START_WORKING when it has already
+            // dealt with the request. Treating all three as a failure dropped orders the worker only had to walk
+            // for. The base crafter goes where it is sent (AbstractEntityAICrafting#craft), so do that.
+            return check;
+        }
+
+        if (job.getCraftCounter() >= job.getMaxCraftingCount())
+        {
+            incrementActionsDone(getActionRewardForCraftingSuccess());
+            currentRecipeStorage = null;
+            worker.decreaseSaturationForAction();
+            resetValues();
+            if (inventoryNeedsDump())
             {
-                incrementActionsDone(getActionRewardForCraftingSuccess());
-                currentRecipeStorage = null;
-                worker.decreaseSaturationForAction();
-                resetValues();
-                if (inventoryNeedsDump())
+                if (job.getMaxCraftingCount() == 0 && job.getProgress() == 0 && job.getCraftCounter() == 0 && currentRequest != null)
                 {
-                    if (job.getMaxCraftingCount() == 0 && job.getProgress() == 0 && job.getCraftCounter() == 0 && currentRequest != null)
-                    {
-                        job.finishRequest(true);
-                    }
+                    job.finishRequest(true);
                 }
             }
-        }
-        else
-        {
-            currentRequest = null;
-            job.finishRequest(false);
-            resetValues();
         }
 
         return getState();

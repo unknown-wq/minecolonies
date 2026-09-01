@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.minecolonies.api.util.constant.translation.CommandTranslationConstants.*;
 
@@ -97,8 +96,11 @@ public class CommandPathStats implements IMCOPCommand
         }
 
         final double windowSeconds = stats.windowNanos() / 1e9;
-        final ThreadPoolExecutor pool = Pathfinding.getExecutor();
-        final int threads = Math.max(1, pool.getCorePoolSize());
+        // status() rather than getExecutor(): asking about the pool should not build one, and the report has to be
+        // able to say that a pool which was replaced is still finishing its backlog. The size and the backlog below
+        // are the live pool's own, so neither is inflated by a drain in flight.
+        final Pathfinding.PoolStatus pool = Pathfinding.status();
+        final int threads = Math.max(1, pool.threads());
         final double waitAvgNanos = stats.waitSamples() == 0 ? 0 : (double) stats.waitNanos() / stats.waitSamples();
         final double computeAvgNanos = (double) stats.computeNanos() / stats.finished();
         final double busy = (double) stats.computeNanos() / (stats.windowNanos() * (double) threads);
@@ -121,9 +123,19 @@ public class CommandPathStats implements IMCOPCommand
         report.emit(Component.translatable(COMMAND_PATHSTATS_POOL,
           String.valueOf(threads),
           percent(busy),
-          String.valueOf(pool.getQueue().size()),
+          String.valueOf(pool.queued()),
           String.valueOf(stats.queuePeak()),
-          String.valueOf(pool.getQueue().size() + pool.getQueue().remainingCapacity())));
+          String.valueOf(pool.capacity())));
+
+        // The occupancy above is measured against the pool as it is now, so while a replaced pool is still working
+        // it is understated -- searching was going on across more, or fewer, threads than the line says. Naming the
+        // drain is what keeps the numbers honest without pretending to a precision the window does not have.
+        if (pool.drainingPools() > 0)
+        {
+            report.emit(Component.translatable(COMMAND_PATHSTATS_DRAINING,
+              String.valueOf(pool.drainingPools()),
+              String.valueOf(pool.drainingJobs())), ChatFormatting.YELLOW);
+        }
 
         // A partition, and it has to stay one: arrived, stopped short of the destination, or produced nothing at all.
         // Running out of node budget is not a fourth case but a reason, and it overlaps the first two, so it gets its

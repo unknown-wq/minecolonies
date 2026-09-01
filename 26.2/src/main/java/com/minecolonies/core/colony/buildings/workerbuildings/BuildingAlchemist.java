@@ -89,17 +89,30 @@ public class BuildingAlchemist extends AbstractBuilding
     public void registerBlockPosition(@NotNull final BlockState block, @NotNull final BlockPos pos, @NotNull final Level world)
     {
         super.registerBlockPosition(block, pos, world);
+        // The builder walks the whole schematic through here on every build pass - each upgrade and each repair -
+        // so without these guards a level 5 hut would hold five copies of every position. Duplicates are not
+        // harmless: accelerateBrewingStand ticks a stand once per copy, which multiplies the brewing speed the
+        // citizen's Mana is supposed to buy, and countOfBubblingBrewingStands counts one busy stand as several.
         if (block.getBlock() == Blocks.SOUL_SAND)
         {
-            soulsand.add(pos);
+            if (!soulsand.contains(pos))
+            {
+                soulsand.add(pos);
+            }
         }
         else if (block.is(BlockTags.LEAVES))
         {
-            leaves.add(pos);
+            if (!leaves.contains(pos))
+            {
+                leaves.add(pos);
+            }
         }
         else if (block.getBlock() == Blocks.BREWING_STAND)
         {
-            brewingStands.add(pos);
+            if (!brewingStands.contains(pos))
+            {
+                brewingStands.add(pos);
+            }
         }
     }
 
@@ -107,22 +120,40 @@ public class BuildingAlchemist extends AbstractBuilding
     public void deserializeNBT(@NotNull final HolderLookup.Provider provider, final CompoundTag compound)
     {
         super.deserializeNBT(provider, compound);
+        // Read into empty lists and drop repeats as they come in. Saves written before the registration guards
+        // existed hold one copy of every position per build the hut has had, so the duplicates have to be cleared
+        // out on load as well; the first save after loading writes the deduplicated lists back.
+        soulsand.clear();
         final ListTag sandPos = compound.getListOrEmpty(TAG_PLANTGROUND);
         for (int i = 0; i < sandPos.size(); ++i)
         {
-            soulsand.add(NBTUtils.readBlockPos(sandPos.get(i)));
+            final BlockPos pos = NBTUtils.readBlockPos(sandPos.get(i));
+            if (!soulsand.contains(pos))
+            {
+                soulsand.add(pos);
+            }
         }
 
+        leaves.clear();
         final ListTag leavesPos = compound.getListOrEmpty(TAG_LEAVES);
         for (int i = 0; i < leavesPos.size(); ++i)
         {
-            leaves.add(NBTUtils.readBlockPos(leavesPos.get(i)));
+            final BlockPos pos = NBTUtils.readBlockPos(leavesPos.get(i));
+            if (!leaves.contains(pos))
+            {
+                leaves.add(pos);
+            }
         }
 
+        brewingStands.clear();
         final ListTag brewingStandPos = compound.getListOrEmpty(TAG_BREWING_STAND);
         for (int i = 0; i < brewingStandPos.size(); ++i)
         {
-            brewingStands.add(NBTUtils.readBlockPos(brewingStandPos.get(i)));
+            final BlockPos pos = NBTUtils.readBlockPos(brewingStandPos.get(i));
+            if (!brewingStands.contains(pos))
+            {
+                brewingStands.add(pos);
+            }
         }
     }
 

@@ -15,6 +15,7 @@ import com.minecolonies.api.util.constant.ColonyConstants;
 import com.minecolonies.core.colony.buildings.AbstractBuilding;
 import com.minecolonies.core.colony.buildings.modules.AnimalHerdingModule;
 import com.minecolonies.core.colony.jobs.AbstractJob;
+import com.minecolonies.core.entity.ai.animals.Tether;
 import com.minecolonies.core.entity.ai.workers.AbstractEntityAIInteract;
 import com.minecolonies.core.entity.pathfinding.navigation.EntityNavigationUtils;
 import com.minecolonies.core.util.citizenutils.CitizenItemUtils;
@@ -28,6 +29,7 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.phys.Vec3;
@@ -88,6 +90,21 @@ public abstract class AbstractEntityAIHerder<J extends AbstractJob<?, J>, B exte
     private static final int BUTCHER_DELAY  = 20;
     private static final int DECIDING_DELAY = 80;
     private static final int BREEDING_DELAY = 40;
+    private static final int LEASHING_DELAY = 20;
+
+    /**
+     * How many leads are asked for at once, so that a hut that has just had the setting switched on does not file one
+     * courier run per animal. Nothing is wasted by asking for too many: a lead the hut does not use stays in its
+     * chest and is spent by the next hitch.
+     */
+    private static final int LEADS_PER_REQUEST = 4;
+
+    /**
+     * How long the leash pass stands down for after finding nothing to tie, in ticks. Without it a hut whose animals
+     * are all tied already, or which has no fence anywhere near them, would run the fence search every time it
+     * decided what to do.
+     */
+    private static final int LEASHING_TIMEOUT = TICKS_SECOND * 60;
 
     /**
      * Level limit to feed children.
@@ -136,6 +153,20 @@ public abstract class AbstractEntityAIHerder<J extends AbstractJob<?, J>, B exte
     private int breedTimeOut = 0;
 
     /**
+     * The animal the leash pass has settled on. Chosen in {@link #decideWhatToDo()} and kept for as long as the walk
+     * to it takes, so that the worker does not change its mind about which animal it is tying up on every tick of
+     * that walk. The fence is deliberately not kept with it: it is looked up again on arrival, by which time the
+     * animal has moved.
+     */
+    @Nullable
+    private Animal animalToLeash = null;
+
+    /**
+     * Prevents rescanning for something to tie up every time there is nothing to tie up.
+     */
+    private int leashTimeOut = 0;
+
+    /**
      * Creates the abstract part of the AI. Always use this constructor!
      *
      * @param job the job to fulfill.
@@ -151,7 +182,8 @@ public abstract class AbstractEntityAIHerder<J extends AbstractJob<?, J>, B exte
           new AITarget(HERDER_BREED, this::breedAnimals, BREEDING_DELAY),
           new AITarget(HERDER_BUTCHER, this::butcherAnimals, BUTCHER_DELAY),
           new AITarget(HERDER_PICKUP, this::pickupItems, TICKS_SECOND),
-          new AITarget(HERDER_FEED, this::feedAnimal, TICKS_SECOND)
+          new AITarget(HERDER_FEED, this::feedAnimal, TICKS_SECOND),
+          new AITarget(HERDER_LEASH, this::leashAnimal, LEASHING_DELAY)
         );
         worker.setCanPickUpLoot(true);
     }
@@ -212,6 +244,11 @@ public abstract class AbstractEntityAIHerder<J extends AbstractJob<?, J>, B exte
             breedTimeOut -= DECIDING_DELAY;
         }
 
+        if (leashTimeOut > 0)
+        {
+            leashTimeOut -= DECIDING_DELAY;
+        }
+
         for (final AnimalHerdingModule module : building.getModulesByType(AnimalHerdingModule.class))
         {
             final List<? extends Animal> animals = searchForAnimals(module::isCompatible);
@@ -249,6 +286,10 @@ public abstract class AbstractEntityAIHerder<J extends AbstractJob<?, J>, B exte
             else if (ColonyConstants.rand.nextDouble() < FEED_CHANCE && hasBreedingItem)
             {
                 return HERDER_FEED;
+            }
+            else if (pickAnimalToLeash(animals))
+            {
+                return HERDER_LEASH;
             }
         }
 
@@ -358,23 +399,7 @@ public abstract class AbstractEntityAIHerder<J extends AbstractJob<?, J>, B exte
             return DECIDE;
         }
 
-        final BlockPos center = getCenterOfHerd(animals);
-
-        // Butcher furthest animal
-        animals.sort(Comparator.<Animal>comparingDouble(an -> an.blockPosition().distSqr(center)).reversed());
-
-        Animal toKill = null;
-
-        for (final Animal entity : animals)
-        {
-            if (!entity.isBaby() && !entity.isInLove())
-            {
-                if (toKill == null || !entity.level().canSeeSky(entity.blockPosition()) && toKill.level().canSeeSky(toKill.blockPosition()))
-                {
-                    toKill = entity;
-                }
-            }
-        }
+        final Animal toKill = findButcherTarget(animals);
 
         if (toKill == null)
         {
@@ -394,6 +419,40 @@ public abstract class AbstractEntityAIHerder<J extends AbstractJob<?, J>, B exte
         }
 
         return HERDER_BUTCHER;
+    }
+
+    /**
+     * Which animal the butchering pass would kill right now.
+     * <p>
+     * Its own method rather than a step inside {@link #butcherAnimals()} because the leash pass has to be able to ask
+     * the same question: an animal that is about to be culled must not be tied to a fence first, or the hut spends a
+     * lead on a carcass. Answering it from one place means the two cannot drift apart.
+     *
+     * @param animals the herd, in any order. Sorted here, so pass a list nobody else is reading.
+     * @return the animal that would be butchered, or null if the herd is all babies and breeding pairs.
+     */
+    @Nullable
+    protected Animal findButcherTarget(final List<? extends Animal> animals)
+    {
+        final BlockPos center = getCenterOfHerd(animals);
+
+        // Butcher furthest animal
+        animals.sort(Comparator.<Animal>comparingDouble(an -> an.blockPosition().distSqr(center)).reversed());
+
+        Animal toKill = null;
+
+        for (final Animal entity : animals)
+        {
+            if (!entity.isBaby() && !entity.isInLove())
+            {
+                if (toKill == null || !entity.level().canSeeSky(entity.blockPosition()) && toKill.level().canSeeSky(toKill.blockPosition()))
+                {
+                    toKill = entity;
+                }
+            }
+        }
+
+        return toKill;
     }
 
     /**
@@ -872,6 +931,116 @@ public abstract class AbstractEntityAIHerder<J extends AbstractJob<?, J>, B exte
     public double getButcheringAttackDamage()
     {
         return BUTCHERING_ATTACK_DAMAGE;
+    }
+
+    /**
+     * Settle on an animal to tie to a fence, if the hut is set to do that and there is one worth walking to.
+     * <p>
+     * Asked from {@link #decideWhatToDo()} rather than from the leash state itself so that the state is only ever
+     * entered when there is something to do; a state that decided for itself and found nothing would hand control
+     * straight back to a decision that would send it there again.
+     * <p>
+     * Two animals are passed over on purpose. One is whatever {@link #findButcherTarget} currently points at - the
+     * hut would spend a lead on an animal it is about to kill - and the other is anything already leashed, ridden or
+     * unable to take a lead at all, which is {@link Tether#canTie}'s business. Note that the branch this sits in is
+     * an else of the butchering branch, so a decision that sends the worker butchering never also picks a hitch.
+     *
+     * @param animals the herd of the module currently being considered.
+     * @return true if {@link #animalToLeash} now names an animal to go and tie up.
+     */
+    private boolean pickAnimalToLeash(final List<? extends Animal> animals)
+    {
+        if (leashTimeOut > 0 || !building.getSettingValueOrDefault(AbstractBuilding.LEASHING, false))
+        {
+            return false;
+        }
+
+        final Animal doomed = findButcherTarget(new ArrayList<>(animals));
+
+        for (final Animal animal : animals)
+        {
+            if (animal == doomed || !Tether.canTie(animal))
+            {
+                continue;
+            }
+
+            if (Tether.findFence(animal) != null)
+            {
+                animalToLeash = animal;
+                return true;
+            }
+        }
+
+        // Nothing loose that has a fence within reach. Stand the pass down rather than paying for the same search on
+        // every decision for the rest of the day.
+        animalToLeash = null;
+        leashTimeOut = LEASHING_TIMEOUT;
+        return false;
+    }
+
+    /**
+     * Walk to the animal picked by {@link #pickAnimalToLeash} and tie it to the nearest fence.
+     * <p>
+     * A lead is spent, exactly as one is when a player ties a mob up: the item becomes the knot, and vanilla hands it
+     * back as an item when the hitch is undone or the fence is broken. It is taken out of the hut's own chest when it
+     * is there and asked for through the request system when it is not, both of which
+     * {@code checkIfRequestForItemExistOrCreateAsync} does - the same call the breeding items go through.
+     * <p>
+     * The stable has no such setting and so never reaches this. Its animals are already spoken for: cavalry mounts
+     * are tied and untied by {@code Hitch} on the guard's own schedule, and the Stablemaster leads horses home on a
+     * leash of its own, untying any fence hitch it finds on the way. A second writer with its own lead economy would
+     * do nothing but feed that loop.
+     *
+     * @return The next {@link IAIState}.
+     */
+    private IAIState leashAnimal()
+    {
+        final Animal animal = animalToLeash;
+
+        if (animal == null || !Tether.canTie(animal))
+        {
+            animalToLeash = null;
+            return DECIDE;
+        }
+
+        if (!checkIfRequestForItemExistOrCreateAsync(new ItemStack(Items.LEAD), LEADS_PER_REQUEST, 1))
+        {
+            // No lead in the hut; one is on order now. Nothing to do until it arrives.
+            animalToLeash = null;
+            leashTimeOut = LEASHING_TIMEOUT;
+            return DECIDE;
+        }
+
+        if (walkingToAnimal(animal))
+        {
+            return getState();
+        }
+
+        // Searched again on arrival rather than reused from the decision: the animal has been wandering in the
+        // meantime, and the fence that was nearest to where it stood then may be out of reach of where it stands now.
+        final BlockPos fence = Tether.findFence(animal);
+        final int slot = getItemSlot(Items.LEAD);
+
+        if (fence == null || slot == -1)
+        {
+            animalToLeash = null;
+            return DECIDE;
+        }
+
+        CitizenItemUtils.setHeldItem(worker, InteractionHand.MAIN_HAND, slot);
+
+        if (Tether.tieTo(animal, fence))
+        {
+            worker.swing(InteractionHand.MAIN_HAND);
+            StatsUtil.trackStatByName(building, ITEM_USED, worker.getMainHandItem().getItem().getDescriptionId(), 1);
+            worker.getMainHandItem().shrink(1);
+            worker.getCitizenExperienceHandler().addExperience(XP_PER_ACTION);
+            incrementActionsDoneAndDecSaturation();
+        }
+
+        CitizenItemUtils.removeHeldItem(worker);
+        animalToLeash = null;
+        return DECIDE;
     }
 
     /**

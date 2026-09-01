@@ -294,6 +294,21 @@ public class ServerConfiguration extends AbstractConfiguration
     public final IntValue maxPathfindingDistance;
     public final BooleanValue stopSearchOnArrival;
 
+    /**
+     * How many worker threads the pathfinding pool runs.
+     * <p>
+     * The default is 1, which is the size the pool has always been hard-coded to, so a server that never touches this
+     * setting behaves exactly as it did before. It is read once, when the pool is first built, and a change therefore
+     * takes effect on the next server start rather than immediately; {@code /mc debug maxpool} is the way to change
+     * the size of a pool that is already running.
+     * <p>
+     * Raising it is not free of risk. Every job holds its own state, but the searches read the live world through
+     * {@code ChunkCache}, and vanilla's block storage is not written for concurrent readers; that is already true at
+     * one thread, and more threads widen the window rather than opening a new one. Treat anything above 1 as
+     * something to try on a server you can watch, not as a default.
+     */
+    public final IntValue pathfindingThreads;
+
     /*  --------------------------------------------------------------------------------- *
      *  ------------------- ######## Request System Settings ######## ------------------- *
      *  --------------------------------------------------------------------------------- */
@@ -391,12 +406,18 @@ public class ServerConfiguration extends AbstractConfiguration
         guardDamageMultiplier = defineDouble("guardDamageMultiplier", 1.0, 0.1, 15.0);
         guardHealthMult = defineDouble("guardhealthmult", 1.0, 0.1, 5.0);
         // How far up and down a guard's target scan reaches. Measured on a stand (GUARD-AUDIT.md 3.1):
-        // at the stock 3 a knight standing four blocks from a zombie six blocks above it does not acquire
+        // at the old 3 a knight standing four blocks from a zombie six blocks above it does not acquire
         // it at all -- zero target acquisitions in 250 s -- while an archer beside it engages, because
-        // RangeCombatAI raises its own Y range to 28 while guarding. Raising this makes knights *decide*
-        // differently, so it defaults to the stock value; it also enlarges the entity lookup box, whose
-        // volume is linear in this number.
-        guardVerticalVision = defineInteger("guardverticalvision", GuardConstants.Y_VISION, GuardConstants.Y_VISION, 64);
+        // RangeCombatAI raises its own Y range to 28 while guarding. A six-block-tall box is smaller than
+        // the wall the guard is standing on, and "my guards ignore the mob on the roof" is the single
+        // most-reported guard complaint.
+        //
+        // The default is now 12, i.e. a 24-block-tall box: tall enough to cover a wall, a hut roof and the
+        // floor below without turning the scan into a column. It is a balance change, because it changes
+        // which enemies a guard picks, and it is priced: the entity lookup box's volume is linear in this
+        // number, so 12 is four times the old query volume, once per guard per 80 ticks. Set it back to 3,
+        // the minimum, for exactly the previous behaviour.
+        guardVerticalVision = defineInteger("guardverticalvision", 12, GuardConstants.Y_VISION, 64);
         // Guards nod off on duty at any hour, day or night, and other guards walk over and hit them awake.
         // Measured: 2.6-16.8 % of a guard's day asleep plus 1.3-5.0 % walking to wake a colleague.
         // Set false to switch the mechanic off; true is the stock behaviour.
@@ -422,6 +443,7 @@ public class ServerConfiguration extends AbstractConfiguration
         boatSpeed = defineDouble("boatspeed", BOAT_SPEED_DEFAULT, BOAT_SPEED_MIN, BOAT_SPEED_MAX);
         maxPathfindingDistance = defineInteger("maxpathfindingdistance", 2000, 100, 5000);
         stopSearchOnArrival = defineBoolean("stopsearchonarrival", true);
+        pathfindingThreads = defineInteger("pathfindingthreads", 1, 1, 8);
 
         swapToCategory("requestSystem");
 
