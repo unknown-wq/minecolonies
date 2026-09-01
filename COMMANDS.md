@@ -316,21 +316,19 @@ testing and is not something to leave switched on.
 
 Three things beyond materials are in scope while it is on:
 
-* **A farm field may be any shape**, area rather than radius capped — see
-  [`26.2/FREEMODE.md`](26.2/FREEMODE.md).
+* **A farm field may be any shape**, area rather than radius capped.
 * **A herder hut stocks its own animals.** A cowboy, shepherd, swineherd,
   chicken farmer, rabbit hutch or stable that is short of livestock gets some,
   two at a time, up to the same ceiling its own worker culls back to (two per
   hut level). They appear inside the hut, so the worker can see them straight
   away, and they are penned there like any other. Nobody has to walk cows in by
-  hand any more. See [`26.2/ANIMAL-PENS.md`](26.2/ANIMAL-PENS.md).
+  hand any more.
 * **A building may be built straight to any level.** The Build Options window
   grows a level picker, the button reads "Build to 5", and one work order takes
   the hut from 0 to 5 without the four upgrades in between. Any builder may take
   it, whatever the level of their own hut, and the research a hut normally needs
   for that level is not asked for. A hut that is part of another one's blueprint
-  still may not outgrow its parent. See
-  [`26.2/FREEMODE-BUILD-LEVEL.md`](26.2/FREEMODE-BUILD-LEVEL.md).
+  still may not outgrow its parent.
 
 Out of scope, because they are world state rather than materials: mineshaft
 depth, free fields, hives and flowers, plantable ground, a colony with no
@@ -710,8 +708,7 @@ the craftable strike tool, the `/autopilot` command, a bomber flown in by hand, 
 downed aircraft, a crash. **The blocks of a colony are not protected from vanilla
 explosions**: a creeper, TNT, a bed in the Nether or a bomb dropped from a plane as
 a payload will all take the blueprint apart. Those go through Minecraft's own
-explosion path, which this port has no hook into by design — see
-`26.2/BLAST-PROTECTION.md` for what one would cost.
+explosion path, which this port has no hook into by design.
 
 The **entity** half of the policy is a different story and does apply to every
 explosion in the game, vanilla ones included. On `turnoffexplosionsincolonies =
@@ -777,7 +774,7 @@ The data comes from a per-warehouse observer that samples the racks once per col
 tick (~25 s); nothing hooks the withdrawal paths. A sample is discarded whole unless
 every rack of that warehouse is in a loaded chunk, so walking away from a colony
 never looks like somebody emptying it — the command says so if no warehouse has
-sampled yet. Design note and measurements: `26.2/audit/WAREHOUSE-IDLE.md`.
+sampled yet.
 
 ### `/mc colony antiair <colony> [where|tp|settings|range|rate|damage|minlevel|reset]`
 
@@ -864,7 +861,6 @@ solution and holds fire for ever with nothing saying why. The scan interval only
 changes how fast a hand-flown plane is noticed, and every value that saves work
 makes the battery look broken.
 
-Design note, bounds reasoning and measurements: `26.2/audit/ANTIAIR-TUNING.md`.
 
 ### `/mc aircraft [where|tp]`
 
@@ -1394,7 +1390,7 @@ water computes a full path in about 3000 nodes and 30 ms. The same 3000 blocks
 over broken ground fails, exactly as 150 blocks of broken ground already fails.
 Rails and water also need the chunks kept loaded the whole way, which in
 practice means `/forceload` or a player who travels the route — a colony will
-not hold the middle of it. `26.2/PATHFINDING-RAILS.md` has the measurements.
+not hold the middle of it.
 
 **A long route is not a cheap one — unless `stopsearchonarrival` is on.** With
 that setting off, a 3000-block ride costs the single pathfinding thread the
@@ -1444,7 +1440,7 @@ thread — so if you see citizens routing oddly, `stopsearchonarrival false` is
 the first thing to try, and worth reporting.
 
 `/mc pathstats` reports the arrival tail directly, so the effect is visible
-rather than taken on trust. `26.2/PATHFINDING-EXIT.md` has the full record.
+rather than taken on trust.
 
 `stuckrescueseconds` (new, default 60, 0 to disable) teleports a worker to where
 its job sent it once it has spent that long without getting any closer.
@@ -1492,8 +1488,7 @@ walk. This is the backstop for the ones that cannot walk home at all — across
 water, down a ravine, taken away in a boat — and 32 blocks is far enough that it
 is not something a player standing at the fence ever sees happen.
 
-Free mode stocks herder huts as well: see
-[`26.2/ANIMAL-PENS.md`](26.2/ANIMAL-PENS.md).
+Free mode stocks herder huts as well.
 
 `visitorspertavernlevel` (new, default 3, 0 to 10) is how many visitors a tavern
 holds **for each level it has been built to**. It replaces a hardcoded 3, so the
@@ -1512,8 +1507,8 @@ about what 17 extra citizens cost, against a colony ceiling of 250 — a real bi
 but a payable one, and that is why 10 is where the setting stops.
 
 Set to 0 for no visitors at all. Nothing else spawns them in this port — the
-cured zombie villager route is dead code on Fabric, see
-[`26.2/VISITORS.md`](26.2/VISITORS.md) §2.2 — so 0 also means no recruitment.
+cured zombie villager route is dead code on Fabric — so 0 also means no
+recruitment.
 
 `visitorintervalmodifier` (new, default 1.0, 0.05 to 5.0) multiplies **every**
 wait between visitor arrivals: the delay before a new tavern's first visitor, the
@@ -1532,9 +1527,6 @@ There is a floor no setting gets past: the tavern is only asked once per 500
 ticks, so it can never produce more than one visitor per 25 seconds. Filling a
 ceiling of 50 therefore takes at least 20 minutes whatever this is set to.
 
-What a visitor actually does once it arrives, and what it would take to make them
-tourists instead of recruitment candidates, is in
-[`26.2/VISITORS.md`](26.2/VISITORS.md).
 
 `generations` (new, **default off**) turns citizens mortal. They age one colony
 day per colony day, and when they have used up a lifespan they die of old age —
@@ -1558,8 +1550,7 @@ Turning it on also changes reproduction, because the two cannot be separated:
   lifespan, times food, happiness, crowding and the `GROWTH` research — so a colony
   in neutral conditions exactly replaces itself and a well run one grows. A well
   fed, happy, roomy town with the growth research runs about **2.6×** replacement;
-  a starving, miserable, three-to-a-bed one about **0.1×** and is dying. All four
-  factors and their numbers are tabulated in [`26.2/GENERATIONS.md`](26.2/GENERATIONS.md).
+  a starving, miserable, three-to-a-bed one about **0.1×** and is dying.
 * **A child born without a bed is homeless**, with the happiness penalty and the
   complaints the game already gives homeless adults — and, because misery shortens
   a life here, a shorter one. The colony managers are also told the same day, once
@@ -1594,8 +1585,6 @@ rate. 1.0 means neutral conditions replace exactly; raise it if your colony keep
 shrinking, lower it if the school cannot keep up. No effect unless `generations`
 is on.
 
-The whole design, the arithmetic behind every number, and what was deliberately
-not built, is in [`26.2/GENERATIONS.md`](26.2/GENERATIONS.md).
 
 ## Vanilla gamerules a colony owner needs to know about
 

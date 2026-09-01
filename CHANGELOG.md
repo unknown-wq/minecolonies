@@ -169,8 +169,8 @@ it was rebuilt on every call, several times a second per hungry citizen.
 
 Two things found while auditing are deliberately left alone and written up instead: a restaurant with
 no seat tags at all starves its guests in silence, and the cook walks off to unload after each batch.
-Both are in `26.2/audit/RESTAURANT-AUDIT.md`, along with two hypotheses that measurement disproved —
-stews do not in fact eat their bowls, and the food scorer does not in fact prefer vanilla food.
+Written up alongside them were two hypotheses that measurement disproved — stews do not in fact eat
+their bowls, and the food scorer does not in fact prefer vanilla food.
 
 ## 0.0.57
 
@@ -285,7 +285,6 @@ mixed-language debris; the success screen no longer claims more than was verifie
 means *this session* — the game asks again on the next launch until the assets are installed. The
 whole fetch UI is translated into Russian, German, French, Spanish, Italian, Polish, Brazilian
 Portuguese, Ukrainian, Chinese, Japanese and Korean, with locale-aware number formatting.
-Screenshots and a headless-client guide live in `docs/`.
 
 ## 0.0.52
 
@@ -303,8 +302,8 @@ missing from upstream's `sounds.json` are shipped and merge in.
 
 The warehouse storage upgrade actually works, and a full warehouse no longer stops the colony.
 
-Three items from `audit/WAREHOUSE-CLEANUP.md`, all measured on a dedicated server with a 51-rack,
-2727-slot warehouse rather than argued from the source.
+Three items, all measured on a dedicated server with a 51-rack, 2727-slot warehouse rather than
+argued from the source.
 
 **The upgrade you pay an emerald block for did nothing.** `TileEntityRack#upgradeRackSize` copies the
 old inventory into a larger one, and every `setStackInSlot` of that copy loop fires
@@ -898,18 +897,18 @@ lava breaks them.
 
 ### Upstream
 
-Every commit ldtteam/minecolonies has made since this port's snapshot is now accounted for, in
-[`UPSTREAM-SYNC.md`](UPSTREAM-SYNC.md): what was taken, what was already here by another route, and the
-exact commit the snapshot sits on. Taken in this release: empty bottles come back from recipes again
+Every commit ldtteam/minecolonies has made since this port's snapshot is now accounted for: what was
+taken, what was already here by another route, and the exact commit the snapshot sits on. Taken in
+this release: empty bottles come back from recipes again
 (they were at weight 0 against an empty entry at 100), the warehouse inventory sort holds for the
 session, the alchemist gets blueprints in three Medieval styles, and Caledonia gets two alternative
 residence sets.
 
 ### Housekeeping
 
-`26.2/` had grown to 38 loose documents. The audits now live in `26.2/audit/` and the to-do lists in
-`26.2/todo/`. Two more audits joined them: the **miner** and the **builder**, both measured on a live
-server, both with a ranked list of what to fix.
+The port's own notes had grown to 38 loose documents and were sorted into audits and to-do lists.
+Two more audits joined them: the **miner** and the **builder**, both measured on a live server, both
+with a ranked list of what to fix.
 
 ---
 
@@ -1500,10 +1499,10 @@ flying".
 
 ### The blast-protection patch is gone, absorbed by the mod it belonged to
 
-Since 0.0.27 this repository carried `26.2/patches/simpleplanes-blast-guard.patch` and told the reader
-to apply it by hand, because that repository was not writable from here. It is now. The patch is
+Since 0.0.27 this repository carried a Simple Planes blast-guard patch and told the reader to apply
+it by hand, because that repository was not writable from here. It is now. The patch is
 **deleted**, its 287 lines live in Simple Planes as five real files, and every pointer at it has been
-swept out of `BLAST-PROTECTION.md`, `dist/README.md`, `COMMANDS.md` and the startup log line.
+swept out of the documentation and the startup log line.
 
 Simple Planes gained its own off switch for it — `/blastguard [status|on|off]`, in that mod's own
 vocabulary, with no mention of colonies anywhere. "Off" is the pre-patch behaviour exactly: the filter
@@ -1809,8 +1808,8 @@ express.
 
 **Vanilla explosions are not covered.** Creepers, TNT, beds in the Nether, and a bomb dropped from a
 plane as a payload all go through Minecraft's own explosion path, which would need a vanilla hook —
-and this port contains no mixins by design. What one mixin would cost and buy is written down in
-`26.2/BLAST-PROTECTION.md`, so that call can be made on numbers rather than on a feeling.
+and this port contains no mixins by design. What one mixin would cost and buy was written down
+separately, so that call can be made on numbers rather than on a feeling.
 
 The Simple Planes side shipped as a **patch** in this repository at the time, because that repository
 was not this one's to push to, and until it was applied there this side was inert. *(It has since been
@@ -2002,8 +2001,6 @@ Turn on with `generations` in the server config, tune with `generationslifespand
 - Fields saved by older versions load normally as single-crop fields.
 
 ### Guards
-
-Measurements and method are in `26.2/GUARD-AUDIT.md`.
 
 - **A guard no longer twitches in and out of combat at an enemy it cannot reach.** Once the guard had
   given up on a target, the target search still reported it as found on every sweep, so the AI entered
@@ -2296,5 +2293,4 @@ with zero errors before it is published, and where a figure is quoted it was mea
 server. But no path has been walked, no cow contained and no scarecrow looked at by the person who
 wrote the fix. Bug reports from actual play are the thing this port most needs.
 
-Full per-release detail, including what was measured and what was only read from source, is in
-`dist/README.md`. Commands and config keys are documented in `COMMANDS.md`.
+Commands and config keys are documented in [`COMMANDS.md`](COMMANDS.md).

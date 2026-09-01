@@ -24,11 +24,9 @@
 </p>
 
 <p align="center">
-  <a href="#-in-game">In game</a> ·
   <a href="#-download">Download</a> ·
   <a href="#-what-this-port-adds">What's added</a> ·
   <a href="#-bugs-fixed-here">Fixes</a> ·
-  <a href="#-the-other-ports">Other ports</a> ·
   <a href="#-installation">Installation</a> ·
   <a href="#-building-from-source">Build</a> ·
   <a href="#%EF%B8%8F-known-limitations">Limitations</a> ·
@@ -40,64 +38,12 @@
 
 ---
 
-## 🖼️ In game
-
-Unedited frames from a running world. The F3 overlay is left on in all but the
-last one, so the version, the loader and the Java it is actually running on are
-readable in the corner: `Minecraft 26.2 (Fabric 26.2/fabric)`, Java 25,
-integrated server ticking well inside its 50 ms budget.
-
-<p align="center">
-  <img src="docs/screenshots/colony-overview.jpg" alt="A colony of several dozen named citizens around the town hall" width="900">
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/new-26-2-mobs.jpg" alt="A copper golem, a nautilus, a parched and a mannequin standing in a colony" width="900">
-</p>
-
-<p align="center">
-  <i>Four mobs that only exist in 26.2, in one frame, inside a working colony — a copper golem, a
-  nautilus, a parched and a mannequin. None of them can be spawned in 1.21.1.</i>
-</p>
-
-<table>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/colony-coastline.jpg" alt="Colony buildings along a coastline" width="100%"></td>
-    <td width="50%"><img src="docs/screenshots/mod-raiders.jpg" alt="Raider mobs from the mod standing in a colony courtyard" width="100%"></td>
-  </tr>
-  <tr>
-    <td><b>Huts spread along the coast.</b> Blueprints place, builders finish them, claimed chunks fill in behind.</td>
-    <td><b>The mod's raiders.</b> A barbarian and friends, spawned in deliberately — the mod's own entities, models and gear all render.</td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/hut-gui-guard-tower.jpg" alt="The guard tower hut interface" width="100%"></td>
-    <td width="50%"><img src="docs/screenshots/sulfur-cube.jpg" alt="A sulfur cube in a colony pasture" width="100%"></td>
-  </tr>
-  <tr>
-    <td><b>A hut interface.</b> BlockUI windows, module tabs and worker assignment all work.</td>
-    <td><b>A sulfur cube wanders into the pasture.</b> That mob is new in 26.2 — it does not exist in 1.21.1, the version this port started from.</td>
-  </tr>
-</table>
-
-<p align="center">
-  <img src="docs/screenshots/citizens-sailing.jpg" alt="Six citizens rowing across a lake in boats in the rain, in front of a colony" width="900">
-</p>
-
-<p align="center">
-  <i>Six citizens crossing a lake under rain, each in their own boat, on their way to work. Boats are
-  not in upstream MineColonies — this port <a href="#-what-this-port-adds">adds them</a>: the
-  pathfinder plans the crossing, the citizen spawns a hull, sails it and steps off on the far shore.
-  F3 is off in this one so the lake is actually visible.</i>
-</p>
-
----
-
 ## 📦 Download
 
 **The built mod jar lives in [`dist/`](dist/).** One file, nothing else to assemble.
 
 ```
-dist/minecolonies-26.2-0.0.61.jar          44 MB
+dist/minecolonies-26.2-0.0.63.jar          44 MB
 ```
 
 The jar carries its three dependencies inside it through Fabric's Jar-in-Jar, and the loader brings
@@ -112,17 +58,15 @@ them up as ordinary mods:
 > ⚠️ **Do not also put `blockui`, `structurize` or `domum_ornamentum` in `mods/` as separate files.**
 > A jar in `mods/` wins over a nested one **regardless of version** — `isRoot()` is the first key in
 > the loader's candidate sort — and nothing about it appears in the log. The symptom is a crash whose
-> stack trace points at a line that does not exist in the current source. Details in
-> [`dist/README.md`](dist/README.md).
+> stack trace points at a line that does not exist in the current source.
 
 ---
 
 ## ✨ What this port adds
 
 Everything in this section is **new relative to upstream MineColonies**, and all of it has been played
-on a live client and a dedicated server rather than only compiled. Each feature has a document behind
-it in [`26.2/`](26.2/) recording what was observed in game and what was measured — the links go there.
-Commands and settings are collected in [`COMMANDS.md`](COMMANDS.md).
+on a live client and a dedicated server rather than only compiled. Commands and settings are collected
+in [`COMMANDS.md`](COMMANDS.md).
 
 ### 🛶 Citizens sail boats
 
@@ -137,8 +81,8 @@ Gated behind its own **`Boats` research**, mirroring upstream's `Rails` — it c
 citizen a boat was placed for can board it.
 
 Measured through the real navigator: an 800-block water route builds a full path in 7–11 ms (2191
-nodes); the same route swimming does not build at all. Full numbers, including what the hard 900-block
-navigator limit does to long routes, in [`26.2/PATHFINDING-DISTANCE.md`](26.2/PATHFINDING-DISTANCE.md).
+nodes); the same route swimming does not build at all. The navigator's hard 900-block limit still
+applies to long routes.
 
 ### 🗺️ Three claim scepters, and borders drawn block by block
 
@@ -160,7 +104,6 @@ centre. All three now ask **who owns the ground** instead — a hut claims its o
 distance (`maxoutlyingchunks`), an outpost stays chunk-loaded on its own (`maxforcedchunks`), and a
 citizen gets a bed near its work rather than near the centre. Plus `/mc colony rehouse`, which moves
 citizens who are already living in the wrong place.
-→ [`26.2/ENCLAVE-FEATURES.md`](26.2/ENCLAVE-FEATURES.md), [`26.2/ENCLAVE-BUILD.md`](26.2/ENCLAVE-BUILD.md)
 
 ### 🌾 A farmer that prepares its own ground
 
@@ -173,8 +116,6 @@ citizens who are already living in the wrong place.
 - **Fields of any shape** in free mode: the rule is total area (default 4096 blocks, server config)
   rather than upstream's "sum of four radii ≤ 20", which capped every field at 11×11.
 
-→ [`26.2/FARMER-TERRAFORM.md`](26.2/FARMER-TERRAFORM.md), [`26.2/FIELD-ASSIGNMENT.md`](26.2/FIELD-ASSIGNMENT.md)
-
 ### 🎣 A fisherman who sails to his water
 
 Where a pond has **no reachable bank**, the fisherman goes out on it: a hull is conjured the way citizen
@@ -182,8 +123,6 @@ boat travel already conjures one — no boat item, no request — moored while h
 own if he dies, sleeps or is unassigned. Gated behind the same **`Boats` research**; a colony without it
 behaves exactly as before. Shore fishing is untouched. His hut also holds **one fisherman per building
 level**, five at level 5, each remembering his own ponds and carrying his own rod.
-
-→ [`26.2/audit/FISHERMAN-AUDIT.md`](26.2/audit/FISHERMAN-AUDIT.md)
 
 ### 🐴 The Stable, unlocked — and cavalry that rides
 
@@ -212,8 +151,6 @@ mount. 0 hits in 160 samples before, live every tick after.
 
 Measured alongside, and left alone deliberately: the Stable's **patrol interval** defaults to six
 minutes, which is why cavalry spends most of its time near the Stable. It is a hut setting.
-→ [`26.2/audit/CAVALRY-SPEED.md`](26.2/audit/CAVALRY-SPEED.md),
-[`26.2/audit/CAVALRY-STEERING.md`](26.2/audit/CAVALRY-STEERING.md)
 
 ### ⛏️ A mine that admits it is stuck
 
@@ -222,8 +159,6 @@ never deepening, `/mc colony diagnose` reporting no problems for 100 000 ticks w
 changed. The stall is now named in chat and in `diagnose`, where it outlives the miner who found it. He
 leaves the fire instead of burning to death without reacting, never aims a pickaxe at lava, and the
 fluid sweep runs on the passes an early return used to skip.
-
-→ [`26.2/audit/MINER-AUDIT.md`](26.2/audit/MINER-AUDIT.md)
 
 ### ⚔️ Raids on demand
 
@@ -241,7 +176,7 @@ the colony, off by default, replacing the four scattered hut checkboxes. Two mec
 handed what it lacks on the spot (materials, tools, weapons, seeds, cures, food), *and* the request
 system conjures what no hut setting could ever reach — crafting recipe inputs, furnace fuel, smeltery
 ore, school paper, guard weapons and armour. Workers already stuck in `NEEDS_ITEM` resume without a
-relog. → [`26.2/FREEMODE.md`](26.2/FREEMODE.md)
+relog.
 
 ### 🩺 Diagnostics and admin commands
 
@@ -286,12 +221,6 @@ Two more that are **not** upstream's, kept apart from the table on purpose:
 - **Oversized stacks vanishing** into an empty citizen slot is upstream's bug but upstream's fix too —
   backported here from `ldtteam/minecolonies#11772`.
 
-Regressions **this port introduced and then found**, including three "this API has no counterpart on
-Fabric" comments that were false — each having quietly disabled working game logic behind a green build
-— are written up in [`26.2/AI-FIXES.md`](26.2/audit/AI-FIXES.md) and [`26.2/OPT-FIXES.md`](26.2/audit/OPT-FIXES.md).
-What is **known and deliberately left**, including two findings the owner chose to ship with, is in
-[`26.2/TODO.md`](26.2/todo/TODO.md).
-
 ### ⚡ Performance
 
 Profiled on a **live 1000-citizen colony** on a dedicated server, with the pathfinding pool instrumented
@@ -304,34 +233,7 @@ strings behind a disabled flag.
 What is **still** expensive is published rather than summarised into a number: 8× citizens costs 11.5×
 the tick, one pathfinding thread sits at 86 % with jobs queued a quarter second, 8 % of that thread is
 CAS contention on a shared `Random`, and the tick's largest single cost at that scale is a *vanilla*
-entity path, not the mod's AI. → [`26.2/AI-SCALE-AUDIT.md`](26.2/audit/AI-SCALE-AUDIT.md), with the ranked
-to-do in [`26.2/TODO.md`](26.2/todo/TODO.md). The world it was measured on ships in
-[`testworlds/`](testworlds/).
-
----
-
-## 🧩 The other ports
-
-MineColonies is the top of a stack of four, and the reason the other three were ported at all.
-Each has its own repository, and each is also bundled inside the jar above.
-
-| Mod | Fabric 26.2 port | Original (upstream) | Role in the stack |
-|---|---|---|---|
-| **BlockUI** | [unknown-wq/BlockUI](https://github.com/unknown-wq/BlockUI) | [ldtteam/BlockUI](https://github.com/ldtteam/BlockUI) | XML-driven GUI framework, plus the shared `com.ldtteam.common` layer |
-| **Domum Ornamentum** | [unknown-wq/Domum-Ornamentum](https://github.com/unknown-wq/Domum-Ornamentum) | [ldtteam/Domum-Ornamentum](https://github.com/ldtteam/Domum-Ornamentum) | Skinnable decorative blocks used throughout the colony schematics |
-| **Structurize** | [unknown-wq/Structurize](https://github.com/unknown-wq/Structurize) | [ldtteam/Structurize](https://github.com/ldtteam/Structurize) | Blueprint scanning and placement — how every hut gets built |
-| **MineColonies** | **you are here** | [ldtteam/minecolonies](https://github.com/ldtteam/minecolonies) | The colony simulation itself |
-
-```
-BlockUI  ──┐
-           ├──> Structurize ──> MineColonies
-Domum Ornamentum ──────────────┘
-```
-
-> **The three libraries are straight ports** — no new features, same IDs, same behaviour, moved from
-> NeoForge to Fabric and up to Minecraft 26.2. **MineColonies is that move plus the additions above.**
-> Either way the gameplay, content and IDs it started from are the upstream authors' work; what is
-> added here is added on top of theirs and named as such.
+entity path, not the mod's AI.
 
 ---
 
@@ -343,7 +245,7 @@ Domum Ornamentum ──────────────┘
 ```
 mods/
 ├── fabric-api-0.154.2+26.2.jar
-└── minecolonies-26.2-0.0.61.jar
+└── minecolonies-26.2-0.0.63.jar
 ```
 
 3. Launch. In the loaded-mod list, `blockui`, `domum_ornamentum` and `structurize` must appear
@@ -357,17 +259,22 @@ The mod is required on both client and dedicated server. Java 25 is a hard requi
 
 ## 🔨 Building from source
 
+Gradle 9.6.1 or newer and a JDK 25 are what the build needs; Gradle 8.x cannot run on Java 25, and
+the projects ship no Gradle wrapper, so use an install of your own.
+
 ```sh
-./gradle-dist/install.sh                       # installs Gradle 9.6.1 to /opt and OpenJDK 25
-export JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64
+export JAVA_HOME=/path/to/jdk-25
 
 cd 26.2
-/opt/gradle-9.6.1/bin/gradle build             # jar lands in 26.2/build/libs/
+gradle runDatagen                              # required before the first build
+gradle build                                   # jar lands in 26.2/build/libs/
 ```
+
+Run one Gradle invocation at a time: two Loom builds at once race on the same Minecraft cache and the
+loser corrupts it.
 
 The three dependency jars are taken from the paths in `26.2/gradle.properties`; build them from
 their own repositories first, or point those properties at the jars in their `dist/` folders.
-`./gradlew` does not work here — the wrapper cannot fetch GitHub release assets through the proxy.
 
 Useful tasks: `runClient`, `runServer`, `runDatagen`, `validateAccessWidener`. Minecraft 26.1+ ships
 unobfuscated, so the build carries **no mappings line**.
@@ -377,27 +284,37 @@ unobfuscated, so the build carries **no mappings line**.
 ## ⚠️ Known limitations
 
 Some NeoForge-only hooks have no counterpart in Fabric or in vanilla 26.2. Everything cut was kept
-in place, commented and logged rather than deleted. The last row is not a loss at all — it is a
-limit the original had too, listed here because it is the one players hit and then go looking for a
-setting that does not exist.
+in place, commented and logged rather than deleted. The fire and mob griefing row is not a loss at
+all — it is a limit the original had too, listed here because it is the one players hit and then go
+looking for a setting that does not exist.
 
 | Area | What differs from upstream | Impact |
 |---|---|---|
 | **Colony protection** | `ItemTossEvent` and `ItemEntityPickupEvent` have no Fabric counterpart | `TOSS_ITEM` and `PICKUP_ITEM` are not enforced: a stranger inside the borders may still drop items and pick them up. Every other permission works, `PLACE_BLOCKS`/`PLACE_HUTS`, `FILL_BUCKET`, `SHOOT_ARROW`, `BREAK_BLOCKS`, `ACCESS_HUTS` and `ATTACK_CITIZEN` among them |
 | **Explosions** | Fabric API ships no explosion callback, and reaching one generically needs a mixin | Colony **blocks** are not shielded from vanilla explosions — a creeper, TNT or a bed in the Nether takes the blueprint apart. Aircraft blasts are shielded through Simple Planes' own guard seam, and the damage half of `turnoffexplosionsincolonies` — sparing citizens and livestock — works for every explosion in the game |
 | **Fire and mob griefing** | 26.2 routes both through world-wide gamerules with no per-region hook | Neither can be narrowed to a colony. Upstream did not hook them either, so nothing was lost here — but `fire_spread_radius_around_player` and `mob_griefing` are the only levers, and they change the whole world. [`COMMANDS.md`](COMMANDS.md) explains both |
-| **Spear in hand and inventory** | `BlockEntityWithoutLevelRenderer` was removed from vanilla | Renders as a flat item model |
-| **Citizen fallback model** | `Model#renderToBuffer` is final in 26.2 and draws the whole root | The default citizen shows player overlays (jacket, sleeves) that 1.21.1 did not |
-| **`TravellingManager` save format** | Moved to `BlockPos.CODEC` | Old worlds read that one field back as `BlockPos.ZERO` |
+| **Spear in hand and inventory** | `BlockEntityWithoutLevelRenderer` was removed from vanilla | Renders as a flat item model instead of the 3-D spear. The thrown spear is unaffected |
+| **Pharao Scepter** | `ProjectileWeaponItem#customArrow`, which let a bow swap the arrow it fires, has no counterpart | The scepter shoots the player's own arrows instead of always converting them to burning fire arrows. Its damage and the rest of its behaviour are unchanged |
+| **Rally banner** | `IItemExtension#onDroppedByPlayer` has no counterpart | Dropping an active banner no longer calls the rally off — sneak-right-click it off first |
+| **Citizen minecarts** | 26.2 moved rail physics into a package-private `MinecartBehavior` | Cart rides run on vanilla rail speed and curve handling rather than the tuned MineColonies one. The cart still carries only its own citizen and still discards itself once empty |
 | **Restaurant menu ingredients** | `Level#getRecipeManager` does not exist on the client | Only MineColonies' own recipes are parsed for ingredients |
-| **Colony creation particle** | The vanilla particle type changed shape in 26.2 | A different effect plays |
+| **Hut item tooltips** | `Block#appendHoverText` is gone; only items have it in 26.2 | A hut item no longer shows its building level and owning colony in the tooltip |
+| **Citizen voices** | Fabric API has no sound-playback veto, and vanilla 26.2 exposes none | The `enablecitizenvoices` client option mutes nothing any more |
+| **Colony lines on F3** | 26.2 has no extension point on the debug screen | The colony name and distance are gone from the F3 overlay |
+| **`TravellingManager` save format** | Moved to `BlockPos.CODEC` | Old worlds read that one field back as `BlockPos.ZERO` |
+| **JEI and JourneyMap** | Both integrations are excluded from compilation, listed file by file in `26.2/optional-integrations.txt` | No MineColonies recipe categories or teaching transfers in JEI; no colony borders, deathpoints or radar labels on a JourneyMap map. Neither is load-bearing — the mod runs without them |
+| **Dynamic Trees** | There is no Dynamic Trees build for 26.2 to compile against | Every dynamic-tree query answers "no": colonists treat those trees as ordinary blocks, so lumberjacks neither fell them as trees nor replant dynamic saplings |
 
-Each is recorded in [`26.2/PORT-STATUS.md`](26.2/PORT-STATUS.md) → *Disabled content*, with what it
-looks like in game and how to repair it. Several losses were already recovered there — colony crops
-in vanilla loot tables, supply chests, compostables, the map and tablet item overlays, and the
-cavalry horse renderer all went back in after the first pass; the scarecrow's lantern and the colony
-flag's creative placeholder went back in after the second, both onto 26.2's replacements for
-`renderSingleBlock` and `renderStatic`.
+Smaller hooks went the same way: a mod spear does not claim the vanilla sword tool actions (sweeping,
+cutting a cobweb, shearing a pumpkin), a dropped fire arrow lands as an ordinary item entity, the
+goggles key binding is now reported as conflicting with GUI-only bindings, and other mods can no
+longer read raider inventories, override a citizen's arm pose, or hear the supply camp anchor being
+placed.
+
+Several losses were recovered rather than left in this table: colony crops in vanilla loot tables,
+supply camps and ships in vanilla chest loot, compostables in a vanilla composter, the map and tablet
+item overlays, the cavalry horse renderer, the scarecrow's lantern and the colony flag's creative
+placeholder are all back in.
 
 ---
 
@@ -422,51 +339,11 @@ Bug reports are genuinely welcome; that is how the remaining rough edges get fou
 
 The reusable kit all four ports were run from — and that this one extended the most — now lives in
 its own repository: **[unknown-wq/port-kit](https://github.com/unknown-wq/port-kit)**. It holds the
-plan, per-area recipes, ready prompts for an agent team, document templates, the rename and
-import-resolution scripts, raw findings, and the record of every finished port.
+plan, per-area recipes, document templates, the rename and import-resolution scripts, raw findings,
+and the record of every finished port.
 
 Start with [`PORTING-BUNDLE-26.2.md`](https://github.com/unknown-wq/port-kit/blob/main/PORTING-BUNDLE-26.2.md)
 — the whole kit as one file — or the repository's own README for the index.
-
----
-
-## 📁 Repository layout
-
-```
-.
-├── dist/                  # the built jar and its release notes
-├── 26.2/                  # the Fabric 26.2 port — sources, build, and every document below
-│   ├── PORT-STATUS.md         # what was ported, what was cut, what came back
-│   ├── audit/                 # every audit, and what each one changed
-│   │   ├── AI-AUDIT.md            # the AI subsystem, with AI-FIXES.md alongside it
-│   │   ├── AI-SCALE-AUDIT.md      # what breaks at 1000 citizens, measured live
-│   │   ├── MINER-AUDIT.md         # ↓ one per worker, each measured on a live server
-│   │   ├── FISHERMAN-AUDIT.md
-│   │   ├── FARMER-AUDIT.md
-│   │   └── REVIEW-2.md            # the review of this branch, findings and decisions
-│   ├── todo/                  # designed, measured or known — and not done
-│   │   ├── TODO.md
-│   │   └── VANILLA-26.2-OPPORTUNITIES.md   # what 26.2 vanilla now does better than the port
-│   ├── PATHFINDING-DISTANCE.md    # rails, water and the 900-block navigator limit
-│   ├── ENCLAVE-FEATURES.md    # ↓ one document per added feature
-│   ├── FARMER-TERRAFORM.md
-│   ├── FIELD-ASSIGNMENT.md
-│   ├── FREEMODE.md
-├── 1.21.1/                # read-only snapshot of upstream version/1.21 (NeoForge 21.1.80) — the base
-├── testworlds/            # the 1000-citizen colony and the boat arenas, as server worlds
-├── docs/screenshots/      # the frames shown above
-├── docs/CURSEFORGE.md     # the release description, for the CurseForge page
-├── COMMANDS.md            # every added command, item and config option, in one place
-├── UPSTREAM-SYNC.md       # which upstream commit the snapshot sits on, and what has been taken since
-├── API-CHECKLIST-26.2.md  # the API delta measured against this codebase, with hit counts
-└── gradle-dist/           # vendored Gradle 9.6.1 + toolchain installer
-```
-
-The snapshot folder is upstream code, kept verbatim for reference and diffing. It is not edited and
-is not part of the build — it is also what every "this bug is upstream's, not the port's" claim in
-this README was checked against. Which upstream commit it sits on, and every upstream commit since
-that was taken, skipped or found already present here, is tracked in
-[`UPSTREAM-SYNC.md`](UPSTREAM-SYNC.md).
 
 ---
 
