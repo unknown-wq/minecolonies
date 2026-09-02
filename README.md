@@ -31,7 +31,6 @@
   <a href="#-building-from-source">Build</a> ·
   <a href="#%EF%B8%8F-known-limitations">Limitations</a> ·
   <a href="#-issues-and-bug-reports">Issues</a> ·
-  <a href="#-the-port-kit">Port kit</a> ·
   <a href="#-credits">Credits</a> ·
   <a href="#-license">License</a>
 </p>
@@ -332,18 +331,6 @@ Bug reports are genuinely welcome; that is how the remaining rough edges get fou
   misleading.
 - If the same bug also happens on upstream's NeoForge build, it belongs
   [upstream](https://github.com/ldtteam/minecolonies/issues) instead.
-
----
-
-## 🧰 The port kit
-
-The reusable kit all four ports were run from — and that this one extended the most — now lives in
-its own repository: **[unknown-wq/port-kit](https://github.com/unknown-wq/port-kit)**. It holds the
-plan, per-area recipes, document templates, the rename and import-resolution scripts, raw findings,
-and the record of every finished port.
-
-Start with [`PORTING-BUNDLE-26.2.md`](https://github.com/unknown-wq/port-kit/blob/main/PORTING-BUNDLE-26.2.md)
-— the whole kit as one file — or the repository's own README for the index.
 
 ---
 
