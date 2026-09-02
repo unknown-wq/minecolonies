@@ -4,3 +4,10 @@
 # generated/.cache but never generated/assets, and a fresh checkout regenerates them
 # with runDatagen before build. Keeping that split.
 src/main/generated/assets/
+
+# ...and the HashCache manifests are committed with it. The root .gitignore ignores every
+# .cache/ directory, which silently defeated the split described above -- the manifests are
+# what tells a build which generated files are supposed to exist, so they have to travel with
+# the tree. They hold paths and hashes only, no asset bytes, and are byte-stable between runs
+# (the date field in their header is a fixed sentinel, not a timestamp).
+!src/main/generated/.cache/
