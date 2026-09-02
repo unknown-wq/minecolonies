@@ -47,7 +47,14 @@ public class BuilderModeSetting extends StringSetting
     public BuilderModeSetting(final List<String> value, final int curr)
     {
         super(StructureIterators.getKeySet().stream().sorted(String::compareToIgnoreCase).toList(), 0);
-        set(value.get(curr));
+        // The stored index points into the list the setting was written with, which is not the list Structurize
+        // offers now, so it is read there and the name it picks out looked up in the current list by set(). Both
+        // steps can miss -- a shorter saved list, or an iterator that has since gone away -- and either way the
+        // setting keeps the default the constructor above put in.
+        if (curr >= 0 && curr < value.size())
+        {
+            set(value.get(curr));
+        }
     }
 
     @NotNull

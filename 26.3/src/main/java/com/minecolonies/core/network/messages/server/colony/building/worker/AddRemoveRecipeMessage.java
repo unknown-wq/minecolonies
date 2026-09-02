@@ -11,6 +11,7 @@ import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.crafting.IRecipeStorage;
 import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.crafting.RecipeStorage;
+import com.minecolonies.api.inventory.container.ContainerCrafting;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.SoundUtils;
 import com.minecolonies.api.util.constant.Constants;
@@ -168,7 +169,8 @@ public class AddRemoveRecipeMessage extends AbstractBuildingServerMessage<IBuild
         }
         else
         {
-            final IToken<?> token = IColonyManager.getInstance().getRecipeManager().checkOrAddRecipe(storage);
+            final IRecipeStorage recipe = withSecondaryOutputs(player, storage);
+            final IToken<?> token = IColonyManager.getInstance().getRecipeManager().checkOrAddRecipe(recipe);
             if (!module.addRecipe(token))
             {
                 SoundUtils.playErrorSound(player, player.blockPosition());
@@ -177,11 +179,40 @@ public class AddRemoveRecipeMessage extends AbstractBuildingServerMessage<IBuild
             else
             {
                 SoundUtils.playSuccessSound(player, player.blockPosition());
-                AdvancementUtils.TriggerAdvancementPlayersForColony(colony, playerMP -> AdvancementTriggers.BUILDING_ADD_RECIPE.get().trigger(playerMP, this.storage));
+                AdvancementUtils.TriggerAdvancementPlayersForColony(colony, playerMP -> AdvancementTriggers.BUILDING_ADD_RECIPE.get().trigger(playerMP, recipe));
                 MessageUtils.format(MESSAGE_RECIPE_SAVED).sendTo(player);
             }
         }
 
         building.markDirty();
+    }
+
+    /**
+     * Fill in the secondary outputs of a recipe taught through the crafting grid.
+     * <p>
+     * These are the recipe's remaining items - the bucket left over from a cake, and so on. Finding them means
+     * matching the grid against the recipe list, which only exists on the server, so the teaching window cannot
+     * supply them and sends none. The grid itself is mirrored into the server side of the menu as the player fills
+     * it, which is the same copy {@link ContainerCrafting#slotsChanged} already reads to work out the result.
+     *
+     * @param player the player teaching the recipe.
+     * @param recipe the recipe as it arrived.
+     * @return the recipe, with its secondary outputs filled in when there are any.
+     */
+    private static IRecipeStorage withSecondaryOutputs(@NotNull final ServerPlayer player, @NotNull final IRecipeStorage recipe)
+    {
+        if (!recipe.getCraftingToolsAndSecondaryOutputs().isEmpty()
+              || !(player.containerMenu instanceof final ContainerCrafting crafting))
+        {
+            return recipe;
+        }
+
+        final List<ItemStack> secondaryOutputs = crafting.getRemainingItems();
+        if (secondaryOutputs.isEmpty())
+        {
+            return recipe;
+        }
+
+        return RecipeStorage.builder(recipe).withSecondaryOutputs(secondaryOutputs).build();
     }
 }

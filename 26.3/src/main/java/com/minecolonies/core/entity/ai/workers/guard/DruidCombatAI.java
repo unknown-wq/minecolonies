@@ -359,7 +359,9 @@ public class DruidCombatAI extends AttackMoveAI<EntityCitizen>
         // Calls super so the guardverticalvision config reaches druids at all. The literals here were copied from
         // RangeCombatAI before that config existed and never updated with it, so a druid's vertical box was frozen
         // at the old numbers however the server was configured.
-        if (((AbstractBuildingGuards) user.getCitizenData().getWorkBuilding()).getTask().equals(GuardTaskSetting.GUARD))
+        // Null-safe: the target scan reaches this on every pass, hut or no hut.
+        if (user.getCitizenData().getWorkBuilding() instanceof final AbstractBuildingGuards guardBuilding
+              && guardBuilding.getTask().equals(GuardTaskSetting.GUARD))
         {
             return Math.max(super.getYSearchRange(), Y_VISION + 25);
         }

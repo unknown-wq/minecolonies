@@ -6,11 +6,13 @@ import com.ldtteam.blockui.controls.*;
 import com.ldtteam.blockui.views.ScrollingList;
 import com.minecolonies.api.colony.ICitizenDataView;
 import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.items.IMinecoloniesFoodItem;
 import com.minecolonies.api.util.FoodUtils;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.colony.buildings.moduleviews.RestaurantMenuModuleView;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;
 import com.minecolonies.core.colony.crafting.CustomRecipe;
@@ -141,12 +143,16 @@ public class RestaurantMenuModuleWindow extends AbstractModuleWindow<RestaurantM
                 final ICitizenDataView citizenDataView = buildingCookView.getColony().getCitizen(i);
                 if (citizenDataView != null)
                 {
-                    final int buildingLevel = citizenDataView.getHomeBuilding() == null ? 0 :  buildingCookView.getColony().getClientBuildingManager().getBuilding(citizenDataView.getHomeBuilding()).getBuildingLevelEquivalent();
-                    sum += computeSaturationConsumptionFactor(buildingLevel);
+                    // The home a citizen names need not have reached this client yet, and may already have been
+                    // taken out of it, so the level of a house that is not there counts as no house.
+                    final IBuildingView home = citizenDataView.getHomeBuilding() == null
+                                                 ? null
+                                                 : buildingCookView.getColony().getClientBuildingManager().getBuilding(citizenDataView.getHomeBuilding());
+                    sum += computeSaturationConsumptionFactor(home == null ? 0 : home.getBuildingLevelEquivalent());
                 }
             }
-            this.avgCustomerConsumption = sum/buildingCookView.getCustomers().size();
             this.numerOfCustomers = buildingCookView.getCustomers().size();
+            this.avgCustomerConsumption = this.numerOfCustomers == 0 ? 0 : sum / this.numerOfCustomers;
         }
 
     }
@@ -158,7 +164,12 @@ public class RestaurantMenuModuleWindow extends AbstractModuleWindow<RestaurantM
      */
     private void removeStock(final Button button)
     {
-        final int row = menuList.getListElementIndexByPane(button);
+        final int row = ListRow.of(menuList, button, menu.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final ItemStorage storage = menu.get(row);
         moduleView.getMenu().remove(storage);
         AlterRestaurantMenuItemMessage.removeMenuItem(buildingView, storage.getItemStack(), moduleView.getProducer().getRuntimeID()).sendToServer();
@@ -192,7 +203,12 @@ public class RestaurantMenuModuleWindow extends AbstractModuleWindow<RestaurantM
     {
         if (!moduleView.hasReachedLimit())
         {
-            final int row = resourceList.getListElementIndexByPane(button);
+            final int row = ListRow.of(resourceList, button, currentDisplayedList.size());
+            if (row == ListRow.NONE)
+            {
+                return;
+            }
+
             final ItemStorage storage = currentDisplayedList.get(row);
 
             AlterRestaurantMenuItemMessage.addMenuItem(buildingView, storage.getItemStack(), moduleView.getProducer().getRuntimeID()).sendToServer();
@@ -325,7 +341,9 @@ public class RestaurantMenuModuleWindow extends AbstractModuleWindow<RestaurantM
             final FoodProperties foodProperty = dish.getItemStack().get(DataComponents.FOOD);
             saturationSum += FoodUtils.getFoodValue(dish.getItemStack(), foodProperty, researchBonus);
         }
-        final double consumption = (avgCustomerConsumption * 10 * numerOfCustomers) / saturationSum;
+        // An empty menu, or one whose dishes feed nobody, is a restaurant with nothing to work out: without this the
+        // figures below come out as NaN and are shown as such.
+        final double consumption = saturationSum == 0 ? 0 : (avgCustomerConsumption * 10 * numerOfCustomers) / saturationSum;
 
         final ArrayList<Object2DoubleMap.Entry<ItemStorage>> ingredientList = new ArrayList<>(ingredients.object2DoubleEntrySet());
         ingredientList.sort(Comparator.comparingDouble(i -> -i.getValue()));

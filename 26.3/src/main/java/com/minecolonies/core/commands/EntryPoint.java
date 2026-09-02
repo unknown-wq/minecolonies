@@ -126,6 +126,7 @@ public class EntryPoint
          * Root minecolonies command tree, all subtrees are added here.
          */
         final CommandTree minecoloniesRoot = new CommandTree(Constants.MOD_ID)
+            .addNode(new CommandEntityTrack().build())
             .addNode(killCommands)
             .addNode(colonyCommands)
             .addNode(new CommandHomeTeleport().build())
@@ -141,11 +142,13 @@ public class EntryPoint
             .addNode(new CommandPathStats().build())
             .addNode(new CommandBoatSpeed().build())
             .addNode(debugCommands)
+            .addNode(new CommandToggleDebug().build())
             .addNode(ScanCommand.build())
             .addNode(new CommandPruneWorld().build());
 
         /*
-         * Root minecolonies alias command tree, all subtrees are added here.
+         * Root minecolonies alias command tree. Everything the full name carries, under the short one: the two are
+         * the same tree, so nothing is reachable by only one of the names.
          */
         final CommandTree minecoloniesRootAlias = new CommandTree("mc")
             .addNode(new CommandEntityTrack().build())
@@ -165,6 +168,7 @@ public class EntryPoint
             .addNode(new CommandBoatSpeed().build())
             .addNode(debugCommands)
             .addNode(new CommandToggleDebug().build())
+            .addNode(ScanCommand.build())
             .addNode(new CommandPruneWorld().build());
 
         // Adds all command trees to the dispatcher to register the commands.

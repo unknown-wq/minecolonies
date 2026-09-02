@@ -25,7 +25,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import com.minecolonies.api.inventory.api.InvWrapper;
+import com.minecolonies.core.client.gui.ListRow;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,30 +92,33 @@ public class ConnectionModuleWindow extends AbstractBuildingWindow<IBuildingView
         updateConnections(indirectConnections, indirectConnectionData);
     }
 
+    @Nullable
     private ColonyConnection getColonyDataFromPane(final @NotNull Button button)
     {
-        final int directRow = directConnections.getListElementIndexByPane(button);
-        if (directRow != -1)
+        final int directRow = ListRow.of(directConnections, button, directConnectionData.size());
+        if (directRow != ListRow.NONE)
         {
             return directConnectionData.get(directRow);
         }
-        else
-        {
-            final int indirectRow = indirectConnections.getListElementIndexByPane(button);
-            return indirectConnectionData.get(indirectRow);
-        }
+
+        final int indirectRow = ListRow.of(indirectConnections, button, indirectConnectionData.size());
+        return indirectRow == ListRow.NONE ? null : indirectConnectionData.get(indirectRow);
     }
 
     private void teleportToColony(@NotNull final Button button)
     {
         final ColonyConnection connectedColonyData = getColonyDataFromPane(button);
-        final int dist = (int) BlockPosUtil.dist(connectedColonyData.pos, buildingView.getPosition());
-        final int itemCount = externalPlayer ? dist/125 : 0;
+        if (connectedColonyData == null)
+        {
+            return;
+        }
 
+        // The fare is worked out on the server from these two gates; what is sent is where the player is travelling
+        // from and to, not what he thinks it should cost.
         new WindowConfirm(this,
             () ->
             {
-                new TeleportToColonyMessage(mc.level.dimension(), connectedColonyData.id, connectedColonyData.pos, buildingView.getColony().getID(), itemCount).sendToServer();
+                new TeleportToColonyMessage(mc.level.dimension(), connectedColonyData.id, connectedColonyData.pos, buildingView.getColony().getID(), buildingView.getPosition()).sendToServer();
                 close();
             },
         Component.translatable("com.minecolonies.coremod.gui.townhall.tp", connectedColonyData.name).getString(), "").open();

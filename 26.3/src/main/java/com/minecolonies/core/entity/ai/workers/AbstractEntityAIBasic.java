@@ -1331,7 +1331,9 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
         {
             // isBuildingFull() only answers true at zero free slots across the whole hut, so a hut with a slot or two
             // left took part of a full worker and said nothing about the rest. Complain about what actually happened.
-            dumpBlocked = false;
+            // The flag is cleared by the complaint itself, which is also what clears it on the branch above - a hut
+            // that was already full when the cycle started used to leave it set for the next, unrelated cycle to
+            // trip over.
             complainThatTheHutIsFull(building);
             return afterDump();
         }
@@ -1374,6 +1376,7 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
         }
         alreadyKept.clear();
         slotAt = 0;
+        dumpBlocked = false;
         this.clearActionsDone();
     }
 
@@ -2169,13 +2172,21 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
         if (worksWithoutMaterials())
         {
             // Third chokepoint, again not reached by the stack overloads: the beekeeper's breeding flowers come
-            // through here. Any item carrying the tag will do, so the first one the registry offers is handed over.
-            // getTagOrEmpty is the idiom the rest of the tree uses for this, see StandardRequests line 180.
+            // through here. Any item carrying the tag will do, so walk the tag in registry order until one of them
+            // lands. Answering on the first entry alone gave up on the whole tag whenever that one item would not
+            // fit. getTagOrEmpty is the idiom the rest of the tree uses for this, see StandardRequests line 180.
             for (final Holder<Item> holder : BuiltInRegistries.ITEM.getTagOrEmpty(tag))
             {
                 supplyMaterialWithoutRequest(new ItemStack(holder), count);
-                return InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), stack -> stack.is(tag) && stack.getCount() >= count);
+                if (InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), stack -> stack.is(tag) && stack.getCount() >= count))
+                {
+                    return true;
+                }
             }
+
+            // No request on the way out, as in the stack overloads above: in free mode a request is not what hands
+            // the item over, and an empty tag has nothing to ask for in the first place.
+            return false;
         }
 
         if (building.getOpenRequestsOfTypeFiltered(worker.getCitizenData(), TypeConstants.TAG_REQUEST,

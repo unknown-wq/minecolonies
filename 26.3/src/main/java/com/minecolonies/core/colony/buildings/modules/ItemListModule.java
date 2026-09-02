@@ -143,6 +143,7 @@ public class ItemListModule extends AbstractBuildingModule implements IItemListM
     public void resetToDefaults()
     {
         this.itemsAllowed = ImmutableList.copyOf(defaultValues);
+        markDirty();
     }
 
     @Override

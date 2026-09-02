@@ -119,6 +119,9 @@ public class PirateAirRaidEvent extends HordeRaidEvent
     private static final String TAG_DROP_POS      = "airraid_droppos";
     private static final String TAG_DROP_DONE     = "airraid_dropdone";
     private static final String TAG_GROUNDED      = "airraid_grounded";
+    private static final String TAG_DELIVERED_RAIDERS = "airraid_delivered_raiders";
+    private static final String TAG_DELIVERED_ARCHERS = "airraid_delivered_archers";
+    private static final String TAG_DELIVERED_BOSSES  = "airraid_delivered_bosses";
 
     /**
      * Where the transport is asked to open its bay.
@@ -586,6 +589,12 @@ public class PirateAirRaidEvent extends HordeRaidEvent
         final CompoundTag compound = super.serializeNBT(provider);
         compound.putBoolean(TAG_DROP_DONE, dropComplete);
         compound.putBoolean(TAG_GROUNDED, grounded);
+        // Saved because a run interrupted by a restart is reconciled against them: the horde still carries the
+        // numbers the raid was planned with, and reading those back as "what landed" leaves the raid counting
+        // raiders that never left the aircraft.
+        compound.putInt(TAG_DELIVERED_RAIDERS, deliveredRaiders);
+        compound.putInt(TAG_DELIVERED_ARCHERS, deliveredArchers);
+        compound.putInt(TAG_DELIVERED_BOSSES, deliveredBosses);
         if (dropPos != null)
         {
             BlockPosUtil.write(compound, TAG_DROP_POS, dropPos);
@@ -608,12 +617,14 @@ public class PirateAirRaidEvent extends HordeRaidEvent
         // flies it is not persisted, and the aircraft -- which is -- has no idea it was carrying anyone.
         // The wait clock is therefore started near its limit rather than at zero, so the raid writes the
         // transport off within a few seconds of loading instead of holding the boss bar open for five
-        // minutes first. What landed before the save keeps raiding; what did not is gone.
+        // minutes first. What landed before the save keeps raiding; what did not is gone -- which is what
+        // the saved delivery counts are for. The horde's own numbers are the plan rather than the delivery
+        // and are only fallen back on for a save written before those counts existed.
         if (!dropComplete)
         {
-            deliveredRaiders = horde.numberOfRaiders;
-            deliveredArchers = horde.numberOfArchers;
-            deliveredBosses = horde.numberOfBosses;
+            deliveredRaiders = compound.getIntOr(TAG_DELIVERED_RAIDERS, horde.numberOfRaiders);
+            deliveredArchers = compound.getIntOr(TAG_DELIVERED_ARCHERS, horde.numberOfArchers);
+            deliveredBosses = compound.getIntOr(TAG_DELIVERED_BOSSES, horde.numberOfBosses);
             waitTicks = TRANSPORT_TIMEOUT - 20;
         }
     }

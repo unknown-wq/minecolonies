@@ -183,7 +183,9 @@ public class DiseasesListener extends SimpleJsonResourceReloadListener<JsonEleme
         {
             if (!entry.getValue().isJsonObject())
             {
-                return;
+                // Skipped, not abandoned: returning here left every disease parsed so far unassigned and the colony
+                // running on whatever the previous reload had put there.
+                continue;
             }
 
             final JsonObject object = entry.getValue().getAsJsonObject();

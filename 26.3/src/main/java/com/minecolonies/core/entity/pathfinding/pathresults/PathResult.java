@@ -313,7 +313,10 @@ public class PathResult<T extends AbstractPathJob>
             var watchers = getDebugWatchers();
             job.syncDebug(watchers);
 
-            if (!watchers.isEmpty())
+            // A search that was interrupted or that threw hands back a null path, and the report below reads the
+            // path itself. Nothing outside the debug view is affected either way: the null is the answer, and
+            // failedToReachDestination already says so.
+            if (path != null && !watchers.isEmpty())
             {
                 final Component debugInfo = Component.literal(" Finished pathjob:")
                     .withStyle(ChatFormatting.GRAY)

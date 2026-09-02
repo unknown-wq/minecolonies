@@ -411,4 +411,6 @@ still runs; how the assets reach a player is being worked out separately.
 The copyright in the mod itself stays with LDTTeam and its contributors; the port adds to their work
 rather than replaces it, and the GPL is what makes redistributing it this way possible. The three
 bundled library mods — Structurize, BlockUI and Domum Ornamentum — are LDTTeam's as well and carry
-their own licenses, which travel with them inside the jar.
+their own licenses, which travel with them inside the jar. Their ported sources are in
+[`libs/`](libs/) next to the mod, so the jars nested under `META-INF/jars/` can be rebuilt from this
+repository alone.

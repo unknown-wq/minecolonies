@@ -100,6 +100,17 @@ public interface ISetting<S>
     default void updateSetting(final ISetting<?> setting) {}
 
     /**
+     * Whether this setting is in a state that can be read back.
+     * <p>
+     * Asked of a setting that arrives from a client, after it has been given the server's own copy through
+     * {@link #updateSetting}: the entire object comes off the wire, so nothing so far has established that the value
+     * it names is one the building actually offers.
+     *
+     * @return true if the setting can be used as it stands.
+     */
+    default boolean isValid() { return true; }
+
+    /**
      * Copy value from another instance.
      *
      * @param setting the setting to copy from

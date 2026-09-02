@@ -679,10 +679,15 @@ public class EntityAIWorkFarmer extends AbstractEntityAICrafting<JobFarmer, Buil
      * grounds of the block being the wrong material. A field is drawn by hand, so a cell is inside it because somebody
      * put it there, and the material found there is not a reason to refuse - stone, gravel, sand, a path, a wall, a
      * floor, whatever it is, it goes and ground goes down in its place. There is deliberately no list of protected
-     * blocks; see FARMER-TERRAFORM.md.
+     * materials; see FARMER-TERRAFORM.md.
      * <p>
-     * Two things it will not do, and both are for a reason rather than out of caution:
+     * Three things it will not do, and all three are for a reason rather than out of caution:
      * <ul>
+     *     <li><b>A block that carries data is left alone</b> - anything with a {@link net.minecraft.world.level.block.entity.BlockEntity}
+     *     behind it, which is every container in the game and every rack, furnace, sign and spawner besides. Laying
+     *     ground over one of those does not move its contents anywhere the player can reach them again, and unlike a
+     *     wall it cannot be put back by placing the same block. This is the same kind of guard as the
+     *     {@code IBuilderUndestroyable} test below, not a judgement about whose block it is.</li>
      *     <li><b>Anything holding a fluid is left alone</b> - the surface block itself and the block above it are both
      *     tested with {@link net.minecraft.world.level.Level#getFluidState}, which is non-empty for a source, for
      *     flowing water and for a waterlogged block alike. Crops do not grow in a flooded cell, so filling a pond in
@@ -718,6 +723,13 @@ public class EntityAIWorkFarmer extends AbstractEntityAICrafting<JobFarmer, Buil
               || blockState.getBlock() instanceof BlockScarecrow)
         {
             // Ground the farmer can already work with, or the field's own scarecrow. findHoeableSurface owns these.
+            return null;
+        }
+
+        if (blockState.hasBlockEntity())
+        {
+            // A container, a rack, a furnace, a sign - something that holds more than its own block state. A wall the
+            // farmer takes down can be put back by placing the same block again; what was inside a chest cannot.
             return null;
         }
 

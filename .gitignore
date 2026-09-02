@@ -37,7 +37,6 @@ logs/
 
 # Agent worktrees. The harness checks agent worktrees out inside the repo, so
 # without this an in-flight agent's whole tree shows up as untracked files.
-/.claude/
 
 # Test harness leftovers. Server stands and background measurement loops drop
 # their process ids next to wherever they were started from, which is sometimes

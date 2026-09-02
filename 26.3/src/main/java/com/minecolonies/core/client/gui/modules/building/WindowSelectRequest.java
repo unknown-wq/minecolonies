@@ -15,6 +15,7 @@ import com.minecolonies.api.colony.requestsystem.resolver.retrying.IRetryingRequ
 import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.colony.buildings.moduleviews.CraftingModuleView;
 import com.minecolonies.core.colony.requestsystem.requests.StandardRequests;
 import net.minecraft.client.gui.screens.Screen;
@@ -130,10 +131,10 @@ public class WindowSelectRequest extends AbstractModuleWindow<CraftingModuleView
      */
     private void select(@NotNull final Button button)
     {
-        final int row = requestsList.getListElementIndexByPane(button);
         final List<IRequest<?>> requests = getOpenRequests();
+        final int row = ListRow.of(requestsList, button, requests.size());
 
-        if (row >= 0 && row < requests.size())
+        if (row != ListRow.NONE)
         {
             this.reopenWithRequest.accept(requests.get(row));
         }

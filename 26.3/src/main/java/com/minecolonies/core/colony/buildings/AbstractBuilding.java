@@ -2322,12 +2322,17 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
     public List<IRequest<?>> getCompletedRequestsOfCitizenOrBuilding(@Nullable final ICitizenData citizenData, final Predicate<IRequest<?>> selectionPredicate)
     {
         final List<IRequest<?>> requests = new ArrayList<>();
-        for (final IRequest<?> req : getCompletedRequestsOfCitizenOrBuilding(citizenData))
+        for (final IRequest<?> req : getCompletedRequestsOfCitizenOrBuilding(null))
         {
             if (selectionPredicate.test(req))
             {
                 requests.add(req);
             }
+        }
+
+        if (citizenData == null)
+        {
+            return requests;
         }
 
         for (final IRequest<?> req : getCompletedRequestsOfCitizenOrBuilding(citizenData))

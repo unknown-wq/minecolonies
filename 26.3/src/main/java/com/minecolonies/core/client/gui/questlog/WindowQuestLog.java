@@ -9,6 +9,7 @@ import com.ldtteam.blockui.views.SwitchView;
 import com.minecolonies.api.colony.IColonyView;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.AbstractWindowSkeleton;
+import com.minecolonies.core.client.gui.ListRow;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
@@ -158,7 +159,12 @@ public class WindowQuestLog extends AbstractWindowSkeleton
          */
         void trackQuest(final Button button)
         {
-            final int row = questsList.getListElementIndexByPane(button);
+            final int row = ListRow.of(questsList, button, questItems.size());
+            if (row == ListRow.NONE)
+            {
+                return;
+            }
+
             module.trackQuest(questItems.get(row));
         }
     }

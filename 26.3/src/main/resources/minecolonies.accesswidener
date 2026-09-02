@@ -56,6 +56,15 @@ mutable		field	net/minecraft/world/entity/Mob	targetSelector	Lnet/minecraft/worl
 # AbstractArrow and AbstractMinecart moved down a package in 26.x.
 accessible	method	net/minecraft/world/entity/projectile/arrow/AbstractArrow	shouldFall	()Z
 accessible	method	net/minecraft/world/entity/projectile/arrow/AbstractArrow	setPierceLevel	(B)V
+
+# The mod's fire arrow is a subclass of Arrow, and Arrow declares no constructor carrying an entity
+# type alongside the ammunition and the weapon, so the entity is built from its type and never sees
+# the bow it was fired from. Opening the one field the constructor would have set lets the item hand
+# it over afterwards; everything vanilla reads back off it - the knockback a Punch bow adds, the
+# block-hit enchantment effects, the weapon of the killed-by-arrow trigger - then behaves as it does
+# for a vanilla arrow. The field is not final, so it needs no mutable entry.
+accessible	field	net/minecraft/world/entity/projectile/arrow/AbstractArrow	firedFromWeapon	Lnet/minecraft/world/item/ItemStack;
+
 accessible	field	net/minecraft/world/entity/vehicle/minecart/AbstractMinecart	flipped	Z
 
 # --- blocks and block entities ----------------------------------------------------------

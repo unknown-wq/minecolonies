@@ -32,6 +32,7 @@ import com.minecolonies.core.MineColonies;
 import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowReactivateBuilding;
 import com.minecolonies.core.colony.requestsystem.management.manager.StandardRecipeManager;
+import com.minecolonies.core.colony.territory.HostileTerritoryIndex;
 import com.minecolonies.core.network.messages.client.colony.ColonyViewRemoveMessage;
 import com.minecolonies.core.util.BackUpHelper;
 import com.minecolonies.core.util.ChunkDataHelper;
@@ -226,6 +227,19 @@ public final class ColonyManager implements IColonyManager
 
             IMinecoloniesAPI.getInstance().getEventBus().post(new ColonyDeletedModEvent(colony));
             cap.deleteColony(id);
+
+            if (colony.isHostile())
+            {
+                // A territory is republished from Colony#markDirty, which only does it while the colony is still
+                // flagged hostile, and the flag is never cleared -- the territory is deleted rather than turned back
+                // into a colony. So this is the only place a deletion can take its ground back out of the index, and
+                // without it the erased territory goes on answering HostileTerritory#at: citizens keep paying the
+                // detour surcharge for ground nobody owns and the border patrol keeps walking a line that no longer
+                // draws. Colony#onWorldUnload does not cover it either -- that forgets the dimension only for a
+                // colony that is still hostile, and this one is gone.
+                HostileTerritoryIndex.refresh(world);
+            }
+
             BackUpHelper.markColonyDeleted(colony.getID(), colony.getDimension());
             colony.getImportantMessageEntityPlayers()
               .forEach(player -> new ColonyViewRemoveMessage(colony.getID(), colony.getDimension()).sendToPlayer((ServerPlayer) player));

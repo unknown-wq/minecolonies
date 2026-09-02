@@ -185,7 +185,11 @@ public class FarmField extends AbstractBuildingExtension
                       .orElse(ItemStack.EMPTY));
         }
         radii = sanitiseRadii(compound.getIntArray(TAG_RADIUS).orElse(null));
-        fieldStage = Stage.valueOf(compound.getStringOr(TAG_STAGE, ""));
+        // valueOf has no answer for the empty string the getter falls back to, and threw for it, which
+        // RegisteredStructureManager catches by dropping the whole field. A field carrying no stage on record has
+        // not been planted, which is what EMPTY says, and it is also the stage a new field starts in.
+        final String savedStage = compound.getStringOr(TAG_STAGE, "");
+        fieldStage = Arrays.stream(Stage.values()).filter(stage -> stage.name().equals(savedStage)).findFirst().orElse(Stage.EMPTY);
     }
 
     @Override

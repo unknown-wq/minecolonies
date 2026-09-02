@@ -10,6 +10,7 @@ import com.minecolonies.api.colony.workorders.IWorkOrderView;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.colony.buildings.moduleviews.SettingsModuleView;
 import com.minecolonies.core.colony.buildings.moduleviews.WorkOrderListModuleView;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingBuilder;
@@ -211,7 +212,12 @@ public class WorkOrderModuleWindow extends AbstractModuleWindow<WorkOrderListMod
      */
     private void selectWorkOrder(@NotNull final Button button)
     {
-        final int row = workOrdersList.getListElementIndexByPane(button);
+        final int row = ListRow.of(workOrdersList, button, workOrders.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final IWorkOrderView view = workOrders.get(row);
 
         if (view.getClaimedBy().equals(buildingView.getPosition()))

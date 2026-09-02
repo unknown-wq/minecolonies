@@ -8,6 +8,7 @@ import com.ldtteam.blockui.views.ScrollingList;
 import com.minecolonies.api.colony.ICitizen;
 import com.minecolonies.api.colony.ICitizenDataView;
 import com.minecolonies.api.entity.citizen.Skill;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingTownHall;
 import com.minecolonies.core.entity.citizen.citizenhandlers.CitizenSkillHandler;
 import com.minecolonies.core.network.messages.server.colony.citizen.RecallSingleCitizenMessage;
@@ -114,7 +115,13 @@ public class WindowCitizenPage extends AbstractWindowTownHall
     private void citizenSelected(final Button button)
     {
         final ScrollingList citizenList = findPaneOfTypeByID(LIST_CITIZENS, ScrollingList.class);
-        selectedCitizen = citizens.get(citizenList.getListElementIndexByPane(button));
+        final int row = ListRow.of(citizenList, button, citizens.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
+        selectedCitizen = citizens.get(row);
 
         fillCitizenInfo();
     }

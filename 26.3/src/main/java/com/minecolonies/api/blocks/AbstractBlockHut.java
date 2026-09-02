@@ -286,8 +286,13 @@ public abstract class AbstractBlockHut<B extends AbstractBlockHut<B>> extends Ab
                 }
             }
 
+            // The level is the last character of the blueprint path, which is how the rest of the mod reads this
+            // naming scheme -- WorkOrderBuilding#create rewrites exactly that character to ask for the next level.
+            // Taking the character before it handed Integer.parseInt a letter for every real path
+            // ("builder/builder1" -> "r"), so the catch below fired every time and a pasted blueprint always came
+            // out as a level 1 building whatever level it was drawn at.
             final String adjusted = path.replace(".blueprint", "");
-            final String num = adjusted.substring(path.replace(".blueprint", "").length() - 2, adjusted.length() - 1);
+            final String num = adjusted.isEmpty() ? "" : adjusted.substring(adjusted.length() - 1);
 
             building.setStructurePack(pack);
             building.setBlueprintPath(path);

@@ -14,6 +14,7 @@ import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.Tuple;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.network.messages.server.colony.building.AddMinimumStockToBuildingModuleMessage;
 import com.minecolonies.core.network.messages.server.colony.building.RemoveMinimumStockFromBuildingModuleMessage;
 import net.minecraft.network.chat.Component;
@@ -79,7 +80,12 @@ public class MinimumStockModuleWindow extends AbstractModuleWindow<IMinimumStock
      */
     private void removeStock(final Button button)
     {
-        final int row = resourceList.getListElementIndexByPane(button);
+        final int row = ListRow.of(resourceList, button, moduleView.getStock().size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final Tuple<ItemStorage, Integer> tuple = moduleView.getStock().get(row);
         moduleView.getStock().remove(row);
         new RemoveMinimumStockFromBuildingModuleMessage(buildingView, tuple.getA().getItemStack(), moduleView.getProducer().getRuntimeID()).sendToServer();

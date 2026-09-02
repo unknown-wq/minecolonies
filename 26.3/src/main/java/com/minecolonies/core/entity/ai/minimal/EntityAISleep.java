@@ -174,7 +174,10 @@ public class EntityAISleep implements IStateAI
                         final Level world = citizen.level();
                         final BlockState state = world.getBlockState(pos);
                         final BlockState above = world.getBlockState(pos.above());
-                        if (!state.is(BlockTags.BEDS))
+                        // The tag alone is not enough to read a bed's state off: it is a data tag, so a block can
+                        // carry it without carrying the properties of a bed. Anything that does not is no more usable
+                        // as a bed than a block that is not tagged at all.
+                        if (!state.is(BlockTags.BEDS) || !state.hasProperty(BedBlock.PART))
                         {
                             hut.getModule(BuildingModules.BED).removeBed(pos);
                             return;
@@ -196,7 +199,7 @@ public class EntityAISleep implements IStateAI
             {
                 bedTicks++;
                 final BlockState state = citizen.level().getBlockState(usedBed);
-                if (state.is(BlockTags.BEDS) && state.getValue(BedBlock.OCCUPIED))
+                if (state.is(BlockTags.BEDS) && state.hasProperty(BedBlock.OCCUPIED) && state.getValue(BedBlock.OCCUPIED))
                 {
                     if (!this.citizen.level().getEntitiesOfClass(LivingEntity.class, new AABB(usedBed), LivingEntity::isSleeping).isEmpty())
                     {

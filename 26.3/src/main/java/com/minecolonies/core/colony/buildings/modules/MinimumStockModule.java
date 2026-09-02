@@ -101,7 +101,11 @@ public class MinimumStockModule extends AbstractBuildingModule implements IMinim
     {
         minimumStock.remove(new ItemStorage(itemStack));
 
-        final Collection<IToken<?>> list = building.getOpenRequestsByRequestableType().getOrDefault(TypeToken.of(Stack.class), new ArrayList<>());
+        // The orders this module files in onColonyTick are MinimumStack, and AbstractBuilding#addRequestToMaps
+        // indexes an open request under its own concrete class, so a lookup under Stack.class matched nothing: taking
+        // an item off the list left its delivery order standing for ever, because onColonyTick only ever revisits
+        // items that are still on the list.
+        final Collection<IToken<?>> list = building.getOpenRequestsByRequestableType().getOrDefault(TypeToken.of(MinimumStack.class), new ArrayList<>());
         final IToken<?> token = getMatchingRequest(itemStack, list);
         if (token != null)
         {

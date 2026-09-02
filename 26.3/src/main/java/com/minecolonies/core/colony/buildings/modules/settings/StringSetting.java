@@ -174,9 +174,17 @@ public class StringSetting implements IStringSetting<String>
             this.settings.addAll(stringSetting.settings);
             if (currentIndex >= this.settings.size())
             {
-                currentIndex = this.settings.size() - 1;
+                // Never below zero. A list this short has no index that reads back at all, and -1 is what the bare
+                // subtraction produced for an empty one -- which getValue would then have indexed the list with.
+                currentIndex = Math.max(0, this.settings.size() - 1);
             }
         }
+    }
+
+    @Override
+    public boolean isValid()
+    {
+        return currentIndex >= 0 && currentIndex < settings.size();
     }
 
     @Override
@@ -191,7 +199,16 @@ public class StringSetting implements IStringSetting<String>
     @Override
     public void set(final String value)
     {
-        currentIndex = getSettings().indexOf(value);
+        final int index = settings.indexOf(value);
+        if (index < 0)
+        {
+            // indexOf answers -1 for a value this setting does not offer, and storing that left every later read
+            // indexing the list with -1. The list is the whole definition of what the setting may be, so a value
+            // outside it is refused and the current one kept.
+            Log.getLogger().warn("Ignoring value '{}', which is not one of the settings {} offers.", value, this.getClass().getName());
+            return;
+        }
+        currentIndex = index;
     }
 
     /**

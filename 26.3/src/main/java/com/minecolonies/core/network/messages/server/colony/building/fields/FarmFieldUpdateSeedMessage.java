@@ -7,6 +7,7 @@ import com.minecolonies.api.util.Utils;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.colony.buildingextensions.FarmField;
 import com.minecolonies.core.network.messages.server.AbstractColonyServerMessage;
+import io.netty.handler.codec.DecoderException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -82,10 +83,16 @@ public class FarmFieldUpdateSeedMessage extends AbstractColonyServerMessage
     protected FarmFieldUpdateSeedMessage(final RegistryFriendlyByteBuf buf, final PlayMessageType<?> type)
     {
         super(buf, type);
-        // Clamped on read as well as in setSeeds: this is a client to server message, so the count on the wire is
-        // whatever the client felt like sending, and allocating a list from it unchecked is how one packet becomes
-        // an out of memory error.
-        final int count = Math.max(0, Math.min(buf.readVarInt(), FarmField.MAX_SEEDS));
+        // Refused, not clamped: this is a client to server message, so the count on the wire is whatever the client
+        // felt like sending, and allocating a list from it unchecked is how one packet becomes an out of memory
+        // error. Clamping it was worse than either -- fewer stacks were read than the sender wrote, so the position
+        // below came out of the middle of one of them.
+        final int count = buf.readVarInt();
+        if (count < 0 || count > FarmField.MAX_SEEDS)
+        {
+            throw new DecoderException("Farm field seed count out of range: " + count);
+        }
+
         final List<ItemStack> read = new ArrayList<>(count);
         for (int i = 0; i < count; i++)
         {

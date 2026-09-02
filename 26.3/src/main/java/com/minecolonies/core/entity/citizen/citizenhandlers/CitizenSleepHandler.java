@@ -98,7 +98,9 @@ public class CitizenSleepHandler implements ICitizenSleepHandler
     public boolean trySleep(final BlockPos bedLocation)
     {
         final BlockState state = WorldUtil.isEntityBlockLoaded(citizen.level(), bedLocation) ? citizen.level().getBlockState(bedLocation) : null;
-        final boolean isBed = state != null && state.is(BlockTags.BEDS);
+        // The tag is a data tag, so a block can carry it without carrying the properties the code below reads off
+        // a bed. Treat one that does not as no bed at all rather than throwing out of the sleep handler.
+        final boolean isBed = state != null && state.is(BlockTags.BEDS) && state.hasProperty(BedBlock.FACING);
 
         if (!isBed)
         {
@@ -179,13 +181,14 @@ public class CitizenSleepHandler implements ICitizenSleepHandler
     {
         final BlockPos spawn;
         final BlockState bedState = getBedLocation().equals(BlockPos.ZERO) ? null : citizen.level().getBlockState(getBedLocation());
-        if (!getBedLocation().equals(BlockPos.ZERO) && bedState.is(BlockTags.BEDS))
+        if (!getBedLocation().equals(BlockPos.ZERO) && bedState.is(BlockTags.BEDS)
+              && bedState.hasProperty(BedBlock.PART) && bedState.hasProperty(BedBlock.FACING))
         {
             if (bedState.getValue(BedBlock.PART) == BedPart.HEAD)
             {
                 final BlockPos relPos = getBedLocation().relative(bedState.getValue(BedBlock.FACING).getOpposite());
                 final BlockState lowerState = citizen.level().getBlockState(relPos);
-                if (lowerState.is(BlockTags.BEDS) && lowerState.getValue(BedBlock.PART) == BedPart.FOOT)
+                if (lowerState.is(BlockTags.BEDS) && lowerState.hasProperty(BedBlock.PART) && lowerState.getValue(BedBlock.PART) == BedPart.FOOT)
                 {
                     spawn = EntityUtils.getSpawnPoint(citizen.level(), relPos);
                 }

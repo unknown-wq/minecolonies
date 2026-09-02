@@ -197,7 +197,12 @@ public class WindowHireWorker extends AbstractWindowSkeleton
      */
     private void restartClicked(@NotNull final Button button)
     {
-        final int row = citizenList.getListElementIndexByPane(button);
+        final int row = ListRow.of(citizenList, button, citizens.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final int id = citizens.toArray(new CitizenDataView[0])[row].getId();
 
         new RestartCitizenMessage(this.building, id).sendToServer();
@@ -211,7 +216,12 @@ public class WindowHireWorker extends AbstractWindowSkeleton
      */
     private void pauseClicked(@NotNull final Button button)
     {
-        final int row = citizenList.getListElementIndexByPane(button);
+        final int row = ListRow.of(citizenList, button, citizens.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final int id = citizens.toArray(new CitizenDataView[0])[row].getId();
         @NotNull final ICitizenDataView citizen = citizens.get(row);
 
@@ -226,7 +236,12 @@ public class WindowHireWorker extends AbstractWindowSkeleton
      */
     private void fireClicked(@NotNull final Button button)
     {
-        final int row = citizenList.getListElementIndexByPane(button);
+        final int row = ListRow.of(citizenList, button, citizens.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         @NotNull final ICitizenDataView citizen = citizens.get(row);
 
         selectedModule.removeCitizen(citizen);
@@ -240,7 +255,12 @@ public class WindowHireWorker extends AbstractWindowSkeleton
      */
     private void doneClicked(@NotNull final Button button)
     {
-        final int row = citizenList.getListElementIndexByPane(button);
+        final int row = ListRow.of(citizenList, button, citizens.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         @NotNull final ICitizenDataView citizen = citizens.get(row);
 
         // Fire citizen if they already have a job

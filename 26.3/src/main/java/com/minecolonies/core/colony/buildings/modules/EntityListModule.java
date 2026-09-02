@@ -55,6 +55,10 @@ public class EntityListModule extends AbstractBuildingModule implements IEntityL
             compound = compound.getCompoundOrEmpty(id);
         }
 
+        // Read into a cleared set, the way the item list beside it rebuilds its own. Nothing loads a module twice
+        // today, so this does not reproduce; a duplicated entry here would be a mob silently back on a list a
+        // player had taken it off.
+        mobsAllowed.clear();
         final ListTag filterableList = compound.getListOrEmpty(TAG_MOBLIST);
         for (int i = 0; i < filterableList.size(); ++i)
         {

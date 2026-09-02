@@ -108,11 +108,28 @@ public class SettingsModule extends AbstractBuildingModule implements IPersisten
     @Override
     public void updateSetting(final ISettingKey<?> settingKey, final ISetting<?> value, final ServerPlayer sender)
     {
-        if (settings.containsKey(settingKey))
+        final ISetting<?> current = settings.get(settingKey);
+        if (current == null)
         {
-            settings.put(settingKey, value);
-            value.onUpdate(building, sender);
+            return;
         }
+
+        // The whole setting arrives from the client, the list of choices included, so what is handed in is a claim
+        // about what the setting now is rather than a value anything has checked. Give it the server's own copy
+        // first -- the same call deserializeNBT above makes -- so the choices on offer stay the ones this building
+        // registered, and turn the message down if the choice it names is not one of them.
+        value.updateSetting(current);
+        if (!value.isValid())
+        {
+            // The colony's own settings live in one of these modules too, produced without a building, so there is
+            // not always a position to name.
+            Log.getLogger().warn("Refusing setting {} at {}: the value sent is not one that is offered there.",
+              settingKey.getUniqueId(), building == null ? "colony level" : building.getPosition());
+            return;
+        }
+
+        settings.put(settingKey, value);
+        value.onUpdate(building, sender);
     }
 
     @Override

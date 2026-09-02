@@ -134,9 +134,7 @@ public class ColonyBlueprintRenderer
 
         if (!ctx.hasNearestColony())
         {
-            blueprintRenderCache.clear();
-            boxRenderCache.clear();
-            lastCacheRebuild = null;
+            clearCaches();
             return;
         }
 
@@ -151,9 +149,7 @@ public class ColonyBlueprintRenderer
 
         if (activeRules.isEmpty())
         {
-            blueprintRenderCache.clear();
-            boxRenderCache.clear();
-            lastCacheRebuild = null;
+            clearCaches();
             return;
         }
 
@@ -225,6 +221,21 @@ public class ColonyBlueprintRenderer
         }
     }
 
+    /**
+     * Drops everything the renderer is holding, for when there is nothing left to draw.
+     * <p>
+     * The pending map goes with the other two. Nothing else ever takes an entry out of it -- a blueprint whose load
+     * resolves to nothing stays pending and is retried for as long as the map holds it -- so leaving it behind is
+     * how a position the player looked at once outlives the colony, and the world.
+     */
+    private static void clearCaches()
+    {
+        blueprintRenderCache.clear();
+        boxRenderCache.clear();
+        pendingBoxes.clear();
+        lastCacheRebuild = null;
+    }
+
     private static void rebuildCache(final WorldEventContext ctx, final List<IRenderBlueprintRule> rules)
     {
         Collections.reverse(rules);   // so the first rule "wins"
@@ -233,6 +244,9 @@ public class ColonyBlueprintRenderer
         {
             desired.putAll(rule.getDesiredBlueprints(ctx));
         }
+
+        // A position nobody wants drawn any more stops being retried.
+        pendingBoxes.keySet().retainAll(desired.keySet());
 
         final Map<BlueprintCacheKey, List<BlockPos>> newBlueprints = new HashMap<>();
         final Map<BlockPos, BoxRenderData> newBoxes = new HashMap<>();

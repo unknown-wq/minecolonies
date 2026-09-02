@@ -439,7 +439,12 @@ public abstract class AbstractBuildingView implements IBuildingView
 
             if (moduleView == null)
             {
-                Log.getLogger().error("Problem during sync: Client side does not have matching module views to sent module data, missing:" + BuildingEntry.getProducer(id).key);
+                // getProducer answers null for an id it does not know, which is exactly the case that gets here
+                // when the two sides disagree about which modules exist -- so the line meant to report the
+                // disagreement threw an NPE of its own instead of naming it.
+                final BuildingEntry.ModuleProducer producer = BuildingEntry.getProducer(id);
+                Log.getLogger().error("Problem during sync: Client side does not have matching module views to sent module data, missing:"
+                                        + (producer == null ? "unknown module id " + id : producer.key));
                 return;
             }
 

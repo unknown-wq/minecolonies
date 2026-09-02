@@ -96,8 +96,12 @@ public abstract class AbstractBlockGate extends DoorBlock implements LiquidBlock
     @Override
     protected InteractionResult useItemOn(final ItemStack stack, final BlockState state, final Level worldIn, final BlockPos pos, final Player player, final InteractionHand handIn, final BlockHitResult hit)
     {
-        toggleGate(worldIn, pos, state.getValue(FACING).getClockWise());
-        worldIn.levelEvent(player, state.getValue(OPEN) ? 1005 : 1011, pos, 0);
+        // The sound has to describe what the gate has just been moved to, so it is taken from toggleGate rather
+        // than from the state handed in, which is the one from before the toggle and named the opposite every time.
+        // It also goes through the door sounds of the block's own set now: the two numeric level events that used to
+        // be here no longer mean anything of the sort -- 1005 is not a level event in 26.2 at all, and 1011 is
+        // "stop the jukebox song".
+        playSound(player, worldIn, pos, toggleGate(worldIn, pos, state.getValue(FACING).getClockWise()));
         return InteractionResult.SUCCESS;
     }
 
@@ -428,8 +432,9 @@ public abstract class AbstractBlockGate extends DoorBlock implements LiquidBlock
      * @param world        world to use
      * @param clickedBlock block thats clicked/used
      * @param facing       facing to check
+     * @return true if the gate was opened, false if it was closed.
      */
-    public void toggleGate(final Level world, final BlockPos clickedBlock, final Direction facing)
+    public boolean toggleGate(final Level world, final BlockPos clickedBlock, final Direction facing)
     {
         final BlockPos lowerLeftCorner = findLowerLeftCorner(world, facing, clickedBlock);
         // State to put the gate into, all replicate the corner's state
@@ -464,6 +469,8 @@ public abstract class AbstractBlockGate extends DoorBlock implements LiquidBlock
                 }
             }
         }
+
+        return opening;
     }
 
     /**

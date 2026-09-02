@@ -26,6 +26,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import com.minecolonies.api.inventory.api.InvWrapper;
+import com.minecolonies.core.client.gui.ListRow;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -313,7 +314,12 @@ public abstract class RequestTreeWindowModule implements IWindowWithLayoutModule
      */
     private void cancel(@NotNull final Button button)
     {
-        final int row = resourceList.getListElementIndexByPane(button);
+        final int row = ListRow.of(resourceList, button, getCachedOpenRequests().size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         cancel(getCachedOpenRequests().get(row).request());
     }
 
@@ -348,9 +354,9 @@ public abstract class RequestTreeWindowModule implements IWindowWithLayoutModule
             return;
         }
 
-        final int row = resourceList.getListElementIndexByPane(button);
+        final int row = ListRow.of(resourceList, button, getCachedOpenRequests().size());
 
-        if (getCachedOpenRequests().size() > row && row >= 0)
+        if (row != ListRow.NONE)
         {
             final IRequest<?> request = getCachedOpenRequests().get(row).request();
             try
@@ -373,7 +379,12 @@ public abstract class RequestTreeWindowModule implements IWindowWithLayoutModule
      */
     private void detailedClicked(@NotNull final Button button)
     {
-        final int row = resourceList.getListElementIndexByPane(button);
+        final int row = ListRow.of(resourceList, button, getCachedOpenRequests().size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         openDetails(getCachedOpenRequests().get(row).request());
     }
 

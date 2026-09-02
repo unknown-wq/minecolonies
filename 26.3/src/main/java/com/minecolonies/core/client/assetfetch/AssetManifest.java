@@ -156,19 +156,22 @@ public final class AssetManifest
         }
 
         final Map<String, FileEntry> files = readFileMap(object(root, "files"));
-        final boolean packRelative = isPackRelative(files.keySet());
 
+        // Each set is read by its own spelling rather than by the base set's. An empty set is pack-relative by
+        // vacuum, so a manifest whose whole file list sits in alt used to have its alt paths left alone -- and a
+        // path that is not pack-relative matches nothing under the pack root.
         final Map<String, Map<String, FileEntry>> alternates = new LinkedHashMap<>();
         final JsonObject rawAlt = object(root, "alt");
         for (final Map.Entry<String, JsonElement> entry : rawAlt.entrySet())
         {
-            alternates.put(entry.getKey(), normalise(readFileMap(entry.getValue().getAsJsonObject()), packRelative));
+            final Map<String, FileEntry> alt = readFileMap(entry.getValue().getAsJsonObject());
+            alternates.put(entry.getKey(), normalise(alt, isPackRelative(alt.keySet())));
         }
 
         final JsonElement primary = root.get("primarySource");
         return new AssetManifest(Hashes.sha256(bytes),
             primary != null && primary.isJsonPrimitive() ? primary.getAsString() : null,
-            sources, normalise(files, packRelative), alternates);
+            sources, normalise(files, isPackRelative(files.keySet())), alternates);
     }
 
     /**

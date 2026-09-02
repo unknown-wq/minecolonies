@@ -12,6 +12,7 @@ import com.minecolonies.api.colony.permissions.*;
 import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.SoundUtils;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingTownHall;
 import com.minecolonies.core.network.messages.PermissionsMessage;
 import com.minecolonies.core.network.messages.server.colony.ChangeFreeToInteractBlockMessage;
@@ -200,8 +201,8 @@ public class WindowPermissionsPage extends AbstractWindowTownHall
      */
     private void addPlayerToColonyClicked(@NotNull final Button button)
     {
-        final int row = eventList.getListElementIndexByPane(button);
-        if (row >= 0 && row < buildingView.getPermissionEvents().size())
+        final int row = ListRow.of(eventList, button, buildingView.getPermissionEvents().size());
+        if (row != ListRow.NONE)
         {
             final PermissionEvent user = buildingView.getPermissionEvents().get(row);
             new PermissionsMessage.AddPlayerOrFakePlayer(buildingView.getColony(), user.getName(), user.getId()).sendToServer();
@@ -407,7 +408,12 @@ public class WindowPermissionsPage extends AbstractWindowTownHall
      */
     private void onRankButtonClicked(@NotNull final Button button)
     {
-        final int rankId = rankButtonList.getListElementIndexByPane(button);
+        final int rankId = ListRow.of(rankButtonList, button, allRankList.size());
+        if (rankId == ListRow.NONE)
+        {
+            return;
+        }
+
         final Rank rank = allRankList.get(rankId);
         if (rank != null)
         {
@@ -453,25 +459,27 @@ public class WindowPermissionsPage extends AbstractWindowTownHall
 
     private void removeBlock(final Button button)
     {
-        final int row = freeBlocksList.getListElementIndexByPane(button);
-        if (row >= 0)
-        {
-            @NotNull final List<Block> freeBlocks = buildingView.getColony().getFreeBlocks();
-            @NotNull final List<BlockPos> freePositions = buildingView.getColony().getFreePositions();
+        @NotNull final List<Block> freeBlocks = buildingView.getColony().getFreeBlocks();
+        @NotNull final List<BlockPos> freePositions = buildingView.getColony().getFreePositions();
 
-            if (row < freeBlocks.size())
-            {
-                new ChangeFreeToInteractBlockMessage(buildingView.getColony(), freeBlocks.get(row), ChangeFreeToInteractBlockMessage.MessageType.REMOVE_BLOCK).sendToServer();
-                buildingView.getColony().removeFreeBlock(freeBlocks.get(row));
-            }
-            else if (row < freeBlocks.size() + freePositions.size())
-            {
-                final BlockPos freePos = freePositions.get(row - freeBlocks.size());
-                new ChangeFreeToInteractBlockMessage(buildingView.getColony(), freePos, ChangeFreeToInteractBlockMessage.MessageType.REMOVE_BLOCK).sendToServer();
-                buildingView.getColony().removeFreePosition(freePos);
-            }
-            fillFreeBlockList();
+        final int row = ListRow.of(freeBlocksList, button, freeBlocks.size() + freePositions.size());
+        if (row == ListRow.NONE)
+        {
+            return;
         }
+
+        if (row < freeBlocks.size())
+        {
+            new ChangeFreeToInteractBlockMessage(buildingView.getColony(), freeBlocks.get(row), ChangeFreeToInteractBlockMessage.MessageType.REMOVE_BLOCK).sendToServer();
+            buildingView.getColony().removeFreeBlock(freeBlocks.get(row));
+        }
+        else
+        {
+            final BlockPos freePos = freePositions.get(row - freeBlocks.size());
+            new ChangeFreeToInteractBlockMessage(buildingView.getColony(), freePos, ChangeFreeToInteractBlockMessage.MessageType.REMOVE_BLOCK).sendToServer();
+            buildingView.getColony().removeFreePosition(freePos);
+        }
+        fillFreeBlockList();
     }
 
     /**
@@ -569,7 +577,12 @@ public class WindowPermissionsPage extends AbstractWindowTownHall
      */
     private void trigger(@NotNull final Button button)
     {
-        final int index = actionsList.getListElementIndexByPane(button);
+        final int index = ListRow.of(actionsList, button, actions.size());
+        if (index == ListRow.NONE)
+        {
+            return;
+        }
+
         final Action action = actions.get(index);
 
         final IPermissions permissions = buildingView.getColony().getPermissions();
@@ -696,7 +709,13 @@ public class WindowPermissionsPage extends AbstractWindowTownHall
     private void onRankSelected(final DropDownList dropdown)
     {
         final int index = dropdown.getSelectedIndex();
-        final ColonyPlayer player = users.get(userList.getListElementIndexByPane(dropdown));
+        final int row = ListRow.of(userList, dropdown, users.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
+        final ColonyPlayer player = users.get(row);
         final Rank rank = rankList.get(index);
         if (rank != player.getRank())
         {
@@ -730,8 +749,8 @@ public class WindowPermissionsPage extends AbstractWindowTownHall
      */
     private void removePlayerClicked(final Button button)
     {
-        final int row = userList.getListElementIndexByPane(button);
-        if (row >= 0 && row < users.size())
+        final int row = ListRow.of(userList, button, users.size());
+        if (row != ListRow.NONE)
         {
             final ColonyPlayer user = users.get(row);
             if (user.getRank().getId() != IPermissions.OWNER_RANK_ID)

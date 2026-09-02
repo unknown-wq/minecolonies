@@ -26,6 +26,7 @@ import com.minecolonies.api.colony.buildings.workerbuildings.ITownHallView.MapEn
 import com.minecolonies.api.util.SoundUtils;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.AbstractWindowSkeleton;
+import com.minecolonies.core.client.util.ClientMainThread;
 import com.minecolonies.core.client.render.worldevent.HighlightManager;
 import com.minecolonies.core.client.render.worldevent.highlightmanager.CitizenRenderData;
 import com.minecolonies.core.colony.buildings.views.LivingBuildingView;
@@ -52,6 +53,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import static com.minecolonies.api.research.util.ResearchConstants.COLOR_TEXT_FULFILLED;
 import static com.minecolonies.api.util.constant.CitizenConstants.LOW_SATURATION;
 import static com.minecolonies.api.util.constant.TranslationConstants.COLONYMAP_PLAYER_RESOLVED_REQUESTS;
@@ -195,6 +197,12 @@ public class WindowColonyMap extends AbstractWindowSkeleton
     private final BlockPos worldPosRoot;
 
     /**
+     * Players whose skin has already been asked for, so it is asked for once rather than on every tick until it
+     * arrives.
+     */
+    private final Set<UUID> requestedSkins = new HashSet<>();
+
+    /**
      * Constructor for the skeleton class of the windows.
      *
      * @param building The building the info window is for.
@@ -304,8 +312,8 @@ public class WindowColonyMap extends AbstractWindowSkeleton
         {
             for (Map.Entry<ICitizenDataView, View> entry : citizens.entrySet())
             {
-                final EntityCitizen citizen = (EntityCitizen) building.getColony().getWorld().getEntity(entry.getKey().getEntityId());
-                if (citizen != null)
+                // A network id is reused once its entity is gone, so what comes back need not be a citizen at all.
+                if (building.getColony().getWorld().getEntity(entry.getKey().getEntityId()) instanceof final EntityCitizen citizen)
                 {
                     putPaneCenterAtWorldPos(entry.getValue(), citizen.blockPosition());
                 }
@@ -330,28 +338,37 @@ public class WindowColonyMap extends AbstractWindowSkeleton
             {
                 if (building.getColony().isCoordInColony(Minecraft.getInstance().level, player.blockPosition()))
                 {
-                    Image playerImage = findPaneOfTypeByID(player.getStringUUID(), Image.class);
+                    final Image playerImage = findPaneOfTypeByID(player.getStringUUID(), Image.class);
                     if (playerImage == null)
                     {
-                        // PORT-26.2: SkinManager#getInsecureSkin is gone and PlayerSkin#texture became
-                        //  PlayerSkin#body (a ClientAsset.Texture). BlockUI's ofMinecraftSkin already resolves the
-                        //  body texture asynchronously and yields null when there is none, so the eager null check
-                        //  the old code did is no longer needed.
-                        OutOfJarResourceLocation.ofMinecraftSkin(Minecraft.getInstance(), player.getGameProfile(), null)
-                            .thenAccept(resLoc ->
-                            {
-                                if (resLoc != null)
+                        // Asked for once per player, not once per tick: the pane only exists after the skin has
+                        // resolved, so without the set every tick in between hangs another callback on the same
+                        // cached future and they all add a marker of their own when it completes.
+                        if (requestedSkins.add(player.getUUID()))
+                        {
+                            // PORT-26.2: SkinManager#getInsecureSkin is gone and PlayerSkin#texture became
+                            //  PlayerSkin#body (a ClientAsset.Texture). BlockUI's ofMinecraftSkin already resolves the
+                            //  body texture asynchronously and yields null when there is none, so the eager null check
+                            //  the old code did is no longer needed.
+                            OutOfJarResourceLocation.ofMinecraftSkin(Minecraft.getInstance(), player.getGameProfile(), null)
+                                // The skin may resolve on whichever thread finished loading it, and the pane tree
+                                // belongs to the client thread, so the marker is built there.
+                                .thenAccept(resLoc -> ClientMainThread.runOrSchedule(() ->
                                 {
-                                    Image localPlayerImage = new Image();
-                                    localPlayerImage.setID(player.getStringUUID());
-                                    localPlayerImage.setSize(16,16);
-                                    localPlayerImage.setImage(resLoc, 8,8,8,8);
-                                    dragView.addChild(localPlayerImage);
-                                    PaneBuilders.tooltipBuilder().hoverPane(localPlayerImage)
-                                        .append(Component.literal(player.getDisplayName().getString()))
-                                        .build();
-                                }
-                            });
+                                    if (resLoc != null && findPaneOfTypeByID(player.getStringUUID(), Image.class) == null)
+                                    {
+                                        Image localPlayerImage = new Image();
+                                        localPlayerImage.setID(player.getStringUUID());
+                                        localPlayerImage.setSize(16,16);
+                                        localPlayerImage.setImage(resLoc, 8,8,8,8);
+                                        putPaneCenterAtWorldPos(localPlayerImage, player.blockPosition());
+                                        dragView.addChild(localPlayerImage);
+                                        PaneBuilders.tooltipBuilder().hoverPane(localPlayerImage)
+                                            .append(Component.literal(player.getDisplayName().getString()))
+                                            .build();
+                                    }
+                                }));
+                        }
                     }
                     else
                     {
@@ -520,7 +537,7 @@ public class WindowColonyMap extends AbstractWindowSkeleton
                 statusImage.setImage(Identifier.fromNamespaceAndPath(Constants.MOD_ID, "textures/icons/information.png"), false);
                 statusImage.setSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE);
                 final BlockPos uiPos = worldPosToUIPos(buildingView.getPosition());
-                statusImage.setPosition(uiPos.getX() - uiBuilding.getWidth() / 2, uiPos.getY() - uiBuilding.getHeight() / 2);
+                statusImage.setPosition(uiPos.getX() - uiBuilding.getWidth() / 2, uiPos.getZ() - uiBuilding.getHeight() / 2);
                 statusImage.setVisible(true);
 
                 AbstractTextBuilder.TooltipBuilder statustip = PaneBuilders.tooltipBuilder();
@@ -628,8 +645,7 @@ public class WindowColonyMap extends AbstractWindowSkeleton
     {
         for (final ICitizenDataView data : colony.getCitizens().values())
         {
-            final EntityCitizen citizen = (EntityCitizen) colony.getWorld().getEntity(data.getEntityId());
-            if (citizen != null)
+            if (colony.getWorld().getEntity(data.getEntityId()) instanceof final EntityCitizen citizen)
             {
                 final View citizenView = new View();
                 putPaneCenterAtWorldPos(citizenView, citizen.blockPosition());
@@ -783,8 +799,9 @@ public class WindowColonyMap extends AbstractWindowSkeleton
         }
         catch (Exception e)
         {
+            // Reading requests for a drawn building is not a reason to throw the colony's request manager away: the
+            // map draws no icon for this building and the rest of the window carries on.
             Log.getLogger().warn("Exception trying to retrieve requests:", e);
-            requestManager.reset();
             return ImmutableList.of();
         }
 

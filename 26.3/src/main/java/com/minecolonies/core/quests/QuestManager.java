@@ -306,11 +306,17 @@ public class QuestManager implements IQuestManager
     @Override
     public void serialize(final RegistryFriendlyByteBuf buf, final boolean hasNewSubscribers)
     {
-        buf.writeBoolean(isDirty || hasNewSubscribers);
-        if (isDirty || hasNewSubscribers)
+        final boolean send = isDirty || hasNewSubscribers;
+        buf.writeBoolean(send);
+        if (send)
         {
             buf.writeNbt(serializeNBT(buf.registryAccess()));
         }
+
+        // Cleared once what it stands for has been written. Without this the flag was true from construction onwards
+        // and never went back, so every colony view packet carried the whole quest tree -- every available, active and
+        // finished quest with all of its objectives -- whether or not a quest had changed.
+        isDirty = false;
     }
 
     @Override
@@ -326,6 +332,10 @@ public class QuestManager implements IQuestManager
     @Override
     public void markDirty()
     {
+        // The colony as well as this manager, the same way every other manager signals a change: the view packet is
+        // only built when the colony is dirty, so a quest that marked only itself would wait for something unrelated
+        // to happen before the client heard about it.
+        colony.markDirty();
         isDirty = true;
     }
 

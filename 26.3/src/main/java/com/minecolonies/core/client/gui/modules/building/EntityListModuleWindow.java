@@ -9,6 +9,7 @@ import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.buildings.modules.IEntityListModuleView;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
+import com.minecolonies.core.client.gui.ListRow;
 import net.minecraft.resources.Identifier;
 
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -121,7 +122,12 @@ public class EntityListModuleWindow extends AbstractModuleWindow<IEntityListModu
      */
     private void switchClicked(@NotNull final Button button)
     {
-        final int row = resourceList.getListElementIndexByPane(button);
+        final int row = ListRow.of(resourceList, button, currentDisplayedList.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final Identifier item = currentDisplayedList.get(row);
         final boolean on = button.getText().equals(Component.translatableEscape(ON));
         final boolean add = (on && isInverted) || (!on && !isInverted);

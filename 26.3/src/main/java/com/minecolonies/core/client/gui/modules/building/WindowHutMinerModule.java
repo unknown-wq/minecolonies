@@ -7,6 +7,7 @@ import com.ldtteam.blockui.views.ScrollingList;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.colony.buildings.moduleviews.MinerLevelManagementModuleView;
 import com.minecolonies.core.network.messages.server.colony.building.miner.MinerRepairLevelMessage;
 import com.minecolonies.core.network.messages.server.colony.building.miner.MinerSetLevelMessage;
@@ -57,7 +58,12 @@ public class WindowHutMinerModule extends AbstractModuleWindow<MinerLevelManagem
      */
     private void repairClicked(final Button button)
     {
-        final int row = levelList.getListElementIndexByPane(button);
+        final int row = ListRow.of(levelList, button, moduleView.levelsInfo.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         new MinerRepairLevelMessage(buildingView, row).sendToServer();
         MessageUtils.format(MINER_REPAIR_ENQUEUED).sendTo(Minecraft.getInstance().player);
     }
@@ -69,8 +75,8 @@ public class WindowHutMinerModule extends AbstractModuleWindow<MinerLevelManagem
      */
     private void mineLevelClicked(final Button button)
     {
-        final int row = levelList.getListElementIndexByPane(button);
-        if (row != moduleView.current && row >= 0 && row < moduleView.levelsInfo.size())
+        final int row = ListRow.of(levelList, button, moduleView.levelsInfo.size());
+        if (row != ListRow.NONE && row != moduleView.current)
         {
             moduleView.current = row;
             new MinerSetLevelMessage(buildingView, row).sendToServer();

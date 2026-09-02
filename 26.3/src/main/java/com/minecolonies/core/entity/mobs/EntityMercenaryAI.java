@@ -160,16 +160,28 @@ public class EntityMercenaryAI extends Goal
                 // Attempt to steal!
                 final IBuilding building = entity.getColony().getServerBuildingManager().getBuilding(currentPatrolPos);
 
-                if (building != null)
+                // Not every hut answers with an inventory -- the block entity is gone with its chunk, or the hut
+                // simply holds nothing -- and a mercenary who picks a building like that used to take the whole
+                // entity tick down with it: both draws below are bounded by a count that can be zero, and
+                // nextInt refuses a bound of zero. There is nothing to steal, so there is nothing to do.
+                if (building != null && building.getTileEntity() != null)
                 {
                     final List<IItemHandler> handlers = new ArrayList<>(InventoryUtils.getItemHandlersFromProvider(building.getTileEntity()));
-                    final IItemHandler handler = handlers.get(rand.nextInt(handlers.size()));
-                    final ItemStack stack = handler.extractItem(rand.nextInt(handler.getSlots()), 5, false);
-
-                    if (!ItemStackUtils.isEmpty(stack))
+                    if (!handlers.isEmpty())
                     {
-                        entity.swingForAttack(InteractionHand.OFF_HAND);
-                        MessageUtils.format(MESSAGE_INFO_COLONY_MERCENARY_STEAL_BUILDING, stack.getHoverName().getString()).sendTo(entity.getColony()).forAllPlayers();
+                        final IItemHandler handler = handlers.get(rand.nextInt(handlers.size()));
+                        if (handler.getSlots() > 0)
+                        {
+                            final ItemStack stack = handler.extractItem(rand.nextInt(handler.getSlots()), 5, false);
+
+                            if (!ItemStackUtils.isEmpty(stack))
+                            {
+                                entity.swingForAttack(InteractionHand.OFF_HAND);
+                                MessageUtils.format(MESSAGE_INFO_COLONY_MERCENARY_STEAL_BUILDING, stack.getHoverName().getString())
+                                    .sendTo(entity.getColony())
+                                    .forAllPlayers();
+                            }
+                        }
                     }
                 }
             }

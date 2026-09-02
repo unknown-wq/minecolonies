@@ -144,10 +144,9 @@ public class WindowBannerRallyGuards extends AbstractWindowSkeleton
      */
     private void removeClicked(@NotNull final Button button)
     {
-        final int row = guardTowerList.getListElementIndexByPane(button);
-
         final List<Pair<BlockPos, AbstractBuildingGuards.View>> guardTowers = getGuardTowerViews(banner, mc.level);
-        if (guardTowers.size() > row && row >= 0)
+        final int row = ListRow.of(guardTowerList, button, guardTowers.size());
+        if (row != ListRow.NONE)
         {
             final BlockPos locationToRemove = guardTowers.get(row).getFirst();
             // Server side removal

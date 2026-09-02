@@ -545,7 +545,10 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
     @Override
     protected int getYSearchRange()
     {
-        if (((AbstractBuildingGuards) user.getCitizenData().getWorkBuilding()).getTask().equals(GuardTaskSetting.GUARD))
+        // Null-safe for the same reason getAttackDistance is: the target scan reaches this on every pass, so it runs
+        // for a guard whose hut has just gone as well as for one standing on his tower.
+        if (user.getCitizenData().getWorkBuilding() instanceof final AbstractBuildingGuards guardBuilding
+              && guardBuilding.getTask().equals(GuardTaskSetting.GUARD))
         {
             // The archer's guarding bonus stays what it was; taking the max means raising the shared config
             // (which exists for the knight, who has no bonus at all) can never shrink the archer's box.

@@ -9,6 +9,7 @@ import com.ldtteam.blockui.views.ScrollingList;
 import com.minecolonies.api.colony.buildings.modules.IItemListModuleView;
 import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
+import com.minecolonies.core.client.gui.ListRow;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
@@ -111,7 +112,12 @@ public class ItemListModuleWindow extends AbstractModuleWindow<IItemListModuleVi
      */
     private void switchClicked(@NotNull final Button button)
     {
-        final int row = resourceList.getListElementIndexByPane(button);
+        final int row = ListRow.of(resourceList, button, currentDisplayedList.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final ItemStorage item = currentDisplayedList.get(row);
         final boolean on = button.getText().equals(Component.translatableEscape(ON));
         final boolean add = (on && isInverted) || (!on && !isInverted);

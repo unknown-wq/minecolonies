@@ -144,6 +144,14 @@ public class RaidManager implements IRaiderManager
     private static final int INITIAL_RAID_DIFFICULTY = 7;
 
     /**
+     * How many past raids are kept. The list is written into the colony's saved data in full, one entry per raid with
+     * a spawn record per event, and nothing ever took anything out of it, so on a long lived colony it only grew.
+     * Fifty is far more than the difficulty maths reads -- that only ever looks at the last one -- and more than a
+     * raid history anybody scrolls through in chat.
+     */
+    private static final int MAX_RAID_HISTORY = 50;
+
+    /**
      * The dynamic difficulty of raids for this colony
      */
     private int raidDifficulty = INITIAL_RAID_DIFFICULTY;
@@ -368,6 +376,7 @@ public class RaidManager implements IRaiderManager
         }
 
         raidHistories.add(new RaidHistory(amount, colony.getWorld().getGameTime()));
+        trimRaidHistory();
         nightsSinceLastRaid = 0;
         nextRaid = null;
         amount = (int) Math.ceil((float) amount / spawnPoints.size());
@@ -582,7 +591,23 @@ public class RaidManager implements IRaiderManager
               0,
               (int) Math.round(distance * Math.sin(Math.toRadians(degree))));
 
-            if (!colony.getWorld().getWorldBorder().isWithinBounds(candidate) || isOtherColony(candidate.getX(), candidate.getZ()))
+            if (!colony.getWorld().getWorldBorder().isWithinBounds(candidate))
+            {
+                continue;
+            }
+
+            // The whole reason this method exists is that the ground round the colony is not loaded, so neither of
+            // the two questions below may be put to a chunk that is not there: isOtherColony reaches the chunk
+            // through Level#getChunk and getFloor reads block states, and both of those load -- or generate -- on
+            // the server thread, up to eight times per call. Where the chunk is present both are asked exactly as
+            // before; where it is not, the raw point is handed back and the event pulls it in towards the colony
+            // until it finds ground it can stand raiders on.
+            if (!WorldUtil.isBlockLoaded(colony.getWorld(), candidate))
+            {
+                return candidate;
+            }
+
+            if (isOtherColony(candidate.getX(), candidate.getZ()))
             {
                 continue;
             }
@@ -1172,6 +1197,19 @@ public class RaidManager implements IRaiderManager
             {
                 raidHistories.add(RaidHistory.fromNBT((CompoundTag) tag));
             }
+            trimRaidHistory();
+        }
+    }
+
+    /**
+     * Drop the oldest raids once there are more of them than {@link #MAX_RAID_HISTORY}. Done on reading as well as on
+     * adding, so a colony that has already collected more than that gives them back the first time it loads.
+     */
+    private void trimRaidHistory()
+    {
+        while (raidHistories.size() > MAX_RAID_HISTORY)
+        {
+            raidHistories.removeFirst();
         }
     }
 

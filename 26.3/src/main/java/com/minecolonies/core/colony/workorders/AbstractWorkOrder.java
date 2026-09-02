@@ -246,7 +246,12 @@ public abstract class AbstractWorkOrder implements IBuilderWorkOrder
             }
             else
             {
-                oclass = nameToClassBiMap.get(type).getA();
+                // A type this build has no mapping for - a save from a version that had one more of them, or a
+                // stripped tag - leaves the class null, which is the same "unknown type" the warning below reports.
+                // Reading it off the missing mapping instead would throw past the catch and take the whole work
+                // manager, and with it the colony load, down with one bad entry.
+                final Tuple<Class<? extends IWorkOrder>, Class<? extends IWorkOrderView>> mapping = nameToClassBiMap.get(type);
+                oclass = mapping == null ? null : mapping.getA();
             }
 
             if (oclass != null)
@@ -296,7 +301,8 @@ public abstract class AbstractWorkOrder implements IBuilderWorkOrder
 
         try
         {
-            @Nullable Class<? extends IWorkOrderView> oclass = nameToClassBiMap.get(mappingName).getB();
+            final Tuple<Class<? extends IWorkOrder>, Class<? extends IWorkOrderView>> mapping = nameToClassBiMap.get(mappingName);
+            @Nullable Class<? extends IWorkOrderView> oclass = mapping == null ? null : mapping.getB();
 
             if (oclass != null)
             {

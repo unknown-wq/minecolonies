@@ -9,6 +9,7 @@ import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.BlockPosUtil.DirectionResult;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.colony.buildingextensions.FarmField;
 import com.minecolonies.core.colony.buildings.moduleviews.FieldsModuleView;
 import net.minecraft.ChatFormatting;
@@ -123,7 +124,12 @@ public class FarmFieldsModuleWindow extends AbstractModuleWindow<FieldsModuleVie
      */
     private void assignClicked(@NotNull final Button button)
     {
-        final int row = fieldList.getListElementIndexByPane(button);
+        final int row = ListRow.of(fieldList, button, moduleView.getFields().size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final IBuildingExtension field = moduleView.getFields().get(row);
         if (field.isTaken())
         {

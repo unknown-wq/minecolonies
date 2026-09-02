@@ -317,12 +317,18 @@ public class ColonyConnectionManager implements IColonyConnectionManager
                 }
                 else
                 {
+                    // Dropped from the pending map whatever the type is. Only a default node also loses its sign --
+                    // a mending or colony connection that cannot be pathed is not a sign the player placed wrongly --
+                    // but the entry itself has to go either way, or the failure is permanent: the cached result stays
+                    // done, this branch is re-entered on every tick, and addNewConnectionNode refuses every further
+                    // sign for as long as anything is pending. The entry is saved to NBT, so it survived restarts too.
+                    pendingColonyConnections.remove(pendingConnection.getKey());
+
                     if (pendingConnection.getValue().getPendingConnectionType() != PendingConnectionNode.PendingConnectionType.DEFAULT)
                     {
                         continue;
                     }
                     colony.getWorld().destroyBlock(pendingConnection.getKey(), true);
-                    pendingColonyConnections.remove(pendingConnection.getKey());
                     MessageUtils.format(COM_MINECOLONIES_CONNECTION_PATH_FAILURE, pendingConnection.getKey().toShortString(), pendingConnection.getValue().getPreviousNode().toShortString()).withPriority(MessageUtils.MessagePriority.DANGER).sendTo(colony).forManagers();
                 }
             }

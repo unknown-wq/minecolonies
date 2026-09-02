@@ -9,6 +9,7 @@ import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.colony.buildings.moduleviews.EnchanterStationsModuleView;
 import com.minecolonies.core.colony.buildings.moduleviews.WorkerBuildingModuleView;
 import com.minecolonies.core.colony.buildings.views.AbstractBuildingView;
@@ -113,7 +114,12 @@ public class EnchanterStationModuleWindow extends AbstractModuleWindow<Enchanter
      */
     private void switchClicked(@NotNull final Button button)
     {
-        final int row = workerList.getListElementIndexByPane(button);
+        final int row = ListRow.of(workerList, button, allBuildings.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         String buttonText = button.getText().getContents() instanceof TranslatableContents ? ((TranslatableContents) button.getText().getContents()).getKey() : button.getTextAsString();
 
         if (buttonText.equals(OFF))

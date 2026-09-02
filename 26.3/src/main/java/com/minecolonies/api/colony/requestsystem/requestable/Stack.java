@@ -145,7 +145,7 @@ public class Stack implements IConcreteDeliverable
       final int count,
       final int minCount)
     {
-        this(stack, matchDamage, matchNBT, ItemStackUtils.EMPTY, count, minCount, true);
+        this(stack, matchDamage, matchNBT, result, count, minCount, true);
     }
 
     /**

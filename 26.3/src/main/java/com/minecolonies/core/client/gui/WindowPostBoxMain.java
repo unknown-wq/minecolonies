@@ -170,7 +170,12 @@ public class WindowPostBoxMain extends AbstractWindowSkeleton
      */
     private void requestClicked(final Button button)
     {
-        final int row = stackList.getListElementIndexByPane(button);
+        final int row = ListRow.of(stackList, button, allItems.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final ItemStack stack = allItems.get(row);
         int qty = stack.getMaxStackSize();
         for (final Pane child : button.getParent().getChildren())

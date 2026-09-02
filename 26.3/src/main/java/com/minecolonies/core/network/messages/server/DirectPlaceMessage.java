@@ -8,7 +8,9 @@ import com.ldtteam.common.network.AbstractServerPlayMessage;
 import com.ldtteam.common.network.PlayMessageType;
 import com.ldtteam.structurize.storage.ServerFutureProcessor;
 import com.ldtteam.structurize.storage.StructurePacks;
+import com.minecolonies.api.blocks.AbstractBlockHut;
 import com.minecolonies.api.blocks.ModBlocks;
+import com.minecolonies.api.blocks.interfaces.IRSComponentBlock;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.buildings.IBuilding;
@@ -23,6 +25,7 @@ import com.minecolonies.core.tileentities.TileEntityColonyBuilding;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -36,10 +39,23 @@ import static com.minecolonies.api.util.constant.TranslationConstants.WRONG_COLO
 
 /**
  * Place a building directly without buildtool.
+ * <p>
+ * The answer to {@code OpenSuggestionWindowMessage}, which is only ever offered for a hut block the player was
+ * holding and within arm's reach. Everything that offer fixed is checked again here rather than taken from the
+ * answer: the block, the item that pays for it, and the distance. Without that the message places any block state
+ * at any position, and the hut item goes whether or not the placement does.
  */
 public class DirectPlaceMessage extends AbstractServerPlayMessage
 {
     public static final PlayMessageType<?> TYPE = PlayMessageType.forServer(Constants.MOD_ID, "direct_place", DirectPlaceMessage::new);
+
+    /**
+     * How far from the block the sender is still believed. The suggestion is raised by clicking the neighbouring
+     * block, so any legitimate sender is beside it; this leaves room for the walk to the window and stops a hand
+     * written packet naming a position on the other side of the world, which the block lookups below would
+     * otherwise load and generate a chunk for, on the server thread.
+     */
+    private static final int MAX_INTERACTION_DISTANCE = 64;
 
     /**
      * The state to be placed..
@@ -101,8 +117,26 @@ public class DirectPlaceMessage extends AbstractServerPlayMessage
     protected void onExecute(final PlayMessageContext ctxIn, final ServerPlayer player)
     {
         final Level world = player.level();
+
+        // A hut block and nothing else: the suggestion window is raised for no other kind of block, and the state
+        // arrives as a plain block state id, so without this any block in the game could be named.
+        if (!(state.getBlock() instanceof AbstractBlockHut) || state.getBlock() instanceof IRSComponentBlock)
+        {
+            return;
+        }
+
+        // And the item has to be the one that block comes out of, so what is taken pays for what is put down.
+        if (!(stack.getItem() instanceof final BlockItem blockItem) || blockItem.getBlock() != state.getBlock())
+        {
+            return;
+        }
+
+        if (!world.isLoaded(pos) || player.blockPosition().distSqr(pos) > MAX_INTERACTION_DISTANCE * MAX_INTERACTION_DISTANCE)
+        {
+            return;
+        }
+
         final IColony colony = IColonyManager.getInstance().getColonyByPosFromWorld(world, pos);
-        InventoryUtils.reduceStackInItemHandler(new InvWrapper(player.getInventory()), stack);
 
         if ((colony == null && state.getBlock() == ModBlocks.blockHutTownHall) || (colony != null && colony.getPermissions().hasPermission(player, Action.MANAGE_HUTS)))
         {
@@ -110,6 +144,13 @@ public class DirectPlaceMessage extends AbstractServerPlayMessage
             if (colony != null && colonyId.hasColonyId() && colony.getID() != colonyId.id())
             {
                 MessageUtils.format(WRONG_COLONY, colonyId.id()).sendTo(player);
+                return;
+            }
+
+            // Taken last, and only when it is there: the refusals above used to happen after the hut had already
+            // been removed from the player's inventory.
+            if (!InventoryUtils.attemptReduceStackInItemHandler(new InvWrapper(player.getInventory()), stack, 1))
+            {
                 return;
             }
 

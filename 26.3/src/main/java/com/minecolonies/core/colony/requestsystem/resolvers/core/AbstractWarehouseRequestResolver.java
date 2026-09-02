@@ -88,8 +88,11 @@ public abstract class AbstractWarehouseRequestResolver extends AbstractRequestRe
 
             if (requestToCheck.getRequest() instanceof MinimumStack)
             {
+                // Not every requester is a building standing on that spot: a citizen asks in its own right, and a
+                // building that was torn down while its request was still open leaves nothing behind either. Neither
+                // is the other warehouse this is guarding against.
                 final IBuilding otherWarehouse = colony.getServerBuildingManager().getBuilding(requestToCheck.getRequester().getLocation().getInDimensionLocation());
-                if (otherWarehouse.getBuildingType() == ModBuildings.wareHouse.get())
+                if (otherWarehouse != null && otherWarehouse.getBuildingType() == ModBuildings.wareHouse.get())
                 {
                     return false;
                 }
@@ -168,7 +171,13 @@ public abstract class AbstractWarehouseRequestResolver extends AbstractRequestRe
         }
 
         final Colony colony = (Colony) manager.getColony();
-        final TileEntityWareHouse wareHouse = (TileEntityWareHouse) colony.getServerBuildingManager().getBuilding(getLocation().getInDimensionLocation()).getTileEntity();
+        final IBuilding building = colony.getServerBuildingManager().getBuilding(getLocation().getInDimensionLocation());
+        if (building == null)
+        {
+            return Lists.newArrayList();
+        }
+
+        final TileEntityWareHouse wareHouse = (TileEntityWareHouse) building.getTileEntity();
         if (wareHouse == null)
         {
             return Lists.newArrayList();
@@ -243,7 +252,13 @@ public abstract class AbstractWarehouseRequestResolver extends AbstractRequestRe
         }
 
         final Colony colony = (Colony) manager.getColony();
-        final TileEntityWareHouse wareHouse = (TileEntityWareHouse) colony.getServerBuildingManager().getBuilding(getLocation().getInDimensionLocation()).getTileEntity();
+        final IBuilding building = colony.getServerBuildingManager().getBuilding(getLocation().getInDimensionLocation());
+        if (building == null)
+        {
+            return null;
+        }
+
+        final TileEntityWareHouse wareHouse = (TileEntityWareHouse) building.getTileEntity();
 
         if (wareHouse == null)
         {

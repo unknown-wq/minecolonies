@@ -8,6 +8,7 @@ import com.minecolonies.api.colony.ICitizenDataView;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.colony.buildings.AbstractBuildingGuards;
 import com.minecolonies.core.colony.buildings.modules.settings.GuardTaskSetting;
 import com.minecolonies.core.colony.buildings.moduleviews.MinerGuardAssignModuleView;
@@ -49,7 +50,12 @@ public class WindowMineGuardModule  extends AbstractModuleWindow<MinerGuardAssig
 
     private void assignGuardClicked(final Button button)
     {
-        final int guardRow = guardsList.getListElementIndexByPane(button);
+        final int guardRow = ListRow.of(guardsList, button, guardsInfo.size());
+        if (guardRow == ListRow.NONE)
+        {
+            return;
+        }
+
         final ICitizenDataView guard = guardsInfo.get(guardRow);
         if (guard != null)
         {

@@ -6,10 +6,12 @@ import com.ldtteam.blockui.controls.Text;
 import com.ldtteam.blockui.views.ScrollingList;
 import com.minecolonies.api.colony.connections.*;
 import com.minecolonies.api.util.BlockPosUtil;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingTownHall;
 import com.minecolonies.core.network.messages.server.colony.TriggerConnectionEventMessage;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +94,11 @@ public class WindowAlliancePage extends AbstractWindowTownHall
     private void setNeutral(@NotNull final Button button)
     {
         final ColonyConnection connectedColonyData = getColonyDataFromPane(button);
+        if (connectedColonyData == null)
+        {
+            return;
+        }
+
         new TriggerConnectionEventMessage(buildingView.getColony(), new ConnectionEvent(buildingView.getColony().getID(), buildingView.getColony().getName(),
             ConnectionEventType.NEUTRAL_SET), connectedColonyData.id).sendToServer();
     }
@@ -99,6 +106,11 @@ public class WindowAlliancePage extends AbstractWindowTownHall
     private void startFeud(@NotNull final Button button)
     {
         final ColonyConnection connectedColonyData = getColonyDataFromPane(button);
+        if (connectedColonyData == null)
+        {
+            return;
+        }
+
         new TriggerConnectionEventMessage(buildingView.getColony(), new ConnectionEvent(buildingView.getColony().getID(), buildingView.getColony().getName(),
             ConnectionEventType.FEUD_STARTED), connectedColonyData.id).sendToServer();
     }
@@ -106,6 +118,11 @@ public class WindowAlliancePage extends AbstractWindowTownHall
     private void requestAlly(@NotNull final Button button)
     {
         final ColonyConnection connectedColonyData = getColonyDataFromPane(button);
+        if (connectedColonyData == null)
+        {
+            return;
+        }
+
         new TriggerConnectionEventMessage(buildingView.getColony(), new ConnectionEvent(buildingView.getColony().getID(), buildingView.getColony().getName(),
             ConnectionEventType.ALLY_REQUEST), connectedColonyData.id).sendToServer();
     }
@@ -113,24 +130,30 @@ public class WindowAlliancePage extends AbstractWindowTownHall
     private void acceptAlly(@NotNull final Button button)
     {
         final List<ConnectionEvent> list = buildingView.getColony().getConnectionManager().getConnectionEvents();
-        final int revIndex = list.size() - 1 - connectionEvents.getListElementIndexByPane(button);
+        final int row = ListRow.of(connectionEvents, button, list.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
+        // The list is drawn newest first, so the row counts back from the end of the events.
+        final int revIndex = list.size() - 1 - row;
 
         new TriggerConnectionEventMessage(buildingView.getColony(), new ConnectionEvent(buildingView.getColony().getID(), buildingView.getColony().getName(),
             ConnectionEventType.ALLY_CONFIRMED), list.get(revIndex).id()).sendToServer();
     }
 
+    @Nullable
     private ColonyConnection getColonyDataFromPane(final @NotNull Button button)
     {
-        final int directRow = directConnections.getListElementIndexByPane(button);
-        if (directRow != -1)
+        final int directRow = ListRow.of(directConnections, button, directConnectionData.size());
+        if (directRow != ListRow.NONE)
         {
             return directConnectionData.get(directRow);
         }
-        else
-        {
-            final int indirectRow = indirectConnections.getListElementIndexByPane(button);
-            return indirectConnectionData.get(indirectRow);
-        }
+
+        final int indirectRow = ListRow.of(indirectConnections, button, indirectConnectionData.size());
+        return indirectRow == ListRow.NONE ? null : indirectConnectionData.get(indirectRow);
     }
 
     @Override

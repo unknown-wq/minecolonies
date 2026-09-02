@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.ParticleUtils;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -31,6 +32,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.GameEvent.Context;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
@@ -254,5 +256,35 @@ public class MinecoloniesFarmland extends AbstractBlockMinecolonies<Minecolonies
     public FluidState getFluidState(BlockState state)
     {
         return state.getValue(WATERLOGGED) && waterLogged ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+    }
+
+    /**
+     * Only the flooded variant may actually hold water.
+     * <p>
+     * Both variants register {@link #WATERLOGGED} and both implement {@link SimpleWaterloggedBlock}, whose own
+     * answer to these two does not consult the block at all. Everything else in this class asks the variant rather
+     * than the property -- {@link #getFluidState} above, and the fluid tick in {@link #updateShape} -- so on the dry
+     * farmland a bucket set the property and then no fluid was ever reported for it: the water was simply consumed
+     * and gone. Refusing it here is the same shape vanilla uses for the double slab.
+     */
+    @Override
+    public boolean canPlaceLiquid(
+      @Nullable final LivingEntity user,
+      @NotNull final BlockGetter level,
+      @NotNull final BlockPos pos,
+      @NotNull final BlockState state,
+      @NotNull final Fluid type)
+    {
+        return waterLogged && SimpleWaterloggedBlock.super.canPlaceLiquid(user, level, pos, state, type);
+    }
+
+    /**
+     * See {@link #canPlaceLiquid}. Overridden as well because a spreading fluid reaches
+     * {@code FlowingFluid#spreadTo} and calls this one straight out, without asking first.
+     */
+    @Override
+    public boolean placeLiquid(@NotNull final LevelAccessor level, @NotNull final BlockPos pos, @NotNull final BlockState state, @NotNull final FluidState fluidState)
+    {
+        return waterLogged && SimpleWaterloggedBlock.super.placeLiquid(level, pos, state, fluidState);
     }
 }

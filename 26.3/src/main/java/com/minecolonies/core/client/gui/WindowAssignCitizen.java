@@ -99,7 +99,12 @@ public class WindowAssignCitizen extends AbstractWindowSkeleton implements Butto
      */
     private void hireClicked(@NotNull final Button button)
     {
-        final int row = unassignedCitizenList.getListElementIndexByPane(button);
+        final int row = ListRow.of(unassignedCitizenList, button, unassignedCitizens.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final ICitizenDataView data = unassignedCitizens.get(row);
 
         // getOccupiedBeds, not the resident count: children live here without holding a bed, and counting them would
@@ -124,7 +129,12 @@ public class WindowAssignCitizen extends AbstractWindowSkeleton implements Butto
      */
     private void fireClicked(@NotNull final Button button)
     {
-        final int row = assignedCitizenList.getListElementIndexByPane(button);
+        final int row = ListRow.of(assignedCitizenList, button, assignedCitizens.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final ICitizenDataView data = assignedCitizens.get(row);
 
         building.removeResident(data.getId());

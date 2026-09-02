@@ -168,7 +168,12 @@ public abstract class AbstractSchematicProvider implements ISchematicProvider, I
         compound.putString(TAG_PATH, getBlueprintPath());
 
         compound.putInt(TAG_SCHEMATIC_LEVEL, buildingLevel);
-        compound.putByte(TAG_ROTATION_MIRROR, (byte) getRotationMirror().ordinal());
+        // The field is nullable and starts out null, and AbstractBuilding#serializeToView already treats that as a
+        // state that occurs -- it logs and writes NONE. Saving the colony has to survive it on the same terms
+        // rather than dropping an NPE out of the middle of the world save; NONE is also what deserializeNBT reads
+        // back for a tag that is not there.
+        final RotationMirror savedRotationMirror = getRotationMirror();
+        compound.putByte(TAG_ROTATION_MIRROR, (byte) (savedRotationMirror == null ? RotationMirror.NONE : savedRotationMirror).ordinal());
 
         getCorners();
         BlockPosUtil.write(compound, TAG_CORNER1, this.lowerCorner);

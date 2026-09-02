@@ -11,6 +11,7 @@ import com.minecolonies.api.equipment.ModEquipmentTypes;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.api.util.constant.TranslationConstants;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
+import com.minecolonies.core.client.gui.ListRow;
 import com.minecolonies.core.colony.buildings.moduleviews.CraftingModuleView;
 import com.minecolonies.core.network.messages.server.colony.building.worker.AddRemoveRecipeMessage;
 import com.minecolonies.core.network.messages.server.colony.building.worker.ChangeRecipePriorityMessage;
@@ -99,7 +100,12 @@ public class WindowListRecipes extends AbstractModuleWindow<CraftingModuleView>
      */
     private void toggleRecipe(final Button button)
     {
-        final int row = recipeList.getListElementIndexByPane(button);
+        final int row = ListRow.of(recipeList, button, moduleView.getRecipes().size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         moduleView.toggle(row);
         new ToggleRecipeMessage(buildingView, row, moduleView.getProducer().getRuntimeID()).sendToServer();
     }
@@ -114,7 +120,12 @@ public class WindowListRecipes extends AbstractModuleWindow<CraftingModuleView>
         // no longer takes the window.
         final boolean shift = InputConstants.isKeyDown(InputConstants.KEY_LSHIFT)
                                 || InputConstants.isKeyDown(InputConstants.KEY_RSHIFT);
-        final int row = recipeList.getListElementIndexByPane(button);
+        final int row = ListRow.of(recipeList, button, moduleView.getRecipes().size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         moduleView.switchOrder(row, row + 1, shift);
         new ChangeRecipePriorityMessage(buildingView, row, false, moduleView.getProducer().getRuntimeID(), shift).sendToServer();
         recipeList.refreshElementPanes();
@@ -130,7 +141,12 @@ public class WindowListRecipes extends AbstractModuleWindow<CraftingModuleView>
         // no longer takes the window.
         final boolean shift = InputConstants.isKeyDown(InputConstants.KEY_LSHIFT)
                                 || InputConstants.isKeyDown(InputConstants.KEY_RSHIFT);
-        final int row = recipeList.getListElementIndexByPane(button);
+        final int row = ListRow.of(recipeList, button, moduleView.getRecipes().size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         moduleView.switchOrder(row, row - 1, shift);
         new ChangeRecipePriorityMessage(buildingView, row, true, moduleView.getProducer().getRuntimeID(), shift).sendToServer();
         recipeList.refreshElementPanes();
@@ -142,7 +158,12 @@ public class WindowListRecipes extends AbstractModuleWindow<CraftingModuleView>
      */
     private void removeClicked(final Button button)
     {
-        final int row = recipeList.getListElementIndexByPane(button);
+        final int row = ListRow.of(recipeList, button, moduleView.getRecipes().size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final IRecipeStorage data = moduleView.getRecipes().get(row);
         moduleView.removeRecipe(row);
         new AddRemoveRecipeMessage(buildingView, true, data, moduleView.getProducer().getRuntimeID()).sendToServer();
@@ -182,8 +203,10 @@ public class WindowListRecipes extends AbstractModuleWindow<CraftingModuleView>
             {
                 @NotNull final IRecipeStorage recipe = moduleView.getRecipes().get(index);
                 final ItemIcon icon = rowPane.findPaneOfTypeByID(OUTPUT_ICON, ItemIcon.class);
-                List<ItemStack> displayStacks = recipe.getRecipeType().getOutputDisplayStacks();
-                icon.setItem(displayStacks.get((lifeCount / LIFE_COUNT_DIVIDER) % (displayStacks.size())));
+                // A multi output recipe with no primary output and no alternatives has nothing to show, and the
+                // rotation through the stacks would divide by zero. Every other list that rotates them checks this.
+                final List<ItemStack> displayStacks = recipe.getRecipeType().getOutputDisplayStacks();
+                icon.setItem(displayStacks.isEmpty() ? ItemStack.EMPTY : displayStacks.get((lifeCount / LIFE_COUNT_DIVIDER) % displayStacks.size()));
 
                 final Button removeButton = rowPane.findPaneOfTypeByID(BUTTON_REMOVE, Button.class);
                 if (removeButton != null)

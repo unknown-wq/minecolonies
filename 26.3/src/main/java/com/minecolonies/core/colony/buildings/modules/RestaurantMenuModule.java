@@ -226,7 +226,8 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
                 }
                 ItemStack requestStack = originalStack;
                 ItemStack rawStack = ItemStack.EMPTY;
-                if (canCook && MinecoloniesAPIProxy.getInstance().getFurnaceRecipes().getFirstSmeltingRecipeByResult(menuItem) instanceof RecipeStorage recipeStorage)
+                if (canCook && MinecoloniesAPIProxy.getInstance().getFurnaceRecipes().getFirstSmeltingRecipeByResult(menuItem) instanceof RecipeStorage recipeStorage
+                      && !recipeStorage.getInput().isEmpty())
                 {
                     // Smelting Recipes only got 1 input. Request sometimes the input if this is a smeltable.
                     rawStack = recipeStorage.getInput().get(0).getItemStack().copy();
@@ -240,7 +241,16 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
                 {
                     requestStack = rawStack.copy();
                 }
-                final IToken<?> request = getMatchingRequest(requestStack, list);
+                // Look for a standing order under both names rather than under the one this tick happened to draw.
+                // The test below is what stops a second order going out while one is still outstanding, and it could
+                // not do that while the name it searched under changed from tick to tick: on the tick that picked
+                // the other of the two, nothing matched and a parallel order was raised for the same food.
+                IToken<?> request = getMatchingRequest(originalStack, list);
+                if (request == null && !rawStack.isEmpty())
+                {
+                    request = getMatchingRequest(rawStack, list);
+                }
+
                 if (delta > (building.getColony().getResearchManager().getResearchEffects().getEffectStrength(MIN_ORDER) > 0 ? target / 4 : 0))
                 {
                     if (request == null)
@@ -295,7 +305,8 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
         for (final ItemStorage menuItem : menu)
         {
             consumer.accept(stack -> ItemStackUtils.compareItemStacksIgnoreStackSize(stack, menuItem.getItemStack(), false, true), menuItem.getItemStack().getMaxStackSize() * getExpectedStock(), false);
-            if (canCook && MinecoloniesAPIProxy.getInstance().getFurnaceRecipes().getFirstSmeltingRecipeByResult(menuItem) instanceof RecipeStorage recipeStorage)
+            if (canCook && MinecoloniesAPIProxy.getInstance().getFurnaceRecipes().getFirstSmeltingRecipeByResult(menuItem) instanceof RecipeStorage recipeStorage
+                  && !recipeStorage.getInput().isEmpty())
             {
                 final ItemStack smeltStack = recipeStorage.getInput().get(0).getItemStack();
                 consumer.accept(stack -> ItemStackUtils.compareItemStacksIgnoreStackSize(stack, smeltStack, false, true), smeltStack.getMaxStackSize() * getExpectedStock(), false);

@@ -2,22 +2,18 @@ package com.minecolonies.core.colony.jobs.guard;
 
 import net.minecraft.core.UUIDUtil;
 import com.minecolonies.core.colony.jobs.AbstractJobGuard;
-import com.minecolonies.core.util.citizenutils.CitizenItemUtils;
 import net.minecraft.resources.Identifier;
 
-import net.minecraft.core.component.DataComponents;
 import com.minecolonies.api.client.render.modeltype.ModModelTypes;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.equipment.ModEquipmentTypes;
 import com.minecolonies.api.equipment.registry.EquipmentTypeEntry;
-import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.core.entity.ai.workers.guard.EntityAICavalry;
 import com.minecolonies.core.util.AttributeModifierUtils;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -117,25 +113,23 @@ public class JobCavalry extends AbstractJobGuard<JobCavalry>
     @Override
     public boolean ignoresDamage(@NotNull final DamageSource damageSource)
     {
-        boolean applicableDamageSource = damageSource.is(DamageTypeTags.IS_EXPLOSION) || damageSource.is(DamageTypeTags.IS_PROJECTILE);
+        // The shield has to actually be up, and asking whether the damage counts may not change anything about the
+        // rider. This used to accept a shield anywhere in the pack and then equip it, raise it, stamp the colony flag
+        // on it and spend saturation as a side effect of the question, so a researched rider with a spare shield in
+        // his bag shrugged off every creeper and every arrow, facing away or not. MeleeCombatAI#attackProtect is what
+        // raises the shield, every eight ticks while the rider is fighting and not about to swing, and it applies the
+        // flag there; a rider in a fight still blocks, one caught unawares does not.
+        final boolean applicableDamageSource = damageSource.is(DamageTypeTags.IS_EXPLOSION) || damageSource.is(DamageTypeTags.IS_PROJECTILE);
 
-        if(applicableDamageSource && this.getColony().getResearchManager().getResearchEffects().getEffectStrength(SHIELD_USAGE) > 0
-                && InventoryUtils.findFirstSlotInItemHandlerWith(this.getCitizen().getInventory(), Items.SHIELD) != -1)
+        if (applicableDamageSource && this.getColony().getResearchManager().getResearchEffects().getEffectStrength(SHIELD_USAGE) > 0
+              && this.getCitizen().getEntity().isPresent())
         {
-            if (!this.getCitizen().getEntity().isPresent())
+            final AbstractEntityCitizen worker = this.getCitizen().getEntity().get();
+            if (worker.isUsingItem() && worker.getUsedItemHand() == InteractionHand.OFF_HAND
+                  && worker.getInventoryCitizen().getHeldItem(InteractionHand.OFF_HAND).is(Items.SHIELD))
             {
                 return true;
             }
-            final AbstractEntityCitizen worker = this.getCitizen().getEntity().get();
-            CitizenItemUtils.setHeldItem(worker, InteractionHand.OFF_HAND, InventoryUtils.findFirstSlotInItemHandlerWith(this.getCitizen().getInventory(), Items.SHIELD));
-            worker.startUsingItem(InteractionHand.OFF_HAND);
-
-            // Apply the colony Flag to the shield
-            ItemStack shieldStack = worker.getInventoryCitizen().getHeldItem(InteractionHand.OFF_HAND);
-            shieldStack.set(DataComponents.BANNER_PATTERNS, getColony().getColonyFlag());
-
-            worker.decreaseSaturationForContinuousAction();
-            return true;
         }
         return super.ignoresDamage(damageSource);
     }

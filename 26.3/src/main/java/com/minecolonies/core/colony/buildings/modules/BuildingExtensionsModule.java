@@ -77,7 +77,13 @@ public abstract class BuildingExtensionsModule extends AbstractBuildingModule im
         for (int i = 0; i < listTag.size(); ++i)
         {
             final CompoundTag tag = listTag.getCompoundOrEmpty(i);
-            checkedExtensions.put(IBuildingExtension.ExtensionId.deserializeNBT(provider, tag.getCompoundOrEmpty(TAG_ID)), compound.getIntOr(TAG_DAY, 0));
+            if (!tag.contains(TAG_ID))
+            {
+                // Nothing to point at, so nothing to remember. An entry in this shape can only come from a save
+                // written before the list below was stored under a key this method reads.
+                continue;
+            }
+            checkedExtensions.put(IBuildingExtension.ExtensionId.deserializeNBT(provider, tag.getCompoundOrEmpty(TAG_ID)), tag.getIntOr(TAG_DAY, 0));
         }
         if (compound.contains(TAG_CURRENT_EXTENSION))
         {
@@ -94,11 +100,11 @@ public abstract class BuildingExtensionsModule extends AbstractBuildingModule im
         for (final Map.Entry<IBuildingExtension.ExtensionId, Integer> entry : checkedExtensions.entrySet())
         {
             final CompoundTag listEntry = new CompoundTag();
-            compound.put(TAG_ID, entry.getKey().serializeNBT(provider));
-            listEntry.putLong(TAG_DAY, entry.getValue());
+            listEntry.put(TAG_ID, entry.getKey().serializeNBT(provider));
+            listEntry.putInt(TAG_DAY, entry.getValue());
             listTag.add(listEntry);
         }
-        compound.put(TAG_LIST, listTag);
+        compound.put(TAG_BUILDING_EXTENSIONS, listTag);
         if (currentExtensionId != null)
         {
             compound.put(TAG_CURRENT_EXTENSION, currentExtensionId.serializeNBT(provider));

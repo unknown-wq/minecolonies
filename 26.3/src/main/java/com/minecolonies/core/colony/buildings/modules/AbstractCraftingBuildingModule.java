@@ -948,8 +948,12 @@ public abstract class AbstractCraftingBuildingModule extends AbstractBuildingMod
         }
         else
         {
-            Log.getLogger().warn("Failure to remove recipe, please tell the mod authors about this");
-            recipes.clear();
+            // Emptying the list was the old answer to this, and it is a far worse outcome than the state it was
+            // meant to repair: a token that is not in the list costs nothing to ignore, while clearing costs the
+            // crafter every recipe it was ever taught. The token itself is worth naming, since the whole point of
+            // reaching this branch is that something asked to remove a recipe this module does not hold.
+            Log.getLogger().warn("Colony {} building {} at {} module {}: asked to remove recipe {}, which it does not hold.",
+              building.getColony().getID(), building.getBuildingType().getRegistryName(), building.getPosition(), getId(), token);
         }
     }
 
@@ -973,6 +977,17 @@ public abstract class AbstractCraftingBuildingModule extends AbstractBuildingMod
     @Override
     public void switchOrder(final int i, final int j, final boolean fullMove)
     {
+        // Both indices arrive from the client. i is the recipe being moved and is indexed in every branch below, so
+        // a value outside the list is refused rather than acted on -- the full move branch used to hand it straight
+        // to List#remove. j only says which way a full move goes and is range checked where it is used as an index;
+        // one past either end is what the button at the top or the bottom of the list legitimately sends.
+        if (i < 0 || i >= recipes.size())
+        {
+            Log.getLogger().warn("Colony {} building {} at {} module {}: asked to move recipe {}, which is outside its list of {}.",
+              building.getColony().getID(), building.getBuildingType().getRegistryName(), building.getPosition(), getId(), i, recipes.size());
+            return;
+        }
+
         recipesDirty = true;
         if (fullMove)
         {
@@ -985,7 +1000,7 @@ public abstract class AbstractCraftingBuildingModule extends AbstractBuildingMod
                 recipes.add(recipes.remove(i));
             }
         }
-        else if (i < recipes.size() && j < recipes.size() && i >= 0 && j >= 0)
+        else if (j < recipes.size() && j >= 0)
         {
             final IToken<?> storage = recipes.get(i);
             recipes.set(i, recipes.get(j));
@@ -997,6 +1012,15 @@ public abstract class AbstractCraftingBuildingModule extends AbstractBuildingMod
     @Override
     public void toggle(int recipeLocation)
     {
+        // The index arrives from the client and was indexed unchecked, so a value outside the list took the colony
+        // tick down with an IndexOutOfBoundsException rather than being refused.
+        if (recipeLocation < 0 || recipeLocation >= recipes.size())
+        {
+            Log.getLogger().warn("Colony {} building {} at {} module {}: asked to toggle recipe {}, which is outside its list of {}.",
+              building.getColony().getID(), building.getBuildingType().getRegistryName(), building.getPosition(), getId(), recipeLocation, recipes.size());
+            return;
+        }
+
         final IToken<?> key = recipes.get(recipeLocation);
         if (disabledRecipes.contains(key))
         {

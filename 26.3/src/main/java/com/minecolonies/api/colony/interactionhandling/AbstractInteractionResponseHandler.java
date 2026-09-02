@@ -1,6 +1,5 @@
 package com.minecolonies.api.colony.interactionhandling;
 
-import net.minecraft.network.chat.MutableComponent;
 import com.google.gson.JsonParser;
 import com.minecolonies.api.util.Utils;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -129,15 +128,38 @@ public abstract class AbstractInteractionResponseHandler implements IInteraction
      */
     public void deserializeNBT(@NotNull final HolderLookup.Provider provider, @NotNull final CompoundTag compoundNBT)
     {
-        this.inquiry = (MutableComponent) Utils.deserializeCodecMessFromJson(ComponentSerialization.CODEC, provider, JsonParser.parseString(compoundNBT.getStringOr(TAG_INQUIRY, "{}")));
+        this.inquiry = readComponent(provider, compoundNBT, TAG_INQUIRY);
         final ListTag list = compoundNBT.getListOrEmpty(TAG_RESPONSES);
         for (int i = 0; i < list.size(); i++)
         {
             final CompoundTag nbt = list.getCompoundOrEmpty(i);
-            this.responses.put((MutableComponent) Utils.deserializeCodecMessFromJson(ComponentSerialization.CODEC, provider, JsonParser.parseString(nbt.getStringOr(TAG_RESPONSE, "{}"))), (MutableComponent) Utils.deserializeCodecMessFromJson(ComponentSerialization.CODEC, provider, JsonParser.parseString(nbt.getStringOr(TAG_NEXT_INQUIRY, "{}"))));
+            this.responses.put(readComponent(provider, nbt, TAG_RESPONSE), readComponent(provider, nbt, TAG_NEXT_INQUIRY));
         }
         this.primary = compoundNBT.getBooleanOr(TAG_PRIMARY, false);
         this.priority = ChatPriority.values()[compoundNBT.getIntOr(TAG_PRIORITY, 0)];
+    }
+
+    /**
+     * Read back a component written by {@link #serializeNBT}.
+     * <p>
+     * An absent entry answers with an empty component. The codec parse ends in {@link java.util.Optional#get}, so
+     * standing an empty JSON object in for a tag that is not there turned a missing entry into a
+     * NoSuchElementException thrown out of the colony's own read, which is the one place that cannot afford it.
+     *
+     * @param provider the registry lookup to read with.
+     * @param tag      the compound the entry lives in.
+     * @param key      the entry's key.
+     * @return the component, never null.
+     */
+    private static Component readComponent(@NotNull final HolderLookup.Provider provider, @NotNull final CompoundTag tag, final String key)
+    {
+        final String json = tag.getStringOr(key, "");
+        if (json.isBlank())
+        {
+            return Component.empty();
+        }
+
+        return Utils.deserializeCodecMessFromJson(ComponentSerialization.CODEC, provider, JsonParser.parseString(json));
     }
 
     @Override

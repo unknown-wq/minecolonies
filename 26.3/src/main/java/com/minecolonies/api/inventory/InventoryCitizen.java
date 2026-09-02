@@ -151,8 +151,10 @@ public class InventoryCitizen implements IItemHandlerModifiable, Nameable
         {
             this.mainItem = slot;
         }
-
-        this.offhandItem = slot;
+        else
+        {
+            this.offhandItem = slot;
+        }
     }
 
     /**

@@ -423,11 +423,22 @@ public class ContainerCrafting extends AbstractContainerMenu
 
     /**
      * Get for the remaining items.
-     * @return
+     * <p>
+     * Recipes live on the server: the client's {@code RecipeAccess} only carries the property sets the server chose
+     * to publish and cannot be searched for a match, so this can only answer on the logical server. The client copy
+     * of this menu therefore reports nothing, and the server fills the secondary outputs in when it receives the
+     * taught recipe.
+     *
+     * @return the remaining items, empty on the client.
      */
     public List<ItemStack> getRemainingItems()
     {
-        final Optional<RecipeHolder<CraftingRecipe>> iRecipe = ((ServerLevel) this.world).recipeAccess().getRecipeFor(RecipeType.CRAFTING, craftMatrix.asCraftInput(), world);
+        if (!(this.world instanceof final ServerLevel serverLevel))
+        {
+            return remainingItems;
+        }
+
+        final Optional<RecipeHolder<CraftingRecipe>> iRecipe = serverLevel.recipeAccess().getRecipeFor(RecipeType.CRAFTING, craftMatrix.asCraftInput(), world);
         if (iRecipe.isPresent())
         {
             List<ItemStack> ri = iRecipe.get().value().getRemainingItems(this.craftMatrix.asCraftInput());

@@ -130,11 +130,18 @@ public abstract class AbstractColonyBlock<B extends AbstractColonyBlock<B>> exte
     @Override
     public float getDestroyProgress(final BlockState state, @NotNull final Player player, @NotNull final BlockGetter world, @NotNull final BlockPos pos)
     {
-        final IBuilding building = IColonyManager.getInstance().getBuilding(player.level(), pos);
-        if (building != null && !building.getChildren().isEmpty() && (player.level().getGameTime() - lastBreakTickWarn) < 100)
+        // This runs once per tick for as long as the block is being hit, on both sides. The warning therefore needs
+        // a side to speak from and a gap between repeats: the test used to read "less than 100 ticks since the last
+        // warning", which starts out false and can only become true once a warning has already been given, so no
+        // warning was ever given at all past the first hundred ticks of a world.
+        if (!player.level().isClientSide() && (player.level().getGameTime() - lastBreakTickWarn) > 100)
         {
-            lastBreakTickWarn = player.level().getGameTime();
-            MessageUtils.format(HUT_BREAK_WARNING_CHILD_BUILDINGS).sendTo(player);
+            final IBuilding building = IColonyManager.getInstance().getBuilding(player.level(), pos);
+            if (building != null && !building.getChildren().isEmpty())
+            {
+                lastBreakTickWarn = player.level().getGameTime();
+                MessageUtils.format(HUT_BREAK_WARNING_CHILD_BUILDINGS).sendTo(player);
+            }
         }
 
         return (MinecoloniesAPIProxy.getInstance().getConfig().getServer().pvp_mode.get() ? 1 / (HARDNESS * HARDNESS_PVP_FACTOR) : 1 / HARDNESS) / 30;

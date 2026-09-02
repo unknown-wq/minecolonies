@@ -119,7 +119,12 @@ public class WindowHutAllInventory extends AbstractWindowSkeleton
 
     private void locate(final Button button)
     {
-        final int row = stackList.getListElementIndexByPane(button);
+        final int row = ListRow.of(stackList, button, allItems.size());
+        if (row == ListRow.NONE)
+        {
+            return;
+        }
+
         final ItemStorage storage = allItems.get(row);
         final Set<BlockPos> containerList = new HashSet<>(building.getContainers());
         containerList.add(building.getID());
