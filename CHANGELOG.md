@@ -9,6 +9,18 @@ Versions below are this port's own numbering, newest first.
 
 ---
 
+## 0.0.64
+
+Rebuilt so that the jar and the sources in this repository match. The three bundled libraries are now
+built from the copies carried under `libs/`, which the previous jar predated: four classes in Domum
+Ornamentum and one in Structurize differed from anything published here. BlockUI already matched.
+
+The mod's own logo replaces the one inherited from upstream, whose artwork is not redistributed here.
+
+No gameplay change: the mod's own code is the same as 0.0.63.
+
+---
+
 ## 0.0.60
 
 Six professions, ported over from the 26.3 tree: guards, enchanter, undertaker, alchemist, baker and
