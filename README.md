@@ -3,13 +3,6 @@
 > out yet, snapshots land roughly weekly, and no pre-release or release candidate existed while this
 > was ported. The base can move under your feet.
 >
-> Where it stands: the whole stack compiles (477 errors across four projects down to 0), `runDatagen`
-> and `build` are green, a dedicated server boots, and the client starts.
->
-> What that does **not** cover: nothing about rendering or input has been exercised in play. The
-> environment this was built in has no display, so every pipeline, every model and every key binding
-> here is verified by the compiler alone. Treat the whole client side as unproven.
->
 > Everything else in this README describes the mod itself and is equally true of 26.2 and 26.3.
 
 <h1 align="center">
