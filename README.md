@@ -38,7 +38,6 @@
   <a href="#-building-from-source">Build</a> ·
   <a href="#%EF%B8%8F-known-limitations">Limitations</a> ·
   <a href="#-issues-and-bug-reports">Issues</a> ·
-  <a href="#-the-port-kit">Port kit</a> ·
   <a href="#-credits">Credits</a> ·
   <a href="#-license">License</a>
 </p>
@@ -340,50 +339,6 @@ Bug reports are genuinely welcome; that is how the remaining rough edges get fou
   misleading.
 - If the same bug also happens on upstream's NeoForge build, it belongs
   [upstream](https://github.com/ldtteam/minecolonies/issues) instead.
-
----
-
-## 🧰 The port kit
-
-The reusable kit all four ports were run from — and that this one extended the most — now lives in
-its own repository: **[unknown-wq/port-kit](https://github.com/unknown-wq/port-kit)**. It holds the
-plan, per-area recipes, document templates, the rename and import-resolution scripts, raw findings,
-and the record of every finished port.
-
-Start with [`PORTING-BUNDLE-26.2.md`](https://github.com/unknown-wq/port-kit/blob/main/PORTING-BUNDLE-26.2.md)
-— the whole kit as one file — or the repository's own README for the index.
-
----
-
-## 🔎 Reading the Minecraft sources
-
-Decompiled sources are not shipped with this repository and are not needed to build it. When you do
-need to read vanilla, Loom will make them in about eighty seconds:
-
-```sh
-cd 26.3 && gradle genSources --no-daemon
-# -> 26.3/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-*/
-#      26.3-snapshot-10/minecraft-merged-*-26.3-snapshot-10-sources.jar
-```
-
-7243 files, and — because Loom decompiles exactly what the build resolves — guaranteed to be the
-version this branch targets. Check it if you like: `SharedConstants.WORLD_VERSION` must read `5015`,
-`SurfaceRules` must be absent, and `ChunkStatus` must have `TERRAIN` and no `NOISE`.
-
-**A source tree can be named after the wrong version; the jar the build resolves cannot.** A tree
-called `/opt/mc-src-26.3` was used as the 26.3 reference for much of this port and was in fact
-snapshot-**9** (`WORLD_VERSION = 5011`). It is deleted. The audit of what that got wrong is commit
-`6514134b`: the answer was two comments explaining a correct change for the wrong reason, and several
-documentation errors — no wrong code, because anything that named a symbol snapshot-10 had removed
-failed to compile. Where the two disagree, settle it with `unzip -l` and `javap -p` against
-`~/.gradle/caches/fabric-loom/26.3-snapshot-10/minecraft-merged.jar`.
-
-**About 69 comments across the tree still cite paths under that deleted directory with line numbers.**
-They are left alone on purpose. The facts they support were re-verified and are correct; the line
-numbers came from snapshot-9 and would not survive a rename, because the two trees do not line up.
-Repointing the path would turn a citation that is obviously stale into one that looks live and sends
-the reader to the wrong line — the quieter failure, and the worse one. Read them as "vanilla, around
-here", and confirm against a freshly generated tree.
 
 ---
 
