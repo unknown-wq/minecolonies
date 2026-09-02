@@ -1,0 +1,402 @@
+package com.ldtteam.structurize.storage.rendering.types;
+
+import com.ldtteam.structurize.Structurize;
+import com.ldtteam.structurize.api.RotationMirror;
+import com.ldtteam.structurize.blueprints.v1.Blueprint;
+import com.ldtteam.structurize.client.RenderingCacheKey;
+import com.ldtteam.structurize.network.messages.SyncPreviewCacheToServer;
+import com.ldtteam.structurize.storage.StructurePacks;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
+/**
+ * Necessary data for blueprint preview.
+ */
+public class BlueprintPreviewData
+{
+    /**
+     * The rotation/mirror of the preview.
+     */
+    private RotationMirror rotationMirror = RotationMirror.NONE;
+
+    /**
+     * The position of the preview.
+     */
+    @Nullable
+    private BlockPos pos;
+
+    /**
+     * The offset to the ground.
+     */
+    private int groundOffset  = 0;
+
+    /**
+     * Holds the blueprint to be rendered that is still loading.
+     */
+    @Nullable
+    private Future<Blueprint> blueprintFuture;
+
+    /**
+     * Holds the blueprint to be rendered.
+     */
+    @Nullable
+    private Blueprint blueprint;
+
+    /**
+     * Data for syncing.
+     */
+    private String blueprintPath = "";
+    private String packName = "";
+
+    /**
+     * Used for blueprint renderer
+     */
+    private RenderingCacheKey renderKey;
+
+    private final boolean serverSyncEnabled;
+    
+    /**
+     * What value should be used for transparency if enabled
+     */
+    private float overridePreviewTransparency = -1;
+
+    /**
+     * Override blockstate for solid placeholders
+     */
+    private BlockState solidSubstitutionOverride = null;
+
+    /**
+     * Setting for whether blocks render nice or not
+     */
+    private boolean renderBlocksNice = Structurize.getConfig().getClient() != null && Structurize.getConfig().getClient().renderPlaceholdersNice.get();
+
+    /**
+     * Default constructor to create a new setup.
+     */
+    public BlueprintPreviewData()
+    {
+        this(true);
+    }
+
+    /**
+     * Default constructor to create a new setup.
+     *
+     * @param serverSyncEnabled if false then wont send sync preview messages to server
+     */
+    public BlueprintPreviewData(final boolean serverSyncEnabled)
+    {
+        this.serverSyncEnabled = serverSyncEnabled;
+    }
+
+    /**
+     * Create blueprint preview data from byteBuf.
+     * @param byteBuf the buffer data.
+     */
+    public BlueprintPreviewData(final RegistryFriendlyByteBuf byteBuf)
+    {
+        this(byteBuf, true);
+    }
+
+    /**
+     * Create blueprint preview data from byteBuf.
+     * @param byteBuf the buffer data.
+     * @param serverSyncEnabled if false then wont send sync preview messages to server
+     */
+    public BlueprintPreviewData(final RegistryFriendlyByteBuf byteBuf, final boolean serverSyncEnabled)
+    {
+        this.serverSyncEnabled = serverSyncEnabled;
+
+        pos = byteBuf.readBlockPos();
+        this.packName = byteBuf.readUtf(32767);
+        this.blueprintPath = byteBuf.readUtf(32767);
+        if (StructurePacks.hasPack(packName))
+        {
+            blueprintFuture = StructurePacks.getBlueprintFuture(packName, blueprintPath, byteBuf.registryAccess());
+        }
+        else
+        {
+            blueprintFuture = null;
+        }
+        rotationMirror = RotationMirror.values()[byteBuf.readByte()];
+    }
+
+    /**
+     * Write this preview cache to bytebuf.
+     * @param byteBuf the buf to write it to.
+     */
+    public void writeToBuf(final FriendlyByteBuf byteBuf)
+    {
+        byteBuf.writeBlockPos(pos == null ? BlockPos.ZERO : pos);
+
+        if (blueprint == null)
+        {
+            byteBuf.writeUtf(packName);
+            byteBuf.writeUtf(blueprintPath);
+        }
+        else
+        {
+            byteBuf.writeUtf(StructurePacks.getSelectedPack().getName());
+            byteBuf.writeUtf(StructurePacks.getSelectedPack().getSubPath(blueprint.getFilePath().resolve(blueprint.getFileName() + ".blueprint")));
+        }
+        byteBuf.writeByte(rotationMirror.ordinal());
+    }
+
+    /**
+     * Set the blueprint future.
+     * @param blueprintFuture the future.
+     */
+    public void setBlueprintFuture(final Future<Blueprint> blueprintFuture)
+    {
+        this.blueprintFuture = blueprintFuture;
+    }
+
+    /**
+     * set the y offset between current and original position
+     * this also actually adjusts the position -- ensure that's set first
+     * @param offset the new offset
+     */
+    public void setGroundOffset(final int offset)
+    {
+        pos = pos.below(groundOffset);
+        groundOffset = offset;
+        pos = pos.above(groundOffset);
+    }
+
+    /**
+     * Get the current blueprint to render.
+     * @return the blueprint or null if not ready yet.
+     */
+    @Environment(EnvType.CLIENT)
+    public Blueprint getBlueprint()
+    {
+        if (pos == null)
+        {
+            return null;
+        }
+
+        if (blueprintFuture != null && blueprintFuture.isDone())
+        {
+            try
+            {
+                if (blueprintFuture.get() != null)
+                {
+                    setBlueprint(blueprintFuture.get());
+                    this.blueprintFuture = null;
+                }
+            }
+            catch (InterruptedException | ExecutionException e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        return blueprint;
+    }
+
+    /**
+     * Set a blueprint that is alreayd loaded.
+     * @param blueprint the blueprint to set.
+     */
+    @Environment(EnvType.CLIENT)
+    public void setBlueprint(final Blueprint blueprint)
+    {
+        this.blueprintFuture = null;
+        if (blueprint == null)
+        {
+            this.blueprint = null;
+        }
+        else if (!blueprint.equals(this.blueprint))
+        {
+            this.blueprint = blueprint;
+            applyRotationMirrorAndSync();
+        }
+    }
+
+    /**
+     * Mirror the blueprint.
+     */
+    @Environment(EnvType.CLIENT)
+    public void mirror()
+    {
+        this.rotationMirror = this.rotationMirror.mirrorate();
+        applyRotationMirrorAndSync();
+    }
+
+    /**
+     * Rotate the preview by a certain quantity.
+     * @param rotation the rotation factor.
+     */
+    @Environment(EnvType.CLIENT)
+    public void rotate(final Rotation rotation)
+    {
+        this.rotationMirror = this.rotationMirror.rotate(rotation);
+        applyRotationMirrorAndSync();
+    }
+
+    /**
+     * Rotate/mirror the preview to given value.
+     * @param rotationMirror new rot/mir for blueprint
+     */
+    @Environment(EnvType.CLIENT)
+    public void setRotationMirror(final RotationMirror rotationMirror)
+    {
+        this.rotationMirror = rotationMirror;
+        applyRotationMirrorAndSync();
+    }
+
+    /**
+     * Sync the changes to the server.
+     */
+    public void syncChangesToServer()
+    {
+        if (serverSyncEnabled && Structurize.getConfig().getClient().sharePreviews.get() && (blueprint == null || blueprint.getName() != null))
+        {
+            new SyncPreviewCacheToServer(this).sendToServer();
+        }
+    }
+
+    /**
+     * Move this preview by an offset.
+     * @param offset the offset to move it by.
+     */
+    public void move(final BlockPos offset)
+    {
+        if (this.pos != null)
+        {
+            setPos(pos.offset(offset));
+        }
+    }
+
+    /**
+     * Check if this is an invalid preview data object.
+     * @return true if so.
+     */
+    public boolean isEmpty()
+    {
+        return blueprintFuture == null && blueprint == null;
+    }
+
+    /**
+     * Get the placement settings for this instance.
+     * @return the placement settings with mirror and rotation.
+     */
+    public RotationMirror getRotationMirror()
+    {
+        return rotationMirror;
+    }
+
+    /**
+     * Get the pos of the preview.
+     * @return the pos.
+     */
+    public BlockPos getPos()
+    {
+        return pos;
+    }
+
+    /**
+     * Set the position of the preview.
+     * @param pos the pos to set.
+     */
+    public void setPos(final BlockPos pos)
+    {
+        this.pos = pos;
+        if (pos != null)
+        {
+            syncChangesToServer();
+        }
+    }
+
+    @Environment(EnvType.CLIENT)
+    private void applyRotationMirrorAndSync()
+    {
+        if (blueprint == null)
+        {
+            return;
+        }
+
+        blueprint.setRotationMirror(rotationMirror, Minecraft.getInstance().level);
+        renderKey = new RenderingCacheKey(rotationMirror, blueprint);
+
+        syncChangesToServer();
+    }
+
+    public RenderingCacheKey getRenderKey()
+    {
+        if (blueprintFuture != null)
+        {
+            getBlueprint();
+        }
+        return renderKey;
+    }
+
+    public boolean isServerSyncEnabled()
+    {
+        return serverSyncEnabled;
+    }
+
+    /**
+     * Sets whether substitution blocks should render nice
+     *
+     * @param renderNice
+     */
+    public void setRenderBlocksNice(final boolean renderNice)
+    {
+        renderBlocksNice = renderNice;
+    }
+
+    /**
+     * Whether substitution blocks render nice
+     * @return
+     */
+    public boolean getRenderBlocksNice()
+    {
+        return renderBlocksNice;
+    }
+
+    /**
+     * Overrides client config for preview transparency if already enabled, else does nothing.
+     *
+     * @param overridePreviewTransparency -1 (or any negative) for keep config, 0 = transparent to 1 = opaque
+     */
+    public void setOverridePreviewTransparency(final float overridePreviewTransparency)
+    {
+        this.overridePreviewTransparency = Mth.clamp(overridePreviewTransparency, -1, 1);
+    }
+
+    public float getOverridePreviewTransparency()
+    {
+        return overridePreviewTransparency;
+    }
+
+    /**
+     * Get the solid placeholder blockstate override
+     *
+     * @return
+     */
+    public BlockState getSolidSubstitutionOverride()
+    {
+        return solidSubstitutionOverride;
+    }
+
+    /**
+     * Set the solid placeholder blockstate override, only updates when the renderer is recalculated
+     *
+     * @return
+     */
+    public void setSolidSubstitutionOverride(final BlockState solidSubstitutionOverride)
+    {
+        this.solidSubstitutionOverride = solidSubstitutionOverride;
+    }
+}

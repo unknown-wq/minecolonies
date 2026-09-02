@@ -675,7 +675,9 @@ public class ColonyPermissionEventHandler
 
     /**
      * The entity half of {@code turnOffExplosionsInColonies}; replaces the entity-list filtering that
-     * {@code ExplosionEvent.Detonate} did on 1.21.1 (see {@code 1.21.1/.../ColonyPermissionEventHandler:301-338}).
+     * NeoForge's {@code ExplosionEvent.Detonate} handler did on 1.21.1 — it walked the blast's entity list and
+     * dropped from it the entities the colony's policy forbade hurting. That handler is no longer mirrored in
+     * this repository; it survives in the git history and in upstream MineColonies.
      * <p>
      * The block half of that filter is not reachable on this loader — {@code ServerExplosion#interactsWithBlocks}
      * is private and Fabric API ships no explosion event — but which entities the blast is allowed to hurt is a

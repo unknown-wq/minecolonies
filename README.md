@@ -131,7 +131,7 @@ own cow barn rather than borrowed from another pack, filed under Military. Free 
 already trained and armoured. Three defects in the existing cavalry code are fixed along the way.
 
 Once reachable, the cavalry turned out not to work either, and both faults are upstream's rather than
-this port's — the same lines are in the 1.21.1 snapshot.
+this port's — the same lines are in the NeoForge 1.21.1 original.
 
 **A mounted guard was slower than a guard on foot.** A horse under a *player* is moved by vanilla's
 `travelRidden`; that branch fires only for a `Player` controller, so a citizen-ridden horse falls into
@@ -199,8 +199,8 @@ you work in it — the middle setting between the server-wide config and editing
 ## 🐞 Bugs fixed here
 
 **These are upstream's, and they reproduce on the official NeoForge build.** Each was read line by line
-in the [`1.21.1/`](1.21.1/) snapshot in this repository before being called upstream's rather than the
-port's own doing — in three of the four the code is character-for-character identical.
+in the NeoForge 1.21.1 original before being called upstream's rather than the port's own doing — in
+three of the four the code is character-for-character identical.
 
 | Symptom | What it actually was |
 |---|---|
@@ -264,6 +264,14 @@ the projects ship no Gradle wrapper, so use an install of your own.
 ```sh
 export JAVA_HOME=/path/to/jdk-25
 
+# The three bundled libraries first -- the mod build refuses to start without them.
+(cd libs/blockui/26.2         && gradle build)
+(cd libs/domum-ornamentum/26.2 && gradle build)
+cp libs/blockui/26.2/build/libs/blockui-0.0.1.jar \
+   libs/domum-ornamentum/26.2/build/libs/domum_ornamentum-26.2-1.0.0.jar \
+   libs/structurize/26.2/libs/
+(cd libs/structurize/26.2     && gradle build)
+
 cd 26.2
 gradle runDatagen                              # required before the first build
 gradle build                                   # jar lands in 26.2/build/libs/
@@ -272,8 +280,13 @@ gradle build                                   # jar lands in 26.2/build/libs/
 Run one Gradle invocation at a time: two Loom builds at once race on the same Minecraft cache and the
 loser corrupts it.
 
-The three dependency jars are taken from the paths in `26.2/gradle.properties`; build them from
-their own repositories first, or point those properties at the jars in their `dist/` folders.
+The three dependency jars are taken from the paths in `26.2/gradle.properties`, which point at the
+library sources carried in this repository: [`libs/blockui/26.2`](libs/blockui/26.2),
+[`libs/domum-ornamentum/26.2`](libs/domum-ornamentum/26.2) and
+[`libs/structurize/26.2`](libs/structurize/26.2). Structurize compiles against the other two as
+plain `implementation files("libs/...")` jars, which is why they are copied into
+`libs/structurize/26.2/libs/` above; those two jars are build output and are not committed. Point
+the properties at jars you already have instead if you would rather not build the libraries.
 
 Useful tasks: `runClient`, `runServer`, `runDatagen`, `validateAccessWidener`. Minecraft 26.1+ ships
 unobfuscated, so the build carries **no mappings line**.
@@ -359,7 +372,7 @@ their NeoForge build.
 
 MineColonies is licensed under the **GNU General Public License, version 3 only**, and this port is
 distributed under the same license and its terms. The full text ships with the source, in
-[`26.2/LICENSE`](26.2/LICENSE) and [`1.21.1/LICENSE`](1.21.1/LICENSE).
+[`26.2/LICENSE`](26.2/LICENSE).
 
 ```
 MineColonies — a colony simulator for Minecraft
@@ -387,8 +400,7 @@ asset is stored here**. One tree is absent from every commit:
 |---|---|---|
 | `26.2/src/main/resources/assets/minecolonies/` | textures, sounds, models, blockstates, GUI, particles, shaders, the language file | governed by its own `LICENSE` file reading **All Rights Reserved** |
 
-That tree is likewise absent from the `1.21.1/` upstream snapshot, as is its generated asset
-output. **Blueprints are not affected and ship as before**: `26.2/src/main/resources/blueprints/`
+The generated asset output is absent with it. **Blueprints are not affected and ship as before**: `26.2/src/main/resources/blueprints/`
 carries no licence file of its own and so falls under the GPLv3 above — the All-Rights-Reserved
 marker covered `assets/minecolonies/` alone. 115 of those blueprints are this port's own work in
 any case: the Stable in all 23 styles, which exists in no upstream commit.
@@ -403,4 +415,6 @@ still runs; how the assets reach a player is being worked out separately.
 The copyright in the mod itself stays with LDTTeam and its contributors; the port adds to their work
 rather than replaces it, and the GPL is what makes redistributing it this way possible. The three
 bundled library mods — Structurize, BlockUI and Domum Ornamentum — are LDTTeam's as well and carry
-their own licenses, which travel with them inside the jar.
+their own licenses, which travel with them inside the jar. Their ported sources are in
+[`libs/`](libs/) next to the mod, so the jars nested under `META-INF/jars/` can be rebuilt from this
+repository alone.

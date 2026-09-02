@@ -1,0 +1,71 @@
+package com.ldtteam.structurize.network.messages;
+
+import com.ldtteam.common.network.AbstractServerPlayMessage;
+import com.ldtteam.common.network.PlayMessageType;
+import com.ldtteam.structurize.api.constants.Constants;
+import com.ldtteam.structurize.storage.ServerStructurePackLoader;
+import com.ldtteam.structurize.storage.StructurePackMeta;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import com.ldtteam.common.network.PlayMessageContext;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Notify the server about the structure packs on the client side.
+ */
+public class NotifyServerAboutStructurePacksMessage extends AbstractServerPlayMessage
+{
+    public static final PlayMessageType<?> TYPE = PlayMessageType.forServer(Constants.MOD_ID, "notify_server_about_structure_packs", NotifyServerAboutStructurePacksMessage::new);
+
+    /**
+     * List of client structure packs.
+     * Contains String Name, and Integer version.
+     */
+    private final Map<String, Double> clientStructurePacks = new HashMap<>();
+
+    /**
+     * Public standard constructor.
+     */
+    protected NotifyServerAboutStructurePacksMessage(final RegistryFriendlyByteBuf buf, final PlayMessageType<?> type)
+    {
+        super(buf, type);
+        final int length = buf.readInt();
+        for (int i = 0; i < length; i++)
+        {
+            this.clientStructurePacks.put(buf.readUtf(32767), buf.readDouble());
+        }
+    }
+
+    /**
+     * Notify the server about the client structurepacks.
+     * @param clientStructurePacks the list of packs.
+     */
+    public NotifyServerAboutStructurePacksMessage(final Collection<StructurePackMeta> clientStructurePacks)
+    {
+        super(TYPE);
+        for (final StructurePackMeta pack : clientStructurePacks)
+        {
+            this.clientStructurePacks.put(pack.getName(), pack.getVersion());
+        }
+    }
+
+    @Override
+    protected void toBytes(final RegistryFriendlyByteBuf buf)
+    {
+        buf.writeInt(this.clientStructurePacks.size());
+        for (final Map.Entry<String, Double> packInfo : this.clientStructurePacks.entrySet())
+        {
+            buf.writeUtf(packInfo.getKey());
+            buf.writeDouble(packInfo.getValue());
+        }
+    }
+
+    @Override
+    protected void onExecute(final PlayMessageContext context, final ServerPlayer player)
+    {
+        ServerStructurePackLoader.onClientSyncAttempt(this.clientStructurePacks, player);
+    }
+}

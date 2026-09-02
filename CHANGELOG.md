@@ -647,7 +647,7 @@ vanilla redirects the rider's move control to the mount, so the orders live in t
 navigator and the horse's own is never given a path. Both features were therefore dead code — 0 hits
 in 160 samples over 90 seconds — and a mounted guard who never turns his head is exactly what "he
 just sits there and does not steer" looks like. This is upstream's bug, not the port's: the same line
-is in the 1.21.1 snapshot.
+is in the NeoForge 1.21.1 original.
 
 Worth knowing, both measured rather than changed: cavalry is *slower* than infantry (~1.4 blocks/s
 mounted against ~1.7 on foot), and the Stable's patrol interval defaults to six minutes, so a cavalry

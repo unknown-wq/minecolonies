@@ -1,0 +1,102 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+}
+
+fabricApi {
+	configureDataGeneration {
+		client = true
+
+		// Domum Ornamentum and BlockUI come in as plain `implementation files(...)` jars, which Fabric
+		// Loader discovers as ordinary mods - including their `fabric-datagen` entrypoints. Without a modId
+		// pin, FabricDataGenHelper runs *every* mod on the classpath into *our* output directory, and each
+		// generator finishes with its own HashCache#purgeStaleAndWrite, which walks the whole output root
+		// and deletes every file its own providers did not write
+		// (/opt/mc-src/net/minecraft/data/HashCache.java:104-135). Observed before this pin: Structurize
+		// wrote its six tag files, then Domum Ornamentum's 876 files landed and wiped all six back out, so a
+		// clean run produced zero Structurize output and 876 files belonging to another mod.
+		modId = project.mod_id
+
+		// Keep the pack root the mod has always used. Loom's default is `src/main/generated`, but the
+		// checked-in output of this mod lives in `src/datagen/generated/structurize` (the layout the
+		// NeoForge parent build script used), and that is also what the 1.21.1 checkout carries, so
+		// regenerating in place keeps `git diff` meaningful against the previous version.
+		//
+		// This also fixes the shipped jar: loom adds the output directory to `sourceSets.main.resources`
+		// (FabricApiDataGeneration#configureDataGeneration, addToResources defaults to true) and excludes
+		// `.cache/**` from it. Before this line neither `src/datagen/generated` nor the checked-in
+		// `src/main/generated/resources` was a resource root that produced usable paths, so none of the six
+		// mod tags were in the jar at all - every `structurize:` block/entity tag was silently empty at
+		// runtime.
+		outputDirectory = file("src/datagen/generated/structurize")
+	}
+}
+
+// Port of META-INF/accesstransformer.cfg. Header namespace is "official": 26.1+ is unobfuscated,
+// so both the header and the member paths use Mojang names.
+//
+// This is only the COMPILE half: Loom widens its own copy of the Minecraft jar so javac accepts the
+// accesses. Nothing here reaches runtime - there the loader applies the widener, and only when the
+// mod names it via "accessWidener" in fabric.mod.json. Both halves are needed; with just this one
+// `build` is green and dev runs fine while a production client dies with IllegalAccessError.
+loom {
+	accessWidenerPath = file("src/main/resources/structurize.accesswidener")
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	// Minecraft 26.1+ is unobfuscated and Yarn is discontinued: no mappings line is needed.
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	// src/test carries a single JUnit 4 test (RotationMirrorTest); the upstream 1.21.1 checkout
+	// got junit from the NeoForge parent build script, which is gone.
+	testImplementation "junit:junit:4.13.2"
+
+	// Domum Ornamentum, built from /workspace/domum-ornamentum/26.2.
+	// Loom 1.17 on 26.2 does not create the mod* configurations (nothing to remap on an
+	// unobfuscated game), so this is a plain implementation dependency; Fabric Loader still
+	// discovers the mod in dev because it scans the classpath for fabric.mod.json.
+	implementation files("libs/domum_ornamentum-26.2-1.0.0.jar")
+
+	// BlockUI, built from /workspace/blockui/26.2. Same story as Domum Ornamentum: plain
+	// implementation dependency, Fabric Loader discovers it through fabric.mod.json on the
+	// classpath. It also ships the shared com.ldtteam.common library used by the mod.
+	implementation files("libs/blockui-0.0.1.jar")
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+	it.options.release = 25
+	it.options.compilerArgs += ["-Xmaxerrs", "5000", "-Xmaxwarns", "0"]
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}"}
+	}
+}

@@ -1,0 +1,63 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base { archivesName = project.archives_base_name }
+
+repositories {
+    mavenCentral()   // JUnit only; Loom contributes the Minecraft/Fabric repositories itself.
+}
+
+loom {
+    // Translated from the NeoForge META-INF/accesstransformer.cfg — see PORT-STATUS.md K8.
+    accessWidenerPath = file('src/main/resources/blockui.accesswidener')
+}
+
+dependencies {
+    // Minecraft 26.1+ is unobfuscated and Yarn is discontinued: there is no `mappings` line,
+    // and Loom no longer exposes the `mod`-prefixed configurations because nothing is remapped.
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // The two surviving tests ended up on different JUnit generations during the port:
+    // XmlOpsTest (agent B) is JUnit 5 (org.junit.jupiter.api), IColourTest (agent C) is still
+    // JUnit 4 (org.junit.Test / org.junit.Assert). Both flavours are on the test compile classpath
+    // and the vintage engine runs the JUnit 4 one on the JUnit Platform, so neither test had to be
+    // rewritten by an agent that does not own it.
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'junit:junit:4.13.2'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') {
+        expand 'version': project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = 'UTF-8'
+    it.options.release = 25
+    // A port produces error counts javac truncates by default; keep them all, drop the warnings.
+    it.options.compilerArgs += ['-Xmaxerrs', '5000', '-Xmaxwarns', '0']
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+tasks.named('test') { useJUnitPlatform() }
+
+jar {
+    from('LICENSE') {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}

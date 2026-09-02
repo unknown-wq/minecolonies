@@ -19,9 +19,10 @@ package com.minecolonies.api.compatibility.dynamictrees;
  * dynamic-tree query answers "no". Observable effect: colonists treat Dynamic Trees trees as ordinary blocks —
  * lumberjacks will not fell them as trees and will not replant dynamic saplings.</p>
  *
- * <p>To restore: put a 26.2 Dynamic Trees jar on the compile classpath, restore the original body from
- * {@code 1.21.1/src/main/java/com/minecolonies/api/compatibility/dynamictrees/DynamicTreeCompat.java}, and swap the
- * NeoForge {@code FakePlayer} used by {@code getTreeBreakActionCompat} for the Fabric one
+ * <p>To restore: put a 26.2 Dynamic Trees jar on the compile classpath, restore the original body from the
+ * NeoForge 1.21.1 version of this class — upstream MineColonies carries it under this same package and name, and
+ * this repository held a copy of it in the 1.21.1 snapshot it used to ship, which now survives only in the git
+ * history — and swap the NeoForge {@code FakePlayer} used by {@code getTreeBreakActionCompat} for the Fabric one
  * ({@code FakePlayer.get(serverLevel)}). Only the Dynamic Trees jar is actually blocking.</p>
  */
 public final class DynamicTreeCompat extends DynamicTreeProxy

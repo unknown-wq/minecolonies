@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "blockui",
+  "version": "${version}",
+
+  "name": "BlockUI Fabric 26.2 (Unofficial)",
+  "description": "An unofficial port of BlockUI to the Fabric loader on Minecraft 26.2. UI Library mod, use ctrl+alt+shift+x to open a test-ui. The mod itself is the work of the LDT Team; this port is not affiliated with, endorsed by or supported by them.",
+  "authors": [
+    "LDT Team"
+  ],
+  "contributors": [
+    "unknown-wq (Fabric 26.2 port)"
+  ],
+    "contact": {
+    "homepage": "https://github.com/unknown-wq/BlockUI",
+    "sources": "https://github.com/unknown-wq/BlockUI",
+    "issues": "https://github.com/unknown-wq/BlockUI/issues/new/choose"
+  },
+
+  "license": "GPL-3.0-only",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.ldtteam.blockui.mod.BlockUI"
+    ],
+    "client": [
+      "com.ldtteam.blockui.mod.BlockUIClient"
+    ]
+  },
+
+  "accessWidener": "blockui.accesswidener",
+
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "fabric-api": "*",
+    "minecraft": ">=26.2 <26.3",
+    "java": ">=25"
+  }
+}

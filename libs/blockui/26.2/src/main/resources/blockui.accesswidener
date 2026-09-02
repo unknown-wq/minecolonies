@@ -1,0 +1,69 @@
+accessWidener	v1	official
+
+# Translated from the NeoForge META-INF/accesstransformer.cfg (26.1.2) — PORT-STATUS.md K8.
+# Every target below was verified to exist in /opt/mc-src (decompiled 26.2) on 2026-07-31;
+# the file:line each entry was confirmed against is in the agent A report.
+# AccessWidener has no wildcards, so the two `TooltipRenderUtil *` lines are expanded member by
+# member (only the non-public ones are listed; the rest were already public).
+#
+# Re-audited against bytecode on 2026-08-01, both directions:
+#   * forward — all 22 entries resolve to a member that exists in untouched 26.2 with exactly this
+#     descriptor; none dead, none misspelled;
+#   * reverse — every non-public vanilla member the built jar's constant pool touches (21 distinct)
+#     is opened either here or by fabric-transitive-access-wideners-v1, or is a protected member
+#     legally reachable from a subclass; no putfield hits a final vanilla field; no class extends a
+#     final or non-public vanilla type.
+# Do NOT re-check access modifiers against /opt/mc-src: that dump was decompiled with the Fabric API
+# transitive wideners already applied, so it reports widened members as public. The source of truth
+# is the untouched bytecode in the Loom cache (minecraft-merged.jar).
+
+# gui close if player dead                       LivingEntity.java:248 (protected boolean dead)
+accessible	field	net/minecraft/world/entity/LivingEntity	dead	Z
+
+# style full ctor                                Style.java:57 (private Style(...))
+accessible	method	net/minecraft/network/chat/Style	<init>	(Lnet/minecraft/network/chat/TextColor;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lnet/minecraft/network/chat/ClickEvent;Lnet/minecraft/network/chat/HoverEvent;Ljava/lang/String;Lnet/minecraft/network/chat/FontDescription;)V
+
+# gui graphics overload                          GuiGraphicsExtractor.java:113 / :93 / :104
+accessible	method	net/minecraft/client/gui/GuiGraphicsExtractor	<init>	(Lnet/minecraft/client/Minecraft;Lorg/joml/Matrix3x2fStack;Lnet/minecraft/client/renderer/state/gui/GuiRenderState;II)V
+accessible	field	net/minecraft/client/gui/GuiGraphicsExtractor	minecraft	Lnet/minecraft/client/Minecraft;
+# private final in untouched vanilla; fabric-transitive-access-wideners-v1 widens it too and that
+# module declares its own class tweaker, so it would be opened at runtime either way — this line is
+# kept so BlockUI does not depend on a Fabric API module for its own access.
+accessible	field	net/minecraft/client/gui/GuiGraphicsExtractor	guiRenderState	Lnet/minecraft/client/renderer/state/gui/GuiRenderState;
+# GuiRenderState.java:26 (private int firstStratumAfterBlur)
+accessible	field	net/minecraft/client/renderer/state/gui/GuiRenderState	firstStratumAfterBlur	I
+
+# sprite loading                                 FallbackResourceManager.java:219
+accessible	method	net/minecraft/server/packs/resources/FallbackResourceManager	convertToMetadata	(Lnet/minecraft/server/packs/resources/IoSupplier;)Lnet/minecraft/server/packs/resources/IoSupplier;
+
+# cursor                                         CursorType.java:14 (private ctor) / :11 (private name)
+# Cursor.TexturedCursorType subclasses CursorType. In the untouched 26.2 bytecode CursorType is
+# ACC_PUBLIC|ACC_SUPER — public and *not* final — so `extendable class` changes nothing here and the
+# subclass reaches the constructor purely through the `accessible method <init>` line below. Kept as
+# a guard in case a later 26.x seals the class; it is a no-op today, not a requirement.
+extendable	class	com/mojang/blaze3d/platform/cursor/CursorType
+accessible	method	com/mojang/blaze3d/platform/cursor/CursorType	<init>	(Ljava/lang/String;J)V
+accessible	field	com/mojang/blaze3d/platform/cursor/CursorType	name	Ljava/lang/String;
+
+# vanilla button textures                        AbstractButton.java:21 (private static SPRITES)
+accessible	field	net/minecraft/client/gui/components/AbstractButton	SPRITES	Lnet/minecraft/client/gui/components/WidgetSprites;
+
+# out of jar resloc                              Identifier.java:18 (public FINAL class) / :29 (private ctor)
+# AT `public-f` == drop `final`; in AccessWidener that is `extendable class`, not `accessible class`.
+extendable	class	net/minecraft/resources/Identifier
+accessible	method	net/minecraft/resources/Identifier	<init>	(Ljava/lang/String;Ljava/lang/String;)V
+
+# tooltip — AT wildcards `TooltipRenderUtil *` and `*()` expanded by hand.
+# TooltipRenderUtil.java: :12 :13 (private sprites), :15 :20 (private ints), :33 :37 (private methods).
+# MOUSE_OFFSET, PADDING_LEFT/RIGHT/TOP/BOTTOM and extractTooltipBackground are already public.
+accessible	field	net/minecraft/client/gui/screens/inventory/tooltip/TooltipRenderUtil	BACKGROUND_SPRITE	Lnet/minecraft/resources/Identifier;
+accessible	field	net/minecraft/client/gui/screens/inventory/tooltip/TooltipRenderUtil	FRAME_SPRITE	Lnet/minecraft/resources/Identifier;
+accessible	field	net/minecraft/client/gui/screens/inventory/tooltip/TooltipRenderUtil	PADDING	I
+accessible	field	net/minecraft/client/gui/screens/inventory/tooltip/TooltipRenderUtil	MARGIN	I
+accessible	method	net/minecraft/client/gui/screens/inventory/tooltip/TooltipRenderUtil	getBackgroundSprite	(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/Identifier;
+accessible	method	net/minecraft/client/gui/screens/inventory/tooltip/TooltipRenderUtil	getFrameSprite	(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/Identifier;
+
+# blockstate item renderer                       ItemStackRenderState.java:80 / :157 / :158
+accessible	method	net/minecraft/client/renderer/item/ItemStackRenderState	firstLayer	()Lnet/minecraft/client/renderer/item/ItemStackRenderState$LayerRenderState;
+accessible	field	net/minecraft/client/renderer/item/ItemStackRenderState$LayerRenderState	itemTransform	Lnet/minecraft/client/resources/model/cuboid/ItemTransform;
+accessible	field	net/minecraft/client/renderer/item/ItemStackRenderState$LayerRenderState	localTransform	Lorg/joml/Matrix4f;
