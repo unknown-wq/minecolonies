@@ -14,10 +14,10 @@ import net.minecraft.network.chat.Component;
  * Wires the consent flow into the client (task D1): when to ask, and how to get back in after a "not now".
  *
  * <h2>When it asks</h2>
- * <p>On the first arrival at the title screen, and only when the assets are not installed and "not now" has
- * not already been pressed <i>this session</i>. The hook is {@code fabric-screen-api-v1}'s
- * {@link ScreenEvents#AFTER_INIT}, which fires for every screen that finishes initialising; this filters for
- * {@link TitleScreen}. <b>No mixin is involved</b> — the port has
+ * <p>On the first arrival at the title screen, and only when the assets are not installed <em>or are the
+ * previous version's</em>, and "not now" has not already been pressed <i>this session</i>. The hook is
+ * {@code fabric-screen-api-v1}'s {@link ScreenEvents#AFTER_INIT}, which fires for every screen that
+ * finishes initialising; this filters for {@link TitleScreen}. <b>No mixin is involved</b> — the port has
  * exactly one mixin, for the pack injection, and that is deliberate.</p>
  *
  * <p>The screen is not opened from inside the title screen's own {@code init}: that would be re-entering a
@@ -33,6 +33,12 @@ import net.minecraft.network.chat.Component;
  * a session there are still the two other ways back — the {@code /minecolonies-client fetchassets} client
  * command registered here, and the Download button on the
  * {@link com.minecolonies.core.client.assetfetch.gui.AssetsMissingScreen} that the window-open gate shows.</p>
+ *
+ * <p>The command is also the one way to <em>complete</em> an install. A pack that came from a source allowed
+ * not to carry part of the file set is current, so the title screen does not ask about it again — asking on
+ * every launch would download the same declared absence every time — but the player who was told the
+ * translations are missing and to try again later has to be able to try again. So the command refuses only a
+ * pack that is installed, current and complete.</p>
  */
 @Environment(EnvType.CLIENT)
 public final class AssetFetchClient
@@ -89,7 +95,10 @@ public final class AssetFetchClient
             dispatcher.register(ClientCommands.literal(COMMAND_ROOT)
                 .then(ClientCommands.literal(COMMAND_FETCH).executes(ctx ->
                 {
-                    if (AssetFetch.isReady())
+                    // A pack that is current but was installed from a source that could not carry all of it
+                    // is still an install the player may want to complete, and this command is the only way
+                    // to ask for that: the title screen deliberately leaves such a pack alone.
+                    if (AssetFetch.isReady() && !AssetFetch.isStale() && InstallState.read(AssetFetch.stateFile()).isComplete())
                     {
                         ctx.getSource().sendFeedback(Component.translatable(AssetFetchLang.COMMAND_ALREADY_INSTALLED));
                         return 0;
@@ -101,13 +110,17 @@ public final class AssetFetchClient
     }
 
     /**
-     * Whether the player should be asked at all: not if the assets are already there, and not if they have
-     * said "not now" since this game started.
+     * Whether the player should be asked at all: not if the assets that are there are the ones this build
+     * expects, and not if the player has said "not now" since this game started.
+     *
+     * <p>An installed pack from an earlier version of this mod asks again, on the same terms as no pack at
+     * all: the player is offered the current assets and may say no, and while they say no the pack they have
+     * goes on being served rather than being taken away from them.</p>
      *
      * @return true when the consent screen is due.
      */
     private static boolean shouldAsk()
     {
-        return !AssetFetch.isReady() && !AssetInstaller.hasDeclined();
+        return (!AssetFetch.isReady() || AssetFetch.isStale()) && !AssetInstaller.hasDeclined();
     }
 }

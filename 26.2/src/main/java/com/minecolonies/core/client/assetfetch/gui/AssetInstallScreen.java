@@ -1,9 +1,11 @@
 package com.minecolonies.core.client.assetfetch.gui;
 
+import com.minecolonies.core.client.assetfetch.AssetFetch;
 import com.minecolonies.core.client.assetfetch.AssetInstaller;
 import com.minecolonies.core.client.assetfetch.InstallListener;
 import com.minecolonies.core.client.assetfetch.InstallPhase;
 import com.minecolonies.core.client.assetfetch.InstallReport;
+import com.minecolonies.core.client.assetfetch.InstallState;
 import com.minecolonies.core.client.assetfetch.SourceAttempt;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -268,6 +270,16 @@ public class AssetInstallScreen extends Screen implements InstallListener
                 AssetFetchScreenSupport.count(finished.filesVerified()),
                 AssetFetchScreenSupport.megabytesNumber(finished.packBytes())),
             this.font).setMaxWidth(textWidth).setCentered(true));
+
+        // A pack that came from a source which cannot carry all of it is still a working install, but the
+        // player is going to notice the difference and is owed the reason rather than left to guess at it.
+        final InstallState state = InstallState.read(AssetFetch.stateFile());
+        if (!state.isComplete())
+        {
+            layout.addChild(new MultiLineTextWidget(
+                Component.translatable(AssetFetchLang.DONE_PARTIAL, AssetFetchScreenSupport.count(state.filesAbsent())),
+                this.font).setMaxWidth(textWidth).setCentered(true));
+        }
 
         if (this.reloading)
         {

@@ -9,6 +9,27 @@ Versions below are this port's own numbering, newest first.
 
 ---
 
+## 0.0.65
+
+The assets the mod downloads on first run now have somewhere to come from when LDTTeam's Maven is
+not answering: a pinned source release on GitHub, then releases found at run time, then the jar you
+point at yourself. A source release carries every asset except the 96 translation files upstream
+builds on its own machines; those are named in the manifest, and anything else missing fails the
+source instead of being installed quietly.
+
+Updating the mod no longer leaves the old assets in place. The pack is checked against the build
+that wants it, and a replacement is downloaded, verified file by file and only then swapped in — a
+failed download or a failed check leaves what you have exactly as it was, an interrupted swap is
+undone on the next launch, and a replacement that cannot supply files you already have is refused.
+
+Installing is about three times faster.
+
+Also: a colony with no world loaded no longer throws when a player joins, and the Colonial
+restaurants and Cavern hospitals carry upstream's fixes — seats that were a floor above the dining
+room, a stair that blocked placement, and stale sign data.
+
+---
+
 ## 0.0.64
 
 Rebuilt so that the jar and the sources in this repository match. The three bundled libraries are now

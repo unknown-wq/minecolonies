@@ -42,7 +42,7 @@
 **The built mod jar lives in [`dist/`](dist/).** One file, nothing else to assemble.
 
 ```
-dist/minecolonies-26.2-0.0.64.jar          44 MB
+dist/minecolonies-26.2-0.0.65.jar          44 MB
 ```
 
 The jar carries its three dependencies inside it through Fabric's Jar-in-Jar, and the loader brings
@@ -244,7 +244,7 @@ entity path, not the mod's AI.
 ```
 mods/
 ├── fabric-api-0.154.2+26.2.jar
-└── minecolonies-26.2-0.0.64.jar
+└── minecolonies-26.2-0.0.65.jar
 ```
 
 3. Launch. In the loaded-mod list, `blockui`, `domum_ornamentum` and `structurize` must appear

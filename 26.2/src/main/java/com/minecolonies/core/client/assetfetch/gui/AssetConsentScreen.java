@@ -1,5 +1,6 @@
 package com.minecolonies.core.client.assetfetch.gui;
 
+import com.minecolonies.core.client.assetfetch.AssetFetch;
 import com.minecolonies.core.client.assetfetch.AssetInstaller;
 import com.minecolonies.core.client.assetfetch.SourceChain;
 import net.fabricmc.api.EnvType;
@@ -23,8 +24,13 @@ import org.jetbrains.annotations.Nullable;
  * (point the mod at a MineColonies 1.21.1 jar the player already has). Nothing happens until a button is
  * pressed.</p>
  *
- * <p>"Not now" is recorded in {@code state.json} so the screen does not reappear on every start;
- * {@link AssetsMissingScreen} and {@code /minecolonies-client fetchassets} bring it back.</p>
+ * <p>"Not now" lasts the session and nothing more, so the next launch asks again; within a session,
+ * {@link AssetsMissingScreen} and {@code /minecolonies-client fetchassets} bring the screen back.</p>
+ *
+ * <p>It says the same three things when the assets are installed but were downloaded for an earlier version
+ * of this port, with one difference the player needs: the first line then explains that what is on this
+ * computer no longer matches the mod and that the replacement is fetched before anything already installed
+ * is touched. Saying no leaves that older pack exactly where it is and working.</p>
  */
 @Environment(EnvType.CLIENT)
 public class AssetConsentScreen extends Screen
@@ -41,7 +47,7 @@ public class AssetConsentScreen extends Screen
      */
     public AssetConsentScreen(final @Nullable Screen parent)
     {
-        super(Component.translatable(AssetFetchLang.CONSENT_TITLE));
+        super(Component.translatable(AssetFetch.isStale() ? AssetFetchLang.CONSENT_TITLE_UPDATE : AssetFetchLang.CONSENT_TITLE));
         this.parent = parent;
     }
 
@@ -61,7 +67,8 @@ public class AssetConsentScreen extends Screen
             // A bare number, because consent.body carries the unit itself -- MB, МБ, Mo, whichever the
             // language uses. The exact byte count that used to sit next to it said nothing a player acts on;
             // it is in the log, on both the successful attempt and the size-mismatch error.
-            Component.translatable(AssetFetchLang.CONSENT_BODY, AssetFetchScreenSupport.megabytesNumber(size)),
+            Component.translatable(AssetFetch.isStale() ? AssetFetchLang.CONSENT_BODY_UPDATE : AssetFetchLang.CONSENT_BODY,
+                AssetFetchScreenSupport.megabytesNumber(size)),
             this.font).setMaxWidth(textWidth).setCentered(true));
         layout.addChild(new MultiLineTextWidget(Component.translatable(AssetFetchLang.CONSENT_LICENCE), this.font)
             .setMaxWidth(textWidth).setCentered(true));
