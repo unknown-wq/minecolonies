@@ -28,6 +28,17 @@ public final class AssetFetchLang
      */
     public static final String CONSENT_BODY = P + "consent.body";
 
+    /** Title of the consent screen when an older version's assets are already installed. */
+    public static final String CONSENT_TITLE_UPDATE = P + "consent.title.update";
+
+    /**
+     * The main explanation when the installed assets are an earlier version's: what does not match, what
+     * replaces it, and that nothing already installed is removed until the replacement is in hand.
+     *
+     * <p>One argument, the same bare number of megabytes as {@link #CONSENT_BODY}.</p>
+     */
+    public static final String CONSENT_BODY_UPDATE = P + "consent.body.update";
+
     /** The licence sentence: All Rights Reserved, stays on this machine. */
     public static final String CONSENT_LICENCE = P + "consent.licence";
 
@@ -127,6 +138,12 @@ public final class AssetFetchLang
      * the mod "is ready" is a promise this screen is in no position to make.</p>
      */
     public static final String DONE_BODY = P + "done.body";
+
+    /**
+     * Shown under {@link #DONE_BODY} when the install came from a source that cannot carry the whole pack.
+     * One argument: how many files it could not supply.
+     */
+    public static final String DONE_PARTIAL = P + "done.partial";
 
     /** Title of the failure screen. */
     public static final String FAILED_TITLE = P + "failed.title";

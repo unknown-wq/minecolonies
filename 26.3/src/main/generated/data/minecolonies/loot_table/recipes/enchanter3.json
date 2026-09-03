@@ -8,8 +8,8 @@
             "type": "minecraft:enchant_with_levels",
             "levels": {
               "type": "minecraft:uniform",
-              "max": 14.0,
-              "min": 6.0
+              "max": 14,
+              "min": 6
             },
             "options": "#minecraft:in_enchanting_table"
           },
@@ -23,8 +23,8 @@
             "type": "minecraft:enchant_with_levels",
             "levels": {
               "type": "minecraft:uniform",
-              "max": 22.0,
-              "min": 14.0
+              "max": 22,
+              "min": 14
             },
             "options": "#minecraft:in_enchanting_table"
           },
@@ -33,7 +33,7 @@
           "weight": 200
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     },
     {
       "entries": [
@@ -48,8 +48,8 @@
             "type": "minecraft:enchant_with_levels",
             "levels": {
               "type": "minecraft:uniform",
-              "max": 14.0,
-              "min": 6.0
+              "max": 14,
+              "min": 6
             },
             "options": "#minecraft:in_enchanting_table"
           },
@@ -86,7 +86,7 @@
           "weight": 30
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ],
   "random_sequence": "minecolonies:recipes/enchanter3"

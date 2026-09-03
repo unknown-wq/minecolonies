@@ -15,7 +15,7 @@
           "name": "minecolonies:blockhutbarracks"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ],
   "random_sequence": "minecolonies:blocks/blockhutbarracks"

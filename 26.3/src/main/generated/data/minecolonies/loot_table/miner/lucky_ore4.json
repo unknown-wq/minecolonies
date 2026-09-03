@@ -43,7 +43,7 @@
           "name": "minecraft:emerald_ore"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ],
   "random_sequence": "minecolonies:miner/lucky_ore4"

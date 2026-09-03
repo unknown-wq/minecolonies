@@ -28,7 +28,7 @@ import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.MatchBlock;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.UnaryOperator;
 
@@ -106,7 +106,7 @@ public class MaterialLootTableProvider extends FabricBlockLootSubProvider
         add(block,
             LootTable.lootTable()
                 .withPool(LootPool.lootPool()
-                    .setRolls(ConstantValue.exactly(1))
+                    .setRolls(ContextIntProviders.exactly(1))
                     .add(itemPoolBuilder.apply(LootItem.lootTableItem(block)
                         .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                             .include(ModDataComponents.TEXTURE_DATA.get()))))));
@@ -145,7 +145,7 @@ public class MaterialLootTableProvider extends FabricBlockLootSubProvider
     protected void dropSlabMaterially(final SlabBlock block)
     {
         dropSelfMaterially(block,
-            item -> item.apply(SetItemCountFunction.setCount(ConstantValue.exactly(2.0F))
+            item -> item.apply(SetItemCountFunction.setCount(ContextIntProviders.exactly(2))
                 .when(MatchBlock.blockMatches(this.blocks, block,
                     StatePropertiesPredicate.Builder.properties().hasProperty(SlabBlock.TYPE, SlabType.DOUBLE)))));
     }

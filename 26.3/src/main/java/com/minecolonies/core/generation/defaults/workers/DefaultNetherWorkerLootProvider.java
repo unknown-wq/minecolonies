@@ -24,7 +24,8 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.UniformContainerBase;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
+import net.minecraft.world.level.storage.loot.providers.number.floats.ContextFloatProviders;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -88,77 +89,77 @@ public class DefaultNetherWorkerLootProvider extends CustomRecipeAndLootTablePro
     private LootPool.Builder createBlocksPool(final int buildingLevel)
     {
         final LootPool.Builder blocks = new LootPool.Builder()
-                .setRolls(UniformGenerator.between(3, 10))
-                .setBonusRolls(UniformGenerator.between(0.3F, 0.3F));
+                .setRolls(ContextIntProviders.between(3, 10))
+                .setBonusRolls(ContextFloatProviders.between(0.3F, 0.3F));
 
         blocks.add(LootItem.lootTableItem(Items.NETHERRACK)
                 .setWeight(20)
-                .apply(SetItemCountFunction.setCount(UniformGenerator.between(5, 25))));
+                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(5, 25))));
 
         blocks.add(LootItem.lootTableItem(Items.SOUL_SAND)
                 .setWeight(10)
-                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 7))));
+                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 7))));
 
         blocks.add(LootItem.lootTableItem(Items.SOUL_SOIL)
                 .setWeight(8)
-                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 5))));
+                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 5))));
 
         blocks.add(LootItem.lootTableItem(Items.GRAVEL)
                 .setWeight(10)
-                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 10))));
+                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 10))));
 
         blocks.add(LootItem.lootTableItem(Items.NETHER_QUARTZ_ORE)
                 .setWeight(15)
-                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 4))));
+                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 4))));
 
         if (buildingLevel >= 2)
         {
             blocks.add(LootItem.lootTableItem(Items.GLOWSTONE)
                     .setWeight(5)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(2, 4))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(2, 4))));
 
             blocks.add(LootItem.lootTableItem(Items.NETHER_WART)
                     .setWeight(3)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 2))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 2))));
 
             blocks.add(LootItem.lootTableItem(Items.BROWN_MUSHROOM)
                     .setWeight(10)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 2))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 2))));
 
             blocks.add(LootItem.lootTableItem(Items.RED_MUSHROOM)
                     .setWeight(10)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 2))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 2))));
 
             blocks.add(LootItem.lootTableItem(Items.CRIMSON_NYLIUM)
                     .setWeight(5)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 1))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 1))));
 
             blocks.add(LootItem.lootTableItem(Items.CRIMSON_FUNGUS)
                     .setWeight(10)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(0, 1))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(0, 1))));
 
             blocks.add(LootItem.lootTableItem(Items.CRIMSON_STEM)
                     .setWeight(5)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 3))));
         }
 
         if (buildingLevel >= 3)
         {
             blocks.add(LootItem.lootTableItem(Items.BASALT)
                     .setWeight(5)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 3))));
 
             blocks.add(LootItem.lootTableItem(Items.WARPED_NYLIUM)
                     .setWeight(5)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 1))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 1))));
 
             blocks.add(LootItem.lootTableItem(Items.WARPED_FUNGUS)
                     .setWeight(10)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(0, 1))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(0, 1))));
 
             blocks.add(LootItem.lootTableItem(Items.WARPED_STEM)
                     .setWeight(5)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 3))));
 
             blocks.add(LootItem.lootTableItem(Items.OCHRE_FROGLIGHT)
                     .setWeight(2));
@@ -174,18 +175,18 @@ public class DefaultNetherWorkerLootProvider extends CustomRecipeAndLootTablePro
         {
             blocks.add(LootItem.lootTableItem(Items.NETHER_GOLD_ORE)
                     .setWeight(5)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 2))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 2))));
 
             blocks.add(LootItem.lootTableItem(Items.BLACKSTONE)
                     .setWeight(5)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 3))));
         }
 
         if (buildingLevel >= 5)
         {
             blocks.add(LootItem.lootTableItem(Items.ANCIENT_DEBRIS)
                     .setWeight(1)
-                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 2))));
+                    .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 2))));
         }
 
         return blocks;
@@ -195,8 +196,8 @@ public class DefaultNetherWorkerLootProvider extends CustomRecipeAndLootTablePro
     private LootPool.Builder createMobsPool(final int buildingLevel)
     {
         final LootPool.Builder mobs = new LootPool.Builder()
-                .setRolls(UniformGenerator.between(2, 6))
-                .setBonusRolls(UniformGenerator.between(0.1F, 0.1F));
+                .setRolls(ContextIntProviders.between(2, 6))
+                .setBonusRolls(ContextFloatProviders.between(0.1F, 0.1F));
 
         mobs.add(createAdventureToken(EntityTypes.ZOMBIFIED_PIGLIN, 5, 5)
                    .setWeight(5500).setQuality(-10));

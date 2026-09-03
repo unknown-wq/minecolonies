@@ -11,7 +11,7 @@
           "name": "minecolonies:barrel_block"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ],
   "random_sequence": "minecolonies:blocks/barrel_block"

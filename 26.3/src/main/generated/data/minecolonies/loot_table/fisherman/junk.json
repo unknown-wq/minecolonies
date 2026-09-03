@@ -8,7 +8,7 @@
           "value": "minecraft:gameplay/fishing/junk"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ],
   "random_sequence": "minecolonies:fisherman/junk"

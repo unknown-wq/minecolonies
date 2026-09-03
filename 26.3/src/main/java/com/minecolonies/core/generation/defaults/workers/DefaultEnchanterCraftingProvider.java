@@ -17,7 +17,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
-
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -29,9 +28,8 @@ import net.minecraft.world.level.storage.loot.entries.EmptyLootItem;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.UniformContainerBase;
 import net.minecraft.world.level.storage.loot.functions.EnchantWithLevelsFunction;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
-import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -146,7 +144,7 @@ public class DefaultEnchanterCraftingProvider extends CustomRecipeAndLootTablePr
     {
         final int[] band = BOOK_LEVELS[buildingLevel - 1];
         return LootPool.lootPool()
-                 .setRolls(ConstantValue.exactly(1))
+                 .setRolls(ContextIntProviders.exactly(1))
                  .add(tableRolledBook(band[0], band[1]).setWeight(PLAIN_WEIGHT).setQuality(PLAIN_QUALITY))
                  .add(tableRolledBook(band[2], band[3]).setWeight(FINE_WEIGHT).setQuality(FINE_QUALITY));
     }
@@ -168,7 +166,7 @@ public class DefaultEnchanterCraftingProvider extends CustomRecipeAndLootTablePr
     {
         final int[] band = BOOK_LEVELS[buildingLevel - 1];
         final LootPool.Builder pool = LootPool.lootPool()
-                                        .setRolls(ConstantValue.exactly(BONUS_ROLLS[buildingLevel - 1]))
+                                        .setRolls(ContextIntProviders.exactly(BONUS_ROLLS[buildingLevel - 1]))
                                         .add(EmptyLootItem.emptyItem()
                                                .setWeight(BONUS_EMPTY_WEIGHT)
                                                .setQuality(BONUS_EMPTY_QUALITY))
@@ -217,7 +215,7 @@ public class DefaultEnchanterCraftingProvider extends CustomRecipeAndLootTablePr
     {
         final HolderLookup.RegistryLookup<Enchantment> enchantments = provider.lookupOrThrow(Registries.ENCHANTMENT);
         return LootItem.lootTableItem(Items.BOOK)
-                 .apply(EnchantWithLevelsFunction.enchantWithLevels(enchantments, UniformGenerator.between(low, high))
+                 .apply(EnchantWithLevelsFunction.enchantWithLevels(enchantments, ContextIntProviders.between(low, high))
                           .withOptions(enchantments.getOrThrow(EnchantmentTags.IN_ENCHANTING_TABLE)));
     }
 

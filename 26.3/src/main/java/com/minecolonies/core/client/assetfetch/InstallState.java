@@ -23,6 +23,7 @@ import java.time.Instant;
  *   "version": 1,
  *   "status": "installed",  // "declined" is legacy, read-only -- see STATUS_DECLINED
  *   "sourceId": ..., "sourceUrl": ..., "jarSha256": ..., "manifestSha256": ...,
+ *   "complete": true, "filesAbsent": 0,   // omitted when 0; see writeInstalled
  *   "installedAt": ..., "customSourceUrl": ...
  * }
  * </pre>
@@ -157,6 +158,40 @@ public final class InstallState
     }
 
     /**
+     * The manifest the recorded install was verified against.
+     *
+     * @return the hash, or null when the file does not carry one.
+     */
+    public String manifestSha256()
+    {
+        final String value = string("manifestSha256");
+        return value == null || value.isBlank() ? null : value;
+    }
+
+    /**
+     * Whether the recorded install was made against the given manifest, and is therefore the pack this build
+     * expects rather than one left behind by an earlier one.
+     *
+     * <p>An install that records no manifest at all does not match: every build that has ever written this
+     * file wrote the field, so a state file without it has been damaged or written by something else, and the
+     * one thing that can be said about the pack next to it is that nothing vouches for it.</p>
+     *
+     * <p>Completeness is a separate question and is deliberately not asked here. A pack installed from a
+     * source that is allowed not to carry part of the file set is recorded as incomplete ({@code complete}
+     * false, see {@link #isComplete()}) and still matches the manifest it was verified against, because it is
+     * exactly what that manifest asks of that source. Folding the two together would reinstall such a pack on
+     * every single launch, for ever, and end each time in the same declared absence.</p>
+     *
+     * @param manifestSha256 the hash of the manifest this build ships.
+     * @return true when the two agree.
+     */
+    public boolean matchesManifest(final String manifestSha256)
+    {
+        final String recorded = manifestSha256();
+        return recorded != null && recorded.equals(manifestSha256);
+    }
+
+    /**
      * The schema version of the file that was read.
      *
      * @return the version, or -1.
@@ -177,12 +212,16 @@ public final class InstallState
      * @param stateFile      where to write.
      * @param sourceId       which chain entry produced it.
      * @param sourceUrl      the URL or local path it came from.
-     * @param jarSha256      the whole-jar hash that was accepted.
+     * @param jarSha256      the whole-archive hash that was accepted, which for a source that pins none is
+     *                       simply the hash of what arrived.
      * @param manifestSha256 the hash of the manifest it was verified against.
+     * @param filesAbsent    how many manifest files the source was allowed not to supply and did not, so a
+     *                       later run can tell a complete install from one that came from a fallback which
+     *                       cannot carry everything. Zero for a complete install.
      * @throws AssetInstallException if the file cannot be written.
      */
     public static void writeInstalled(final Path stateFile, final String sourceId, final String sourceUrl,
-        final String jarSha256, final String manifestSha256) throws AssetInstallException
+        final String jarSha256, final String manifestSha256, final int filesAbsent) throws AssetInstallException
     {
         final JsonObject out = base(stateFile);
         out.addProperty("status", STATUS_INSTALLED);
@@ -190,8 +229,42 @@ public final class InstallState
         out.addProperty("sourceUrl", sourceUrl);
         out.addProperty("jarSha256", jarSha256);
         out.addProperty("manifestSha256", manifestSha256);
+        out.addProperty("complete", filesAbsent == 0);
+        if (filesAbsent > 0)
+        {
+            out.addProperty("filesAbsent", filesAbsent);
+        }
         out.addProperty("installedAt", Instant.now().toString());
         write(stateFile, out);
+    }
+
+    /**
+     * Whether the recorded install carries every file the manifest lists.
+     *
+     * <p>An install written by a build that did not know about incomplete sources says nothing about this,
+     * and such an install was necessarily complete, so silence reads as complete.</p>
+     *
+     * @return false only when the state file says so outright.
+     */
+    public boolean isComplete()
+    {
+        final JsonElement value = this.root.get("complete");
+        return value == null || !value.isJsonPrimitive() || value.getAsBoolean();
+    }
+
+    /**
+     * How many manifest files the install's source was allowed not to supply.
+     *
+     * @return the count, or 0 when the install is complete or the file does not say.
+     */
+    public int filesAbsent()
+    {
+        final JsonElement value = this.root.get("filesAbsent");
+        if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber())
+        {
+            return 0;
+        }
+        return value.getAsInt();
     }
 
     /**
@@ -262,6 +335,15 @@ public final class InstallState
         }
         catch (final IOException e)
         {
+            // The temporary file is worthless without the rename that was to make it the record.
+            try
+            {
+                Files.deleteIfExists(temporary);
+            }
+            catch (final IOException ignored)
+            {
+                // Nothing more to do: the real failure is the one reported.
+            }
             throw new AssetInstallException("Could not write the install state to " + stateFile + ": " + e.getMessage(), e);
         }
     }

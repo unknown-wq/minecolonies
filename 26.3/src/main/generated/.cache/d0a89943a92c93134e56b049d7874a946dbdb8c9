@@ -1,4 +1,4 @@
-// 26.3-snapshot-10	-999999999-01-01T00:00:00	MineColonies Fabric 26.3 (Unofficial)/SifterCraftingProvider
+// 26.3-pre-1	-999999999-01-01T00:00:00	MineColonies Fabric 26.3 (Unofficial)/SifterCraftingProvider
 4c53a0baf9bd0ef2843f8fb5a31d8391ff0a0ca2 data/minecolonies/crafterrecipes/blacksmith/sifter_mesh_iron.json
 45398ebf5ce27313f5d738a9227071bddab92eb3 data/minecolonies/crafterrecipes/fletcher/sifter_mesh_string.json
 9a13ee93c01a95cb6b2fe5f94a2ac2b16fb1f88f data/minecolonies/crafterrecipes/mechanic/sifter_mesh_diamond.json
@@ -19,19 +19,19 @@ d9e87bcd6762911a4a0d53034a6faff497b98de8 data/minecolonies/crafterrecipes/sifter
 9fc7130e74374372e57a16e1241b08ab1991b448 data/minecolonies/crafterrecipes/sifter/string/sand.json
 4baa2287e60ad6c48964c9a23987f78500a5d1c4 data/minecolonies/crafterrecipes/sifter/string/soul_sand.json
 2c8b8c15131494a1118ce62172d0555cccb399b3 data/minecolonies/crafterrecipes/stonemason/sifter_mesh_flint.json
-c3e28e7d728a831f199fec3fb95a7bf2d54e9198 data/minecolonies/loot_table/recipes/diamond/dirt.json
-7b97ad1e0cac7bf97565b453db25c0cd77b0f3bf data/minecolonies/loot_table/recipes/diamond/gravel.json
-42916354666845b66342a0cf628334ffb81dcb74 data/minecolonies/loot_table/recipes/diamond/sand.json
-7ff6b70d859dfe263efb416d6d1ce518be880da1 data/minecolonies/loot_table/recipes/diamond/soul_sand.json
-b5e6398fca0d0ab73dd94de526e8620edbd60957 data/minecolonies/loot_table/recipes/flint/dirt.json
-3f9383df12216e07be6d3d921d81efb25d1cabbf data/minecolonies/loot_table/recipes/flint/gravel.json
-75e03bb29250a07142c36531641e5c2d89bf4cd3 data/minecolonies/loot_table/recipes/flint/sand.json
-9d145f5e9705e23ea94443dad34f9cdaa1c2dbc1 data/minecolonies/loot_table/recipes/flint/soul_sand.json
-717559fe9a6489948b7890dcb526a1b8367b4fee data/minecolonies/loot_table/recipes/iron/dirt.json
-f6e534ea208d1fa3c47d31eaea26743d74780969 data/minecolonies/loot_table/recipes/iron/gravel.json
-895747b2564decb0d3b84a358d999717435c71cd data/minecolonies/loot_table/recipes/iron/sand.json
-964e82ec9729dca8754256695393b08d8cafc695 data/minecolonies/loot_table/recipes/iron/soul_sand.json
-ae82044775c3b02226c49afb7ded9a4cf694f8d7 data/minecolonies/loot_table/recipes/string/dirt.json
-68edc86c3fd8384b94c058cc8ee98f6d23dbc8a5 data/minecolonies/loot_table/recipes/string/gravel.json
-8b820d954f8d50245c815eea5e31961d1305aaa6 data/minecolonies/loot_table/recipes/string/sand.json
-f017adad3a3d28434b0afda6d443c668254de8a0 data/minecolonies/loot_table/recipes/string/soul_sand.json
+399c12b14ebf784ba8ea9338b0aa8e06cabd4535 data/minecolonies/loot_table/recipes/diamond/dirt.json
+d05d9797a36d9eea6f08f742a4ab9d291789d0e4 data/minecolonies/loot_table/recipes/diamond/gravel.json
+fda439e32a7718bbaec411b447d95f92ae11852a data/minecolonies/loot_table/recipes/diamond/sand.json
+1245a7dca4d79b172d3e29ea2d82f71ab6bf743c data/minecolonies/loot_table/recipes/diamond/soul_sand.json
+d9854ccc56e51a33d0a0486c83a25df44e077c7b data/minecolonies/loot_table/recipes/flint/dirt.json
+dc7e272a94e9c459ff2a6f48287baf786274c498 data/minecolonies/loot_table/recipes/flint/gravel.json
+a7baa17ab2b908235d312df893f9d52547069fc5 data/minecolonies/loot_table/recipes/flint/sand.json
+ffde013a5b6bac99848cca5409d01736a831d69b data/minecolonies/loot_table/recipes/flint/soul_sand.json
+f1e218777b73dda49eb855799ab08fa5e0c7ef69 data/minecolonies/loot_table/recipes/iron/dirt.json
+cb5cb75733582e08398c853118f441e22f484cb4 data/minecolonies/loot_table/recipes/iron/gravel.json
+6d2dab15bef85437d62ff0e39d797647443a27c5 data/minecolonies/loot_table/recipes/iron/sand.json
+1db0adad706c69d1d505b806092d1ffebe099ce9 data/minecolonies/loot_table/recipes/iron/soul_sand.json
+59e537e0b7fc9641af2f633d531a29ac5dd4b2e9 data/minecolonies/loot_table/recipes/string/dirt.json
+aa5f2722c5b4f461b110dc968b78251123e6da1d data/minecolonies/loot_table/recipes/string/gravel.json
+fc6422d91bc2ec9215b9f7efcb8dca779cad8763 data/minecolonies/loot_table/recipes/string/sand.json
+995dcd8327fa2b647884dda0855aabd8c24529aa data/minecolonies/loot_table/recipes/string/soul_sand.json

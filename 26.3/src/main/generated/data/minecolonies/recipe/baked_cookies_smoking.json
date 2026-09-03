@@ -1,7 +1,7 @@
 {
   "type": "minecraft:smoking",
   "category": "food",
-  "cookingtime": 12,
+  "cookingtime": 37,
   "experience": 0.0475,
   "ingredient": "minecolonies:cookie_dough",
   "result": {

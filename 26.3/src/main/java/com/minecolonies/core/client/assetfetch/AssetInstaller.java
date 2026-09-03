@@ -93,7 +93,9 @@ public final class AssetInstaller
      */
     public static AssetInstaller forGame()
     {
-        return new AssetInstaller(configFor(SourceChain.automatic(customSourceUrl())));
+        return new AssetInstaller(new InstallConfig(AssetFetch.baseDir(), BundleResources.ofModJar(), clientPackFormat(),
+            SourceChain.automatic(), SourceChain.discovery(), SourceChain.afterDiscovery(customSourceUrl()),
+            AssetFetch::invalidate));
     }
 
     /**
@@ -104,11 +106,16 @@ public final class AssetInstaller
      * accepted only if every single file verifies against the manifest, and otherwise refused with a message
      * naming the supported upstream versions.</p>
      *
+     * <p>This is the last thing in the chain and the only part of it the installer does not reach on its own:
+     * it is the player's own action, offered once everything automatic has been tried.</p>
+     *
      * @param jar the file the player picked.
      * @return a ready installer.
      */
     public static AssetInstaller forLocalJar(final Path jar)
     {
+        // The manual entry stands alone: the player named this file, so there is nothing to fall back to and
+        // nothing to go looking for.
         return new AssetInstaller(configFor(List.of(SourceChain.localJar(jar))));
     }
 
@@ -217,7 +224,8 @@ public final class AssetInstaller
      */
     private static InstallConfig configFor(final List<AssetSource> sources)
     {
-        return new InstallConfig(AssetFetch.baseDir(), BundleResources.ofModJar(), clientPackFormat(), sources, AssetFetch::invalidate);
+        return new InstallConfig(AssetFetch.baseDir(), BundleResources.ofModJar(), clientPackFormat(), sources,
+            null, List.of(), AssetFetch::invalidate);
     }
 
     /**

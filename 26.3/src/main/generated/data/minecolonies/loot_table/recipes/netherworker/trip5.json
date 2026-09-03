@@ -13,8 +13,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 25.0,
-              "min": 5.0
+              "max": 25,
+              "min": 5
             }
           },
           "name": "minecraft:netherrack",
@@ -26,8 +26,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 7.0,
-              "min": 1.0
+              "max": 7,
+              "min": 1
             }
           },
           "name": "minecraft:soul_sand",
@@ -39,8 +39,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 5.0,
-              "min": 1.0
+              "max": 5,
+              "min": 1
             }
           },
           "name": "minecraft:soul_soil",
@@ -52,8 +52,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 10.0,
-              "min": 1.0
+              "max": 10,
+              "min": 1
             }
           },
           "name": "minecraft:gravel",
@@ -65,8 +65,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 4.0,
-              "min": 1.0
+              "max": 4,
+              "min": 1
             }
           },
           "name": "minecraft:nether_quartz_ore",
@@ -78,8 +78,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 4.0,
-              "min": 2.0
+              "max": 4,
+              "min": 2
             }
           },
           "name": "minecraft:glowstone",
@@ -91,8 +91,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 2.0,
-              "min": 1.0
+              "max": 2,
+              "min": 1
             }
           },
           "name": "minecraft:nether_wart",
@@ -104,8 +104,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 2.0,
-              "min": 1.0
+              "max": 2,
+              "min": 1
             }
           },
           "name": "minecraft:brown_mushroom",
@@ -117,8 +117,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 2.0,
-              "min": 1.0
+              "max": 2,
+              "min": 1
             }
           },
           "name": "minecraft:red_mushroom",
@@ -130,8 +130,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 1.0,
-              "min": 1.0
+              "max": 1,
+              "min": 1
             }
           },
           "name": "minecraft:crimson_nylium",
@@ -143,8 +143,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 1.0,
-              "min": 0.0
+              "max": 1,
+              "min": 0
             }
           },
           "name": "minecraft:crimson_fungus",
@@ -156,8 +156,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 3.0,
-              "min": 1.0
+              "max": 3,
+              "min": 1
             }
           },
           "name": "minecraft:crimson_stem",
@@ -169,8 +169,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 3.0,
-              "min": 1.0
+              "max": 3,
+              "min": 1
             }
           },
           "name": "minecraft:basalt",
@@ -182,8 +182,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 1.0,
-              "min": 1.0
+              "max": 1,
+              "min": 1
             }
           },
           "name": "minecraft:warped_nylium",
@@ -195,8 +195,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 1.0,
-              "min": 0.0
+              "max": 1,
+              "min": 0
             }
           },
           "name": "minecraft:warped_fungus",
@@ -208,8 +208,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 3.0,
-              "min": 1.0
+              "max": 3,
+              "min": 1
             }
           },
           "name": "minecraft:warped_stem",
@@ -234,8 +234,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 2.0,
-              "min": 1.0
+              "max": 2,
+              "min": 1
             }
           },
           "name": "minecraft:nether_gold_ore",
@@ -247,8 +247,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 3.0,
-              "min": 1.0
+              "max": 3,
+              "min": 1
             }
           },
           "name": "minecraft:blackstone",
@@ -260,8 +260,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 2.0,
-              "min": 1.0
+              "max": 2,
+              "min": 1
             }
           },
           "name": "minecraft:ancient_debris"
@@ -269,8 +269,8 @@
       ],
       "rolls": {
         "type": "minecraft:uniform",
-        "max": 10.0,
-        "min": 3.0
+        "max": 10,
+        "min": 3
       }
     },
     {
@@ -379,8 +379,8 @@
       ],
       "rolls": {
         "type": "minecraft:uniform",
-        "max": 6.0,
-        "min": 2.0
+        "max": 6,
+        "min": 2
       }
     }
   ],

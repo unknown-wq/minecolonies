@@ -1,14 +1,15 @@
 > [!IMPORTANT]
-> **This branch is the port to Minecraft 26.3-snapshot-10 — a snapshot, not a release.** 26.3 is not
-> out yet, snapshots land roughly weekly, and no pre-release or release candidate existed while this
-> was ported. The base can move under your feet.
+> **This branch is the port to Minecraft 26.3-pre-1 — a pre-release, not a release.** 26.3 is not
+> out yet. The weekly snapshots have ended and Mojang has moved to stabilising, so the API this is
+> built against should now change little, but a release candidate and the release itself are still
+> ahead and the base can still move under your feet.
 >
 > Everything else in this README describes the mod itself and is equally true of 26.2 and 26.3.
 
 <h1 align="center">
   <img src="26.2/src/main/resources/minecolonies_logo.png" alt="MineColonies logo" width="200">
   <br>
-  MineColonies — Fabric port for Minecraft 26.3-snapshot-10
+  MineColonies — Fabric port for Minecraft 26.3-pre-1
 </h1>
 
 <p align="center">
@@ -23,7 +24,7 @@
 </p>
 
 <p align="center">
-  <img alt="Minecraft 26.3-snapshot-10" src="https://img.shields.io/badge/Minecraft-26.3--snapshot--10-yellow?style=for-the-badge">
+  <img alt="Minecraft 26.3-pre-1" src="https://img.shields.io/badge/Minecraft-26.3--pre--1-yellow?style=for-the-badge">
   <img alt="Fabric" src="https://img.shields.io/badge/Loader-Fabric%200.19.3-1976d2?style=for-the-badge">
   <img alt="Fabric API" src="https://img.shields.io/badge/Fabric%20API-0.158.0%2B26.3-1976d2?style=for-the-badge">
   <img alt="Java 25" src="https://img.shields.io/badge/Java-25-orange?style=for-the-badge">
@@ -49,7 +50,7 @@
 **The built mod jar lives in [`dist/`](dist/).** One file, nothing else to assemble.
 
 ```
-dist/minecolonies-26.3-0.0.79.jar          44 MB   this branch's build, for 26.3-snapshot-10
+dist/minecolonies-26.3-0.0.80.jar          44 MB   this branch's build, for 26.3-pre-1
 dist/minecolonies-26.2-0.0.55.jar          44 MB   the 26.2 release this branch started from
 ```
 
@@ -252,7 +253,7 @@ entity path, not the mod's AI.
 ```
 mods/
 ├── fabric-api-0.158.3+26.3.jar
-└── minecolonies-26.3-0.0.79.jar
+└── minecolonies-26.3-0.0.80.jar
 ```
 
 3. Launch. In the loaded-mod list, `blockui`, `domum_ornamentum` and `structurize` must appear

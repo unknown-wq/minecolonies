@@ -1,11 +1,14 @@
 package com.minecolonies.core.client.assetfetch;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,11 +19,19 @@ import java.util.Map;
  * {
  *   "version": 1,
  *   "primarySource": "maven-1374",
- *   "sources": { "maven-1374": { "jarSha256": ..., "size": ..., "url": ... }, ... },
+ *   "sources": { "maven-1374": { "jarSha256": ..., "size": ..., "url": ... },
+ *                 "github-src-1374": { "url": ..., "mayBeAbsent": [ "&lt;path prefix&gt;", ... ] }, ... },
  *   "files":   { "&lt;path&gt;": { "sha256": ..., "size": ... }, ... },
  *   "alt":     { "maven-1368": { "&lt;path&gt;": { "sha256": ..., "size": ... } | null, ... }, ... }
  * }
  * </pre>
+ *
+ * <p>A source with a {@code jarSha256} is one whose whole archive is pinned. A source without one is
+ * verified only by what comes out of it, and its {@code mayBeAbsent} names the path prefixes it is allowed
+ * not to supply at all — upstream's translations, in the case of a source release, which are injected
+ * during upstream's own build and are not in their repository. {@code mayBeAbsent} forgives absence and
+ * nothing else: a file that does arrive is hashed and compared like every other, and a file missing outside
+ * these prefixes fails the source.</p>
  *
  * <p>{@code files} describes the whole pack except {@code pack.mcmeta}, which is written at install time from
  * the running game's pack format (see {@link PackMetaWriter}) and therefore has no fixed hash. {@code alt}
@@ -152,13 +163,14 @@ public final class AssetManifest
             sources.put(entry.getKey(), new SourceInfo(
                 optionalString(body, "jarSha256"),
                 body.has("size") ? body.get("size").getAsLong() : -1L,
-                optionalString(body, "url")));
+                optionalString(body, "url"),
+                prefixes(body, "mayBeAbsent")));
         }
 
         final Map<String, FileEntry> files = readFileMap(object(root, "files"));
 
         // Each set is read by its own spelling rather than by the base set's. An empty set is pack-relative by
-        // vacuum, so a manifest whose whole file list sits in alt used to have its alt paths left alone -- and a
+        // vacuum, so a manifest whose whole file list sits in alt used to have its alt paths left alone — and a
         // path that is not pack-relative matches nothing under the pack root.
         final Map<String, Map<String, FileEntry>> alternates = new LinkedHashMap<>();
         final JsonObject rawAlt = object(root, "alt");
@@ -182,6 +194,27 @@ public final class AssetManifest
     public String sha256()
     {
         return this.manifestSha256;
+    }
+
+    /**
+     * The hash of the manifest a build ships, without parsing it.
+     *
+     * <p>An install records the {@link #sha256()} of the manifest it was verified against, so comparing that
+     * recorded value against this one is what separates a pack installed by an earlier build of this mod from
+     * one that matches the build now running. The manifest describes every file of the pack down to its hash,
+     * so it changes whenever the pack has to change and stays byte-identical whenever it does not; that makes
+     * its own hash the cheapest honest answer to "is what is on disk still what this build expects".</p>
+     *
+     * <p>Deliberately no parsing: this runs on the way to the title screen, the bytes are the identity, and a
+     * manifest this build cannot parse is the installer's problem to report, not the freshness check's.</p>
+     *
+     * @param resources the bundle to read {@value #FILE_NAME} from.
+     * @return the hash, lower-case hex.
+     * @throws IOException if the manifest is missing or unreadable.
+     */
+    public static String shippedSha256(final BundleResources resources) throws IOException
+    {
+        return Hashes.sha256(resources.read(FILE_NAME));
     }
 
     /**
@@ -232,6 +265,22 @@ public final class AssetManifest
             }
         }
         return effective;
+    }
+
+    /**
+     * The path prefixes a given source is allowed not to supply at all.
+     *
+     * <p>Absence, and only absence, is what this forgives, and only for the source that declares it. A file
+     * covered by one of these prefixes may be missing from the finished pack; a file that is present is
+     * hashed and compared like any other, and anything missing outside them is a failed source.</p>
+     *
+     * @param sourceId the chain entry the archive came from.
+     * @return the pack-relative prefixes, possibly empty, never null.
+     */
+    public List<String> mayBeAbsentFor(final String sourceId)
+    {
+        final SourceInfo info = this.sources.get(sourceId);
+        return info == null ? List.of() : info.mayBeAbsent();
     }
 
     /**
@@ -316,6 +365,41 @@ public final class AssetManifest
     }
 
     /**
+     * Reads an array of pack-relative path prefixes, tolerating absence and wrong types.
+     *
+     * <p>Prefixes are accepted in either spelling, exactly like file paths, and are normalised to
+     * pack-relative here so the pipeline can compare them against manifest keys without thinking about
+     * it.</p>
+     *
+     * @param object the object to read from.
+     * @param member the member name.
+     * @return the prefixes, possibly empty, never null.
+     */
+    private static List<String> prefixes(final JsonObject object, final String member)
+    {
+        final JsonElement value = object.get(member);
+        if (value == null || !value.isJsonArray())
+        {
+            return List.of();
+        }
+        final JsonArray array = value.getAsJsonArray();
+        final List<String> out = new ArrayList<>(array.size());
+        for (final JsonElement element : array)
+        {
+            if (!element.isJsonPrimitive())
+            {
+                continue;
+            }
+            final String prefix = element.getAsString();
+            if (!prefix.isBlank())
+            {
+                out.add(prefix.startsWith("assets/") ? prefix : ASSET_PREFIX + prefix);
+            }
+        }
+        return out;
+    }
+
+    /**
      * Reads a string member, tolerating absence and wrong types.
      *
      * @param object the object to read from.
@@ -339,13 +423,27 @@ public final class AssetManifest
     }
 
     /**
-     * One known upstream jar.
+     * One known upstream archive.
      *
-     * @param jarSha256 the whole-jar SHA-256.
-     * @param size      the jar's size in bytes, or -1 when unstated.
-     * @param url       where it came from.
+     * @param jarSha256    the whole-archive SHA-256, or null when this source pins none and is trusted only
+     *                     by the files that come out of it.
+     * @param size         the archive's size in bytes, or -1 when unstated.
+     * @param url          where it came from.
+     * @param mayBeAbsent  pack-relative path prefixes this source is allowed not to supply. Never null.
      */
-    public record SourceInfo(String jarSha256, long size, String url)
+    public record SourceInfo(String jarSha256, long size, String url, List<String> mayBeAbsent)
     {
+        /**
+         * Normalises the prefix list so callers never see null or a mutable view.
+         *
+         * @param jarSha256   the whole-archive hash, or null.
+         * @param size        the size, or -1.
+         * @param url         the URL.
+         * @param mayBeAbsent the prefixes.
+         */
+        public SourceInfo
+        {
+            mayBeAbsent = mayBeAbsent == null ? List.of() : List.copyOf(mayBeAbsent);
+        }
     }
 }

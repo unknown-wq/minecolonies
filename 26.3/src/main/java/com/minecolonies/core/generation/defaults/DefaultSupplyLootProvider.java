@@ -19,7 +19,7 @@ import net.minecraft.world.level.storage.loot.functions.SetComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.functions.SetNameFunction;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
@@ -56,7 +56,7 @@ public class DefaultSupplyLootProvider implements SimpleLootTableProvider.SubPro
                                         .apply(SetNameFunction.setName(Component.translatableEscape("item.minecolonies.supply.free", ModItems.supplyCamp.getName(ModItems.supplyCamp.getDefaultInstance())), SetNameFunction.Target.ITEM_NAME)))
                                 .add(LootItem.lootTableItem(ModItems.scrollBuff)
                                     .when(LootItemRandomChanceCondition.randomChance(0.1f))
-                                    .apply(SetItemCountFunction.setCount(ConstantValue.exactly(4))))
+                                    .apply(SetItemCountFunction.setCount(ContextIntProviders.exactly(4))))
                         ));
 
         generator.accept(ResourceKey.create(Registries.LOOT_TABLE, SUPPLY_SHIP_LT),
@@ -68,7 +68,7 @@ public class DefaultSupplyLootProvider implements SimpleLootTableProvider.SubPro
                                         .apply(SetNameFunction.setName(Component.translatableEscape("item.minecolonies.supply.free", ModItems.supplyChest.getName(ModItems.supplyChest.getDefaultInstance())), SetNameFunction.Target.ITEM_NAME)))
                                 .add(LootItem.lootTableItem(ModItems.scrollBuff)
                                     .when(LootItemRandomChanceCondition.randomChance(0.1f))
-                                    .apply(SetItemCountFunction.setCount(ConstantValue.exactly(4))))
+                                    .apply(SetItemCountFunction.setCount(ContextIntProviders.exactly(4))))
                         ));
     }
 }

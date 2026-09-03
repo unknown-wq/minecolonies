@@ -21,7 +21,7 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.UniformContainerBase;
 import net.minecraft.world.level.storage.loot.functions.SetComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -254,7 +254,7 @@ public abstract class SimpleLootTableProvider implements DataProvider
             }
             if (stack.getCount() > 1)
             {
-                builder.apply(SetItemCountFunction.setCount(ConstantValue.exactly(stack.getCount())));
+                builder.apply(SetItemCountFunction.setCount(ContextIntProviders.exactly(stack.getCount())));
             }
             return builder;
         }

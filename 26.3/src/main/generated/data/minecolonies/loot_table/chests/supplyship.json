@@ -43,12 +43,12 @@
           },
           "modifier": {
             "type": "minecraft:set_count",
-            "count": 4.0
+            "count": 4
           },
           "name": "minecolonies:scroll_buff"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ],
   "random_sequence": "minecolonies:chests/supplyship"

@@ -75,8 +75,8 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.component.Compostable;
 import net.minecraft.world.item.crafting.BrewingRecipe;
-import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
-import net.minecraft.world.level.storage.loot.providers.number.NumberProviders;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProvider;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 import com.minecolonies.core.generation.defaults.DefaultDataMapsProvider;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
@@ -264,7 +264,7 @@ public class MineColonies implements ModInitializer
      * registry class with it. The only way left to attach it to an already-built item is Fabric's
      * {@code DefaultItemComponentEvents.MODIFY}, which is what this does.
      * <p>
-     * The chance model changed too: vanilla no longer stores a probability but a {@code NumberProvider}
+     * The chance model changed too: vanilla no longer stores a probability but a {@code ContextIntProvider}
      * reference that yields how many layers an insert adds. There are five stock providers (30/50/65/85/100
      * percent), so the old per-item chance is snapped to the nearest of them.
      */
@@ -293,25 +293,25 @@ public class MineColonies implements ModInitializer
      * @param chance the 0..1 chance the pre-26.3 data map carried.
      * @return the number provider key to reference from the item component.
      */
-    private static ResourceKey<NumberProvider> compostTier(final float chance)
+    private static ResourceKey<ContextIntProvider> compostTier(final float chance)
     {
         if (chance >= 0.925f)
         {
-            return NumberProviders.COMPOSTABLE_ALWAYS_ADD_ONE;   // 100%
+            return ContextIntProviders.COMPOSTABLE_ALWAYS_ADD_ONE;   // 100%
         }
         if (chance >= 0.75f)
         {
-            return NumberProviders.COMPOSTABLE_MEDIUM_HIGH;      // 85%
+            return ContextIntProviders.COMPOSTABLE_MEDIUM_HIGH;      // 85%
         }
         if (chance >= 0.575f)
         {
-            return NumberProviders.COMPOSTABLE_MEDIUM;           // 65%
+            return ContextIntProviders.COMPOSTABLE_MEDIUM;           // 65%
         }
         if (chance >= 0.40f)
         {
-            return NumberProviders.COMPOSTABLE_LOW_MEDIUM;       // 50%
+            return ContextIntProviders.COMPOSTABLE_LOW_MEDIUM;       // 50%
         }
-        return NumberProviders.COMPOSTABLE_LOW;                  // 30%
+        return ContextIntProviders.COMPOSTABLE_LOW;                  // 30%
     }
 
     /**

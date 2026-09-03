@@ -20,8 +20,8 @@
               "type": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "max": 16.0,
-                "min": 1.0
+                "max": 16,
+                "min": 1
               }
             },
             {
@@ -44,8 +44,8 @@
               "type": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "max": 16.0,
-                "min": 1.0
+                "max": 16,
+                "min": 1
               }
             },
             {
@@ -67,7 +67,7 @@
           "weight": 30
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ],
   "random_sequence": "minecolonies:entities/pharao"

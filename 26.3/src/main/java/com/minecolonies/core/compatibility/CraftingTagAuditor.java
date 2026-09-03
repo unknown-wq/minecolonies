@@ -37,7 +37,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.LevelResource;
-import net.minecraft.world.level.storage.loot.providers.number.ResolvableNumber;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ResolvableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -514,7 +514,7 @@ public class CraftingTagAuditor
 
             // 26.3: ComposterBlock.COMPOSTABLES is gone along with the whole idea of a per-item compost
             // chance. Compostability is the DataComponents.COMPOSTABLE item component, whose payload is a
-            // ResolvableNumber of layers -- either a constant or a reference to one of vanilla's five
+            // ResolvableInt of layers -- either a constant or a reference to one of vanilla's five
             // compostable/* number providers. Resolving a reference needs a LootContext, which an audit run
             // has no business building, so the reference is reported by name.
             final Compostable compostable = item.get(DataComponents.COMPOSTABLE);
@@ -522,8 +522,8 @@ public class CraftingTagAuditor
             {
                 writer.write(switch (compostable.layers())
                 {
-                    case ResolvableNumber.Constant constant -> String.valueOf(constant.value());
-                    case ResolvableNumber.Reference reference -> reference.key().identifier().toString();
+                    case ResolvableInt.Constant constant -> String.valueOf(constant.value());
+                    case ResolvableInt.Reference reference -> reference.key().identifier().toString();
                 });
             }
 

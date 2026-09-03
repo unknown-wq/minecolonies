@@ -1,4 +1,4 @@
-// 26.3-snapshot-10	-999999999-01-01T00:00:00	MineColonies Fabric 26.3 (Unofficial)/EnchanterCraftingProvider
+// 26.3-pre-1	-999999999-01-01T00:00:00	MineColonies Fabric 26.3 (Unofficial)/EnchanterCraftingProvider
 dcf95d8f4477b1611f6492ab30cab518f64444f7 data/minecolonies/crafterrecipes/enchanter/mending_book.json
 2f6c6ee1ee81bb1dafcdf881ba36dba37d62c483 data/minecolonies/crafterrecipes/enchanter/raider_bane_book.json
 fe08a575b9ecd188018657c36a8fb629dfc27b25 data/minecolonies/crafterrecipes/enchanter/scroll_area_tp.json
@@ -11,8 +11,8 @@ fa794ecffe12d887a2cc203f991b7363f9cca0ed data/minecolonies/crafterrecipes/enchan
 188f2c1601610f34347f0a3ebc4c04f3211e6006 data/minecolonies/crafterrecipes/enchanter/tome4.json
 e2430d8d4f2ed333e17da6c1380fb8fb71cace7a data/minecolonies/crafterrecipes/enchanter/tome5.json
 bed19862030271d7a510e4b58eef57e4869672fb data/minecolonies/crafterrecipes/enchanter/xp_bottles.json
-fd36cdb839cf75cfb09214e64cd4adbb2633e814 data/minecolonies/loot_table/recipes/enchanter1.json
-b397b7dbee134aff4776847103de5cfd9aa155b5 data/minecolonies/loot_table/recipes/enchanter2.json
-e06eacddab59fdb7ee8dbc77455d9a11f7103d8e data/minecolonies/loot_table/recipes/enchanter3.json
-c799ca21e832422f70d82c2254f16faaa56d28f5 data/minecolonies/loot_table/recipes/enchanter4.json
-fcc7dfa44d97f982bd27604f0c3b9c02a603115e data/minecolonies/loot_table/recipes/enchanter5.json
+c0104d68f184003c263f2bd902ab567a5ade4cb2 data/minecolonies/loot_table/recipes/enchanter1.json
+ed4fe33f2ae22e0bffd4da428db5ccd2d290ee7a data/minecolonies/loot_table/recipes/enchanter2.json
+eed0aa306d2d83778051bd9a36ed5ab2c0259cd0 data/minecolonies/loot_table/recipes/enchanter3.json
+aedca7eafdbfa755505cc315c2d52b19f3ccce12 data/minecolonies/loot_table/recipes/enchanter4.json
+0bbe9248770d566784dd3d87a694eb1b9740a375 data/minecolonies/loot_table/recipes/enchanter5.json

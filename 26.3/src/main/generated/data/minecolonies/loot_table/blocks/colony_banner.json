@@ -11,7 +11,7 @@
           "name": "minecolonies:colony_banner"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ],
   "random_sequence": "minecolonies:blocks/colony_banner"

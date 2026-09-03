@@ -8,8 +8,8 @@
             "type": "minecraft:enchant_with_levels",
             "levels": {
               "type": "minecraft:uniform",
-              "max": 5.0,
-              "min": 1.0
+              "max": 5,
+              "min": 1
             },
             "options": "#minecraft:in_enchanting_table"
           },
@@ -23,8 +23,8 @@
             "type": "minecraft:enchant_with_levels",
             "levels": {
               "type": "minecraft:uniform",
-              "max": 10.0,
-              "min": 5.0
+              "max": 10,
+              "min": 5
             },
             "options": "#minecraft:in_enchanting_table"
           },
@@ -33,7 +33,7 @@
           "weight": 200
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ],
   "random_sequence": "minecolonies:recipes/enchanter1"
