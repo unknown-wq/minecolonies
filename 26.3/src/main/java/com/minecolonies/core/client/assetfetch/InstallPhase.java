@@ -34,9 +34,10 @@ public enum InstallPhase
     PATCHING,
 
     /**
-     * Pruning what the manifest does not list and hashing what it does.
+     * Pruning what the manifest does not list, and filling in what the archive did not supply from the pack
+     * already installed.
      */
-    VERIFYING,
+    ASSEMBLING,
 
     /**
      * Moving the staged pack into place and recording the install.

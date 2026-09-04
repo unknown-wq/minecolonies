@@ -23,10 +23,16 @@ import java.time.Instant;
  *   "version": 1,
  *   "status": "installed",  // "declined" is legacy, read-only -- see STATUS_DECLINED
  *   "sourceId": ..., "sourceUrl": ..., "jarSha256": ..., "manifestSha256": ...,
- *   "complete": true, "filesAbsent": 0,   // omitted when 0; see writeInstalled
+ *   "complete": true, "filesAbsent": 0, "filesCarried": 0,   // the counts are omitted when 0; see writeInstalled
  *   "installedAt": ..., "customSourceUrl": ...
  * }
  * </pre>
+ *
+ * <p>Still schema version 1, deliberately. {@code filesCarried} replaced a {@code filesSkipped} that older
+ * builds wrote; both are advisory counts and an unknown one is simply not read, so a file written by such a
+ * build still describes an install this build can serve. Bumping the version for a counter would have made
+ * every existing install read as "not installed" and taken the player's assets away on the spot, which is
+ * exactly the failure the rest of this class exists to prevent.</p>
  *
  * <p>Two rules hold everywhere in this class. Writes are atomic — a temporary file in the same directory
  * followed by a move — because a half-written state file is exactly the "half-installed" condition the design
@@ -42,7 +48,7 @@ public final class InstallState
     public static final int SCHEMA_VERSION = 1;
 
     /**
-     * {@code status} for a verified install.
+     * {@code status} for a finished install.
      */
     public static final String STATUS_INSTALLED = "installed";
 
@@ -158,7 +164,7 @@ public final class InstallState
     }
 
     /**
-     * The manifest the recorded install was verified against.
+     * The manifest the recorded install was made against.
      *
      * @return the hash, or null when the file does not carry one.
      */
@@ -169,18 +175,18 @@ public final class InstallState
     }
 
     /**
-     * Whether the recorded install was made against the given manifest, and is therefore the pack this build
-     * expects rather than one left behind by an earlier one.
+     * Whether the recorded install was made against the given manifest, and is therefore the set of files
+     * this build expects rather than one left behind by an earlier one.
      *
      * <p>An install that records no manifest at all does not match: every build that has ever written this
      * file wrote the field, so a state file without it has been damaged or written by something else, and the
      * one thing that can be said about the pack next to it is that nothing vouches for it.</p>
      *
-     * <p>Completeness is a separate question and is deliberately not asked here. A pack installed from a
-     * source that is allowed not to carry part of the file set is recorded as incomplete ({@code complete}
-     * false, see {@link #isComplete()}) and still matches the manifest it was verified against, because it is
-     * exactly what that manifest asks of that source. Folding the two together would reinstall such a pack on
-     * every single launch, for ever, and end each time in the same declared absence.</p>
+     * <p>Completeness is a separate question and is deliberately not asked here. A pack put together from a
+     * source that could not supply part of the file set is recorded as incomplete ({@code complete} false,
+     * see {@link #isComplete()}) and still matches the manifest it was installed against, because it is
+     * exactly as much as that source had to give. Folding the two together would reinstall such a pack on
+     * every single launch, for ever, and end each time with the same files missing.</p>
      *
      * @param manifestSha256 the hash of the manifest this build ships.
      * @return true when the two agree.
@@ -207,21 +213,26 @@ public final class InstallState
     }
 
     /**
-     * Records a completed, verified install.
+     * Records a completed install.
      *
      * @param stateFile      where to write.
      * @param sourceId       which chain entry produced it.
      * @param sourceUrl      the URL or local path it came from.
      * @param jarSha256      the whole-archive hash that was accepted, which for a source that pins none is
-     *                       simply the hash of what arrived.
-     * @param manifestSha256 the hash of the manifest it was verified against.
-     * @param filesAbsent    how many manifest files the source was allowed not to supply and did not, so a
-     *                       later run can tell a complete install from one that came from a fallback which
-     *                       cannot carry everything. Zero for a complete install.
+     *                       simply the hash of what arrived, recorded rather than checked.
+     * @param manifestSha256 the hash of the manifest it was installed against.
+     * @param filesAbsent    how many of the manifest's files the pack does not carry, because neither the
+     *                       archive nor an earlier install had them. Zero for a complete install, which is
+     *                       what {@code complete} is written from.
+     * @param filesCarried   how many of them the archive did not supply and were kept from the pack that was
+     *                       installed before. They are in the pack, so they do not make it incomplete; the
+     *                       count is recorded so a later run, and the player, can see how much of this
+     *                       install is really the previous one.
      * @throws AssetInstallException if the file cannot be written.
      */
     public static void writeInstalled(final Path stateFile, final String sourceId, final String sourceUrl,
-        final String jarSha256, final String manifestSha256, final int filesAbsent) throws AssetInstallException
+        final String jarSha256, final String manifestSha256, final int filesAbsent, final int filesCarried)
+        throws AssetInstallException
     {
         final JsonObject out = base(stateFile);
         out.addProperty("status", STATUS_INSTALLED);
@@ -233,6 +244,10 @@ public final class InstallState
         if (filesAbsent > 0)
         {
             out.addProperty("filesAbsent", filesAbsent);
+        }
+        if (filesCarried > 0)
+        {
+            out.addProperty("filesCarried", filesCarried);
         }
         out.addProperty("installedAt", Instant.now().toString());
         write(stateFile, out);
@@ -253,18 +268,39 @@ public final class InstallState
     }
 
     /**
-     * How many manifest files the install's source was allowed not to supply.
+     * How many of the manifest's files the installed pack does not carry at all.
      *
      * @return the count, or 0 when the install is complete or the file does not say.
      */
     public int filesAbsent()
     {
-        final JsonElement value = this.root.get("filesAbsent");
+        return count("filesAbsent");
+    }
+
+    /**
+     * How many of the installed pack's files came from the install before it rather than from the archive.
+     *
+     * @return the count, or 0 when the archive supplied everything or the file does not say.
+     */
+    public int filesCarried()
+    {
+        return count("filesCarried");
+    }
+
+    /**
+     * Reads a non-negative count, tolerating absence and wrong types.
+     *
+     * @param member the member name.
+     * @return the value, or 0.
+     */
+    private int count(final String member)
+    {
+        final JsonElement value = this.root.get(member);
         if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber())
         {
             return 0;
         }
-        return value.getAsInt();
+        return Math.max(0, value.getAsInt());
     }
 
     /**

@@ -25,8 +25,8 @@ import java.util.concurrent.TimeoutException;
  *
  * <p>{@code java.net.http.HttpClient} with redirects enabled, and the JVM's default proxy selector so a
  * player behind a corporate proxy is not stuck. No TLS configuration of any kind: {@code https://} uses the
- * JVM's own trust store and {@code http://} is accepted as-is, because for this feature integrity comes from
- * the whole-jar hash and the per-file manifest rather than from the transport.</p>
+ * JVM's own trust store and {@code http://} is accepted as-is, because where this feature has integrity at
+ * all it comes from the whole-jar hash rather than from the transport.</p>
  */
 public final class JarDownloader
 {

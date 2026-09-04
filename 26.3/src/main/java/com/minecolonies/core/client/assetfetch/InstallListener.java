@@ -53,7 +53,7 @@ public interface InstallListener
     }
 
     /**
-     * Files are being processed. Fires during extract, patch and verify.
+     * Files are being processed. Fires during extract, patch and assemble.
      *
      * @param done  how many files are finished.
      * @param total how many are expected, or -1 when not yet known.

@@ -10,9 +10,9 @@ import java.security.NoSuchAlgorithmException;
 /**
  * SHA-256 helpers for the asset installer.
  *
- * <p>Everything this feature trusts is trusted because of a hash: the whole downloaded jar against the
- * pinned source hashes, every installed file against {@code manifest.json}, and the manifest itself against
- * what {@code state.json} recorded. This class is the single place those digests are produced.</p>
+ * <p>Two hashes matter to this feature, and both are of a whole file: the downloaded archive against the
+ * pinned source hash, and the shipped manifest against what {@code state.json} recorded. This class is the
+ * single place those digests are produced.</p>
  */
 public final class Hashes
 {
@@ -22,16 +22,10 @@ public final class Hashes
     private static final char[] HEX = "0123456789abcdef".toCharArray();
 
     /**
-     * Read buffer size for the file digests.
-     *
-     * <p>64 KiB, not the megabyte this used to allocate. The per-file verification hashes roughly 8500 files
-     * whose median size is under a kilobyte, so a megabyte-per-call buffer allocated about 8 GB over a single
-     * install and spent more time in the allocator and the collector than in SHA-256 itself. Measured on the
-     * staged tree, the same 8471 files hashed in 1450 ms with a fresh megabyte per file and in 110 ms with a
-     * reused 64 KiB one. Callers that hash many files in a row should reuse one buffer through
-     * {@link #sha256(Path, byte[])}.</p>
+     * Read buffer size for the file digests. 64 KiB: the only file hashed this way is a 78 MB archive, and
+     * a bigger buffer buys nothing on a stream that size.
      */
-    static final int BUFFER_SIZE = 1 << 16;
+    private static final int BUFFER_SIZE = 1 << 16;
 
     /**
      * Private constructor to hide the public one.
@@ -70,23 +64,7 @@ public final class Hashes
      */
     public static String sha256(final Path file) throws IOException
     {
-        return sha256(file, new byte[BUFFER_SIZE]);
-    }
-
-    /**
-     * Hashes a file through a caller-owned read buffer.
-     *
-     * <p>For one file this is the same thing as {@link #sha256(Path)}. It exists for the loops that hash
-     * thousands of files in a row, where allocating the buffer per file dominates the cost. The buffer is
-     * only ever written and read within this call, so one per worker thread is enough.</p>
-     *
-     * @param file   the file to read.
-     * @param buffer the scratch buffer to read through; any size, {@link #BUFFER_SIZE} is the one used here.
-     * @return its SHA-256 as lower-case hex.
-     * @throws IOException if the file cannot be read.
-     */
-    public static String sha256(final Path file, final byte[] buffer) throws IOException
-    {
+        final byte[] buffer = new byte[BUFFER_SIZE];
         final MessageDigest digest = newSha256();
         try (InputStream in = Files.newInputStream(file))
         {

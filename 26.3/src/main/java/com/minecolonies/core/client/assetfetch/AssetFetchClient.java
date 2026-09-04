@@ -34,11 +34,11 @@ import net.minecraft.network.chat.Component;
  * command registered here, and the Download button on the
  * {@link com.minecolonies.core.client.assetfetch.gui.AssetsMissingScreen} that the window-open gate shows.</p>
  *
- * <p>The command is also the one way to <em>complete</em> an install. A pack that came from a source allowed
- * not to carry part of the file set is current, so the title screen does not ask about it again — asking on
- * every launch would download the same declared absence every time — but the player who was told the
- * translations are missing and to try again later has to be able to try again. So the command refuses only a
- * pack that is installed, current and complete.</p>
+ * <p>The command is also the one way to <em>complete</em> an install. A pack the archive could not fill in
+ * completely is current, so the title screen does not ask about it again — asking on every launch would fetch
+ * the same partial source every time — but the player who was told the translations are missing and to try
+ * again later has to be able to try again. So the command refuses only a pack that is installed, current and
+ * complete.</p>
  */
 @Environment(EnvType.CLIENT)
 public final class AssetFetchClient
@@ -95,9 +95,9 @@ public final class AssetFetchClient
             dispatcher.register(ClientCommands.literal(COMMAND_ROOT)
                 .then(ClientCommands.literal(COMMAND_FETCH).executes(ctx ->
                 {
-                    // A pack that is current but was installed from a source that could not carry all of it
-                    // is still an install the player may want to complete, and this command is the only way
-                    // to ask for that: the title screen deliberately leaves such a pack alone.
+                    // A pack that is current but is missing files no source could supply is still an
+                    // install the player may want to complete, and this command is the only way to ask for
+                    // that: the title screen deliberately leaves such a pack alone.
                     if (AssetFetch.isReady() && !AssetFetch.isStale() && InstallState.read(AssetFetch.stateFile()).isComplete())
                     {
                         ctx.getSource().sendFeedback(Component.translatable(AssetFetchLang.COMMAND_ALREADY_INSTALLED));

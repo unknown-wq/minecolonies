@@ -11,6 +11,9 @@ import java.util.List;
  * is gone and {@code state.json} is untouched — so a caller's only job on failure is to show
  * {@link #reason()} and offer the manual escape hatch.</p>
  *
+ * <p>{@link #filesWritten()} plus {@link #filesCarried()} is what the pack ended up holding, and
+ * {@link #filesAbsent()} is what nothing could supply. The three add up to the manifest's file count.</p>
+ *
  * @param outcome        how the run ended.
  * @param sourceId       the source that produced the install, or null when none did.
  * @param sourceUrl      where it came from, or null.
@@ -18,15 +21,17 @@ import java.util.List;
  * @param bytes          how many bytes were transferred in the successful attempt, or 0.
  * @param filesExtracted how many files came out of the jar.
  * @param filesPatched   how many files the patch bundle wrote.
- * @param filesVerified  how many files matched the manifest.
+ * @param filesWritten   how many of the manifest's files the archive supplied.
+ * @param filesCarried   how many it did not, and were kept from the pack that was already installed.
  * @param filesRemoved   how many files the manifest prune deleted.
+ * @param filesAbsent    how many are in neither, and are therefore not in the finished pack.
  * @param packBytes      the installed pack's size on disk.
  * @param reason         a player-showable description of the outcome. Never null.
  * @param attempts       every source tried, in order, successful or not.
  */
 public record InstallReport(Outcome outcome, String sourceId, String sourceUrl, String jarSha256, long bytes,
-    int filesExtracted, int filesPatched, int filesVerified, int filesRemoved, long packBytes,
-    String reason, List<SourceAttempt> attempts)
+    int filesExtracted, int filesPatched, int filesWritten, int filesCarried, int filesRemoved, int filesAbsent,
+    long packBytes, String reason, List<SourceAttempt> attempts)
 {
     /**
      * Normalises the attempt list so callers never see null or a mutable view.
@@ -38,8 +43,10 @@ public record InstallReport(Outcome outcome, String sourceId, String sourceUrl, 
      * @param bytes          bytes transferred.
      * @param filesExtracted files extracted.
      * @param filesPatched   files patched.
-     * @param filesVerified  files verified.
+     * @param filesWritten   files the archive supplied.
+     * @param filesCarried   files kept from the previous install.
      * @param filesRemoved   files pruned.
+     * @param filesAbsent    files nothing could supply.
      * @param packBytes      installed size.
      * @param reason         player-showable description.
      * @param attempts       the attempts.
@@ -50,7 +57,7 @@ public record InstallReport(Outcome outcome, String sourceId, String sourceUrl, 
     }
 
     /**
-     * Whether the assets are installed and verified.
+     * Whether the assets are installed.
      *
      * @return true on success.
      */
@@ -65,7 +72,7 @@ public record InstallReport(Outcome outcome, String sourceId, String sourceUrl, 
     public enum Outcome
     {
         /**
-         * The pack is installed, verified and recorded; the caller should reload resources.
+         * The pack is installed and recorded; the caller should reload resources.
          */
         INSTALLED,
 
@@ -75,8 +82,8 @@ public record InstallReport(Outcome outcome, String sourceId, String sourceUrl, 
         NO_SOURCE,
 
         /**
-         * A jar arrived but the install failed afterwards — a patch that would not apply, a file that did not
-         * verify. Nothing was changed.
+         * A jar arrived but the install failed afterwards — an archive that would not unpack, a patch that
+         * would not apply. Nothing was changed.
          */
         FAILED,
 

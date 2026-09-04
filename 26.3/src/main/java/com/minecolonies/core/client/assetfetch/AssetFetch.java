@@ -160,7 +160,7 @@ public final class AssetFetch
             return false;
         }
 
-        Log.getLogger().warn("The installed MineColonies assets were verified against a different manifest than this"
+        Log.getLogger().warn("The installed MineColonies assets were installed against a different manifest than this"
             + " build ships -- they are from an earlier version and will be offered for reinstall");
         return true;
     }

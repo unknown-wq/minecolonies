@@ -85,9 +85,9 @@ public class ResearchUnlocked implements LootItemCondition
     @Override
     public boolean test(@NotNull final LootContext lootContext)
     {
-        return test(lootContext, lootContext.getOptionalParameter(LootContextParams.ATTACKING_ENTITY))
-                .or(() -> test(lootContext, lootContext.getOptionalParameter(LootContextParams.THIS_ENTITY)))
-                .or(() -> test(lootContext, lootContext.getOptionalParameter(LootContextParams.ORIGIN)))
+        return test(lootContext, lootContext.getOptional(LootContextParams.ATTACKING_ENTITY))
+                .or(() -> test(lootContext, lootContext.getOptional(LootContextParams.THIS_ENTITY)))
+                .or(() -> test(lootContext, lootContext.getOptional(LootContextParams.ORIGIN)))
                 .orElse(false);
     }
 

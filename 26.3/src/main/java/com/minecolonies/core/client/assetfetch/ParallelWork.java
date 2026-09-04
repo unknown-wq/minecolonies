@@ -12,9 +12,8 @@ import java.util.function.IntConsumer;
 /**
  * Spreads one indexed job of the install over a small, bounded pool of worker threads.
  *
- * <p>Two steps of the install are thousands of independent per-file jobs — unpacking the asset subtree and
- * hashing the staged pack — and both are limited by decompression and SHA-256, that is, by the CPU. Running
- * them on one thread leaves the rest of the machine idle while the player waits.</p>
+ * <p>Unpacking the asset subtree is thousands of independent per-file jobs limited by decompression, that
+ * is, by the CPU. Running them on one thread leaves the rest of the machine idle while the player waits.</p>
  *
  * <p>The pool is deliberately modest and short-lived. It has at most {@value #MAX_WORKERS} threads and never
  * more than there are cores or items, it is created for one call and shut down before that call returns, and

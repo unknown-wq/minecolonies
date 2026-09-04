@@ -1,4 +1,4 @@
-// 26.3-pre-1	-999999999-01-01T00:00:00	MineColonies Fabric 26.3 (Unofficial)/MineColonies Entity Type Tags
+// 26.3-pre-2	-999999999-01-01T00:00:00	MineColonies Fabric 26.3 (Unofficial)/MineColonies Entity Type Tags
 6068175cd4d5ade3c596c070438b5aad1a50242e data/dynamictrees/tags/entity_type/falling_tree_damage_immune.json
 1564da4d5e31cdc291569fb4b256a0e674aaacbc data/minecolonies/tags/entity_type/allowinteract.json
 5e2d6dbd339cdc162f1bd13fa83d0ece1b6014d8 data/minecolonies/tags/entity_type/hostile.json

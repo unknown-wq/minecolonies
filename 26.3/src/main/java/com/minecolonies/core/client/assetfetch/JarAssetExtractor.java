@@ -67,10 +67,9 @@ public final class JarAssetExtractor
      * The most an archive's asset entries may add up to once unpacked, by their own headers.
      *
      * <p>The downloads are capped on the wire, but a compressed cap says nothing about what comes out: a
-     * few hundred megabytes of deflate can unpack to a thousand times that, and until this check the only
-     * thing between such an archive and a full disk was the hash — which for a source verified by its
-     * contents is not consulted until <em>after</em> unpacking. The real asset tree is about 82 MB, so a
-     * gigabyte is far above anything an honest upstream build could reach and far below what would hurt.</p>
+     * few hundred megabytes of deflate can unpack to a thousand times that, and an unpinned source has no
+     * hash standing in front of it at all. The real asset tree is about 82 MB, so a gigabyte is far above
+     * anything an honest upstream build could reach and far below what would hurt.</p>
      */
     private static final long MAX_UNPACKED_BYTES = 1L << 30;
 

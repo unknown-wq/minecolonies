@@ -1,43 +1,44 @@
 package com.minecolonies.core.client.assetfetch;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * The shipped per-file hash manifest: what the installed pack must contain, and nothing else.
+ * The shipped manifest: which paths the installed pack is made of, and which archives are pinned whole.
  *
- * <p>Format version 1, read from {@code /assetfetch/manifest.json} in the mod jar:</p>
+ * <p>Format version 2, read from {@code /assetfetch/manifest.json} in the mod jar:</p>
  * <pre>
  * {
- *   "version": 1,
- *   "primarySource": "maven-1374",
- *   "sources": { "maven-1374": { "jarSha256": ..., "size": ..., "url": ... },
- *                 "github-src-1374": { "url": ..., "mayBeAbsent": [ "&lt;path prefix&gt;", ... ] }, ... },
- *   "files":   { "&lt;path&gt;": { "sha256": ..., "size": ... }, ... },
- *   "alt":     { "maven-1368": { "&lt;path&gt;": { "sha256": ..., "size": ... } | null, ... }, ... }
+ *   "version": 2,
+ *   "sources": { "maven-1374": { "jarSha256": ..., "size": ..., "url": ... }, ... },
+ *   "files":   [ "&lt;path&gt;", ... ]
  * }
  * </pre>
  *
- * <p>A source with a {@code jarSha256} is one whose whole archive is pinned. A source without one is
- * verified only by what comes out of it, and its {@code mayBeAbsent} names the path prefixes it is allowed
- * not to supply at all — upstream's translations, in the case of a source release, which are injected
- * during upstream's own build and are not in their repository. {@code mayBeAbsent} forgives absence and
- * nothing else: a file that does arrive is hashed and compared like every other, and a file missing outside
- * these prefixes fails the source.</p>
+ * <p><b>The manifest is a list of paths and nothing more.</b> It says what the pack consists of; it says
+ * nothing about what any of those files contain. Whatever the archive carries at a listed path is what gets
+ * installed, and a path the archive does not carry is filled in from the pack already on disk or left out —
+ * see {@link PackAssembler}. There are no per-file hashes to compare against, because a build other than the
+ * one the list was measured on is still a build this port wants to be able to install from, and every
+ * per-file rule that tried to allow that ended up either rejecting good archives or being a special case for
+ * one directory.</p>
  *
- * <p>{@code files} describes the whole pack except {@code pack.mcmeta}, which is written at install time from
- * the running game's pack format (see {@link PackMetaWriter}) and therefore has no fixed hash. {@code alt}
- * carries the handful of files that differ between upstream builds: for a given source, an entry in
- * {@code alt} <em>replaces</em> the one in {@code files}, and a {@code null} entry means the file must not be
- * present at all for that source.</p>
+ * <p><b>Integrity lives one level up.</b> A source with a {@code jarSha256} is pinned as a whole archive and
+ * is checked, hash and size, before a single entry is unpacked; that check is what stands between a player
+ * and a corrupted or substituted download, and this class is where those pins are read from. A source
+ * without one — a GitHub source archive, the owner's slot, a jar the player picked — pins nothing, and
+ * nothing downstream of the unpack re-checks its bytes: what such a source is trusted for is exactly what it
+ * carries, sat under the paths listed here. {@link SourceChain} says which sources are of which kind.</p>
+ *
+ * <p>{@code files} describes the whole pack except {@code pack.mcmeta}, which is written at install time
+ * from the running game's pack format (see {@link PackMetaWriter}) and is therefore never listed.</p>
  *
  * <p>Paths are accepted in either spelling — pack-relative ({@code assets/minecolonies/gui/main.xml}) or
  * relative to the asset root ({@code gui/main.xml}) — and are normalised to pack-relative on load, so this
@@ -57,8 +58,12 @@ public final class AssetManifest
 
     /**
      * The only manifest schema this build understands.
+     *
+     * <p>Two, because version 1 was a map of paths to per-file hashes and this one is a list of paths: a
+     * build reading a version-1 manifest as a path list would take its member names for paths and its hashes
+     * for nothing, which is close enough to working to be worth refusing outright.</p>
      */
-    private static final int FORMAT_VERSION = 1;
+    private static final int FORMAT_VERSION = 2;
 
     /**
      * SHA-256 of the manifest bytes this instance was loaded from; recorded in {@code state.json}.
@@ -66,42 +71,27 @@ public final class AssetManifest
     private final String manifestSha256;
 
     /**
-     * Which source id the manifest's {@code files} section describes verbatim.
-     */
-    private final String primarySource;
-
-    /**
      * The known upstream jars, by source id.
      */
     private final Map<String, SourceInfo> sources;
 
     /**
-     * The base file set, keyed by pack-relative path.
+     * The pack's file set, pack-relative, in the order the manifest lists it.
      */
-    private final Map<String, FileEntry> files;
-
-    /**
-     * Per-source overrides. A null value means "this file must be absent for this source".
-     */
-    private final Map<String, Map<String, FileEntry>> alternates;
+    private final Set<String> files;
 
     /**
      * Creates a manifest.
      *
      * @param manifestSha256 hash of the bytes it was parsed from.
-     * @param primarySource  the source id {@code files} describes.
      * @param sources        the known jars.
-     * @param files          the base file set.
-     * @param alternates     the per-source overrides.
+     * @param files          the pack's file set.
      */
-    private AssetManifest(final String manifestSha256, final String primarySource, final Map<String, SourceInfo> sources,
-        final Map<String, FileEntry> files, final Map<String, Map<String, FileEntry>> alternates)
+    private AssetManifest(final String manifestSha256, final Map<String, SourceInfo> sources, final Set<String> files)
     {
         this.manifestSha256 = manifestSha256;
-        this.primarySource = primarySource;
         this.sources = Collections.unmodifiableMap(sources);
-        this.files = Collections.unmodifiableMap(files);
-        this.alternates = Collections.unmodifiableMap(alternates);
+        this.files = Collections.unmodifiableSet(files);
     }
 
     /**
@@ -163,27 +153,10 @@ public final class AssetManifest
             sources.put(entry.getKey(), new SourceInfo(
                 optionalString(body, "jarSha256"),
                 body.has("size") ? body.get("size").getAsLong() : -1L,
-                optionalString(body, "url"),
-                prefixes(body, "mayBeAbsent")));
+                optionalString(body, "url")));
         }
 
-        final Map<String, FileEntry> files = readFileMap(object(root, "files"));
-
-        // Each set is read by its own spelling rather than by the base set's. An empty set is pack-relative by
-        // vacuum, so a manifest whose whole file list sits in alt used to have its alt paths left alone — and a
-        // path that is not pack-relative matches nothing under the pack root.
-        final Map<String, Map<String, FileEntry>> alternates = new LinkedHashMap<>();
-        final JsonObject rawAlt = object(root, "alt");
-        for (final Map.Entry<String, JsonElement> entry : rawAlt.entrySet())
-        {
-            final Map<String, FileEntry> alt = readFileMap(entry.getValue().getAsJsonObject());
-            alternates.put(entry.getKey(), normalise(alt, isPackRelative(alt.keySet())));
-        }
-
-        final JsonElement primary = root.get("primarySource");
-        return new AssetManifest(Hashes.sha256(bytes),
-            primary != null && primary.isJsonPrimitive() ? primary.getAsString() : null,
-            sources, normalise(files, isPackRelative(files.keySet())), alternates);
+        return new AssetManifest(Hashes.sha256(bytes), sources, readFiles(root));
     }
 
     /**
@@ -199,11 +172,12 @@ public final class AssetManifest
     /**
      * The hash of the manifest a build ships, without parsing it.
      *
-     * <p>An install records the {@link #sha256()} of the manifest it was verified against, so comparing that
-     * recorded value against this one is what separates a pack installed by an earlier build of this mod from
-     * one that matches the build now running. The manifest describes every file of the pack down to its hash,
-     * so it changes whenever the pack has to change and stays byte-identical whenever it does not; that makes
-     * its own hash the cheapest honest answer to "is what is on disk still what this build expects".</p>
+     * <p>An install records the {@link #sha256()} of the manifest it was installed against, so comparing
+     * that recorded value against this one is what separates a pack installed by an earlier build of this
+     * mod from one that matches the build now running. The manifest lists every file the pack is made of, so
+     * it changes whenever the pack's composition has to change and stays byte-identical whenever it does
+     * not; that makes its own hash the cheapest honest answer to "is what is on disk still the set of files
+     * this build expects".</p>
      *
      * <p>Deliberately no parsing: this runs on the way to the title screen, the bytes are the identity, and a
      * manifest this build cannot parse is the installer's problem to report, not the freshness check's.</p>
@@ -218,16 +192,6 @@ public final class AssetManifest
     }
 
     /**
-     * The source id the base {@code files} section describes.
-     *
-     * @return the primary source id, or null if the manifest names none.
-     */
-    public String primarySource()
-    {
-        return this.primarySource;
-    }
-
-    /**
      * The upstream jars the manifest knows about.
      *
      * @return source id to jar description.
@@ -238,116 +202,54 @@ public final class AssetManifest
     }
 
     /**
-     * The file set the pack must match when the assets came from a given source.
+     * The paths the installed pack is made of.
      *
-     * <p>{@code files} overlaid with {@code alt[sourceId]}: an entry there replaces the base one, and a
-     * {@code null} entry there removes it, meaning the file must not exist for this source.</p>
+     * <p>The same set for every source: which archive the assets came from changes what is inside those
+     * files, never which files there are.</p>
      *
-     * @param sourceId which source the jar came from.
-     * @return pack-relative path to expected hash and size.
+     * @return the pack-relative paths, in manifest order.
      */
-    public Map<String, FileEntry> effectiveFor(final String sourceId)
+    public Set<String> files()
     {
-        final Map<String, FileEntry> effective = new LinkedHashMap<>(this.files);
-        final Map<String, FileEntry> overrides = this.alternates.get(sourceId);
-        if (overrides != null)
-        {
-            for (final Map.Entry<String, FileEntry> entry : overrides.entrySet())
-            {
-                if (entry.getValue() == null)
-                {
-                    effective.remove(entry.getKey());
-                }
-                else
-                {
-                    effective.put(entry.getKey(), entry.getValue());
-                }
-            }
-        }
-        return effective;
+        return this.files;
     }
 
     /**
-     * The path prefixes a given source is allowed not to supply at all.
+     * Reads the {@code files} array and normalises it to pack-relative paths.
      *
-     * <p>Absence, and only absence, is what this forgives, and only for the source that declares it. A file
-     * covered by one of these prefixes may be missing from the finished pack; a file that is present is
-     * hashed and compared like any other, and anything missing outside them is a failed source.</p>
-     *
-     * @param sourceId the chain entry the archive came from.
-     * @return the pack-relative prefixes, possibly empty, never null.
+     * @param root the manifest root.
+     * @return the file set, member order preserved.
+     * @throws AssetInstallException if it is missing, not an array, or holds something that is not a path.
      */
-    public List<String> mayBeAbsentFor(final String sourceId)
+    private static Set<String> readFiles(final JsonObject root) throws AssetInstallException
     {
-        final SourceInfo info = this.sources.get(sourceId);
-        return info == null ? List.of() : info.mayBeAbsent();
-    }
-
-    /**
-     * Reads a {@code path -> {sha256,size}} map, keeping null values as "must be absent" markers.
-     *
-     * @param object the JSON object.
-     * @return the parsed map, member order preserved.
-     * @throws AssetInstallException if an entry is malformed.
-     */
-    private static Map<String, FileEntry> readFileMap(final JsonObject object) throws AssetInstallException
-    {
-        final Map<String, FileEntry> map = new LinkedHashMap<>();
-        for (final Map.Entry<String, JsonElement> entry : object.entrySet())
+        final JsonElement value = root.get("files");
+        if (value == null || !value.isJsonArray())
         {
-            if (entry.getValue().isJsonNull())
-            {
-                map.put(entry.getKey(), null);
-                continue;
-            }
-            if (!entry.getValue().isJsonObject())
-            {
-                throw new AssetInstallException("The install manifest entry for " + entry.getKey() + " is malformed");
-            }
-            final JsonObject body = entry.getValue().getAsJsonObject();
-            final JsonElement sha = body.get("sha256");
-            if (sha == null || !sha.isJsonPrimitive())
-            {
-                throw new AssetInstallException("The install manifest entry for " + entry.getKey() + " has no sha256");
-            }
-            map.put(entry.getKey(), new FileEntry(sha.getAsString(), body.has("size") ? body.get("size").getAsLong() : -1L));
+            throw new AssetInstallException("The install manifest has no files array");
         }
-        return map;
-    }
-
-    /**
-     * Whether the manifest spells its paths relative to the pack root.
-     *
-     * @param paths the keys of {@code files}.
-     * @return true if every path already carries the {@code assets/} prefix.
-     */
-    private static boolean isPackRelative(final Iterable<String> paths)
-    {
-        for (final String path : paths)
+        final Set<String> raw = new LinkedHashSet<>();
+        for (final JsonElement element : value.getAsJsonArray())
         {
-            if (!path.startsWith("assets/"))
+            if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString())
             {
-                return false;
+                throw new AssetInstallException("The install manifest lists something that is not a path: " + element);
             }
+            final String path = element.getAsString();
+            if (path.isBlank())
+            {
+                throw new AssetInstallException("The install manifest lists an empty path");
+            }
+            raw.add(path);
         }
-        return true;
-    }
 
-    /**
-     * Rewrites asset-root-relative paths as pack-relative ones.
-     *
-     * @param map          the map to rewrite.
-     * @param packRelative whether the manifest's paths are already pack-relative.
-     * @return the map, keyed pack-relative.
-     */
-    private static Map<String, FileEntry> normalise(final Map<String, FileEntry> map, final boolean packRelative)
-    {
-        if (packRelative)
+        // Either spelling is accepted, but not a mixture: a list that is pack-relative in part would have
+        // half of it prefixed twice, and the pack would come out with a directory nothing ever reads.
+        final Set<String> out = new LinkedHashSet<>(raw.size());
+        for (final String path : raw)
         {
-            return map;
+            out.add(path.startsWith("assets/") ? path : ASSET_PREFIX + path);
         }
-        final Map<String, FileEntry> out = new LinkedHashMap<>(map.size());
-        map.forEach((path, entry) -> out.put(ASSET_PREFIX + path, entry));
         return out;
     }
 
@@ -365,41 +267,6 @@ public final class AssetManifest
     }
 
     /**
-     * Reads an array of pack-relative path prefixes, tolerating absence and wrong types.
-     *
-     * <p>Prefixes are accepted in either spelling, exactly like file paths, and are normalised to
-     * pack-relative here so the pipeline can compare them against manifest keys without thinking about
-     * it.</p>
-     *
-     * @param object the object to read from.
-     * @param member the member name.
-     * @return the prefixes, possibly empty, never null.
-     */
-    private static List<String> prefixes(final JsonObject object, final String member)
-    {
-        final JsonElement value = object.get(member);
-        if (value == null || !value.isJsonArray())
-        {
-            return List.of();
-        }
-        final JsonArray array = value.getAsJsonArray();
-        final List<String> out = new ArrayList<>(array.size());
-        for (final JsonElement element : array)
-        {
-            if (!element.isJsonPrimitive())
-            {
-                continue;
-            }
-            final String prefix = element.getAsString();
-            if (!prefix.isBlank())
-            {
-                out.add(prefix.startsWith("assets/") ? prefix : ASSET_PREFIX + prefix);
-            }
-        }
-        return out;
-    }
-
-    /**
      * Reads a string member, tolerating absence and wrong types.
      *
      * @param object the object to read from.
@@ -413,37 +280,16 @@ public final class AssetManifest
     }
 
     /**
-     * One expected file.
-     *
-     * @param sha256 its SHA-256, lower-case hex.
-     * @param size   its size in bytes, or -1 when the manifest does not state one.
-     */
-    public record FileEntry(String sha256, long size)
-    {
-    }
-
-    /**
      * One known upstream archive.
      *
-     * @param jarSha256    the whole-archive SHA-256, or null when this source pins none and is trusted only
-     *                     by the files that come out of it.
-     * @param size         the archive's size in bytes, or -1 when unstated.
-     * @param url          where it came from.
-     * @param mayBeAbsent  pack-relative path prefixes this source is allowed not to supply. Never null.
+     * <p>The whole-archive pin is the one integrity check this feature still makes, and this is where the
+     * value it is checked against is read from. A source with no {@code jarSha256} is not pinned at all.</p>
+     *
+     * @param jarSha256 the whole-archive SHA-256, or null when this source pins none.
+     * @param size      the archive's size in bytes, or -1 when unstated.
+     * @param url       where it came from.
      */
-    public record SourceInfo(String jarSha256, long size, String url, List<String> mayBeAbsent)
+    public record SourceInfo(String jarSha256, long size, String url)
     {
-        /**
-         * Normalises the prefix list so callers never see null or a mutable view.
-         *
-         * @param jarSha256   the whole-archive hash, or null.
-         * @param size        the size, or -1.
-         * @param url         the URL.
-         * @param mayBeAbsent the prefixes.
-         */
-        public SourceInfo
-        {
-            mayBeAbsent = mayBeAbsent == null ? List.of() : List.copyOf(mayBeAbsent);
-        }
     }
 }

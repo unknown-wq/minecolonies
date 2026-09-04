@@ -29,7 +29,7 @@ import java.util.Locale;
  *
  * <p>One screen covers both because they are the same conversation. While the installer runs it shows which
  * build is being fetched, a {@link AssetProgressBar} carrying whichever number the current phase has (bytes
- * while downloading, files while extracting, patching and verifying, a sliding block when the total is not
+ * while downloading, files while extracting, patching and assembling, a sliding block when the total is not
  * known yet), and one status line under it. When the run ends it rebuilds itself into one of three result
  * states — installed, failed, or cancelled.</p>
  *
@@ -267,14 +267,21 @@ public class AssetInstallScreen extends Screen implements InstallListener
         layout.addChild(new StringWidget(Component.translatable(AssetFetchLang.DONE_TITLE), this.font));
         layout.addChild(new MultiLineTextWidget(
             Component.translatable(AssetFetchLang.DONE_BODY,
-                AssetFetchScreenSupport.count(finished.filesVerified()),
+                AssetFetchScreenSupport.count(finished.filesWritten() + finished.filesCarried()),
                 AssetFetchScreenSupport.megabytesNumber(finished.packBytes())),
             this.font).setMaxWidth(textWidth).setCentered(true));
 
-        // A pack that came from a source which cannot carry all of it is still a working install, but the
-        // player is going to notice the difference and is owed the reason rather than left to guess at it.
+        // What the archive could not supply is worth a line either way: files kept from the previous install
+        // explain why an install of a new build changed less than expected, and files nothing could supply
+        // are ones the player is going to notice missing and is owed the reason for.
         final InstallState state = InstallState.read(AssetFetch.stateFile());
-        if (!state.isComplete())
+        if (state.filesCarried() > 0)
+        {
+            layout.addChild(new MultiLineTextWidget(
+                Component.translatable(AssetFetchLang.DONE_CARRIED, AssetFetchScreenSupport.count(state.filesCarried())),
+                this.font).setMaxWidth(textWidth).setCentered(true));
+        }
+        if (state.filesAbsent() > 0)
         {
             layout.addChild(new MultiLineTextWidget(
                 Component.translatable(AssetFetchLang.DONE_PARTIAL, AssetFetchScreenSupport.count(state.filesAbsent())),
@@ -445,7 +452,7 @@ public class AssetInstallScreen extends Screen implements InstallListener
 
     /**
      * The one status line under the bar: megabytes while downloading, the phase and a file count while
-     * extracting, patching and verifying, and the bare phase when there is nothing yet to count.
+     * extracting, patching and assembling, and the bare phase when there is nothing yet to count.
      *
      * <p>The unit is not appended here. {@code progress.bytes} carries its own {@code MB} / {@code МБ}, so a
      * translation says it once, in its own alphabet, and can put it where that language puts it.</p>
@@ -487,7 +494,7 @@ public class AssetInstallScreen extends Screen implements InstallListener
     /**
      * Points the bar at whichever number the current phase has.
      *
-     * <p>Downloading counts bytes, extract/patch/verify count files, and everything else — and any phase whose
+     * <p>Downloading counts bytes, extract/patch/assemble count files, and everything else — and any phase whose
      * total the installer has not worked out yet, which is what {@code EXTRACTING} does while it walks the jar
      * — gets the sliding block instead of a lie about how far along it is.</p>
      */
