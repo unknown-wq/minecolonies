@@ -106,7 +106,7 @@ public final class AssetFetchLang
     /** Byte line when the server did not send a content length. */
     public static final String PROGRESS_BYTES_UNKNOWN = P + "progress.bytes.unknown";
 
-    /** File line during extract, patch and verify. Argument 1 is the phase label, then done and total. */
+    /** File line during extract, patch and assemble. Argument 1 is the phase label, then done and total. */
     public static final String PROGRESS_FILES = P + "progress.files";
 
     /** File line while the total is still unknown. Argument 1 is the phase label. */
@@ -132,18 +132,25 @@ public final class AssetFetchLang
     public static final String DONE_TITLE = P + "done.title";
 
     /**
-     * Body of the success screen: how many files, and how big they are.
+     * Body of the success screen: how many files the pack holds, and how big they are.
      *
-     * <p>No source id and no claim about readiness. Which chain entry answered is a fact for the log; whether
-     * the mod "is ready" is a promise this screen is in no position to make.</p>
+     * <p>No source id and no claim about readiness, and — since nothing checks a file's contents any more —
+     * no claim that anything was verified. Which chain entry answered is a fact for the log; whether the mod
+     * "is ready" is a promise this screen is in no position to make.</p>
      */
     public static final String DONE_BODY = P + "done.body";
 
     /**
-     * Shown under {@link #DONE_BODY} when the install came from a source that cannot carry the whole pack.
-     * One argument: how many files it could not supply.
+     * Shown under {@link #DONE_BODY} when part of the pack is in neither the archive nor an earlier install,
+     * so the pack is missing it. One argument: how many files.
      */
     public static final String DONE_PARTIAL = P + "done.partial";
+
+    /**
+     * Shown under {@link #DONE_BODY} when the archive did not carry part of the pack and those files were
+     * kept from the install before it. One argument: how many.
+     */
+    public static final String DONE_CARRIED = P + "done.carried";
 
     /** Title of the failure screen. */
     public static final String FAILED_TITLE = P + "failed.title";

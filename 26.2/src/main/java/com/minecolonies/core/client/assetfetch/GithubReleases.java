@@ -44,16 +44,16 @@ import java.util.regex.Pattern;
  * {@link #TAG} exactly — digits, dots and the literal {@code -snapshot}, nothing else — and only if the
  * Minecraft version it names is the one this build is for. The download URL is then rebuilt from that
  * validated tag rather than from anything the response offered, so a tag carrying a path traversal, a query
- * string or another host cannot become a request. The bytes that come back from such a URL are still held to
- * every per-file hash in the manifest, exactly as a pinned source is: discovery decides what to try, never
- * what to trust.</p>
+ * string or another host cannot become a request. What comes back is an unpinned archive like the pinned
+ * source release is, and is treated the same: whatever it carries at the manifest's paths is installed, it
+ * has to unpack and to be patchable, and it is tried last of all. Discovery decides what to try, never what
+ * is true of it.</p>
  *
  * <h2>Which releases, and in what order</h2>
  *
- * <p>The manifest describes one upstream build. A different build is usable only if its assets happen to be
- * identical to that one's, which is common — upstream's asset tree went unchanged across the whole range this
- * port was measured over — but is never assumed: a candidate that differs anywhere fails verification and the
- * chain moves on.</p>
+ * <p>The manifest lists the paths the pack is made of, and every upstream build in range has the same ones —
+ * upstream's asset tree went unchanged across the whole range this port was measured over. A build that adds
+ * files is no problem either: what the manifest does not list is thrown away.</p>
  *
  * <p>Which to try first follows from where a change can be. A build older than the one the manifest describes
  * cannot contain a change made after it; a newer one is precisely where such a change would first show up.
@@ -92,8 +92,8 @@ public final class GithubReleases implements SourceDiscovery
     private static final int MAX_BODY_BYTES = 8 * 1024 * 1024;
 
     /**
-     * How many discovered releases to queue. Each one that does not verify costs a whole archive download, so
-     * this is small on purpose.
+     * How many discovered releases to queue. Each one that does not work out costs a whole archive download,
+     * so this is small on purpose.
      */
     private static final int MAX_CANDIDATES = 3;
 

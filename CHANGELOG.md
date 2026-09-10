@@ -9,6 +9,27 @@ Versions below are this port's own numbering, newest first.
 
 ---
 
+## 0.0.66
+
+Teaching a crafter a recipe works again, and windows open on machines whose cursor theme is missing
+a shape.
+
+**Teaching any crafter a recipe saved nothing at all** — no message, nothing wrong on screen, the
+recipe list simply unchanged. The teaching window asked its own menu for the recipe's secondary
+outputs, and that menu reached the recipe list by casting the level to `ServerLevel`. On the client
+the level is a `ClientLevel`, so the press of Done threw before the message was ever sent. The
+client copy of the menu now reports no remaining items, and the server fills the secondary outputs
+in from the crafting grid it already mirrors when the taught recipe arrives.
+
+**Opening any window crashed the game outright on some systems** — supply camp, supply ship, build
+tool, every one of them, in creative and survival alike, with no other mod installed. The bundled
+BlockUI keys its standard cursors by name, and a shape the platform cannot supply comes back as the
+default cursor, name included; two entries then carry the key `default`, which the map builder
+rejected as a duplicate and took the whole class initializer down with it — at the first window
+built, which is every window. Linux desktops whose cursor theme lacks the diagonal resize shapes hit
+this on every install. Duplicate names now collapse, and a shape the platform did not provide
+resolves to the cursor it had already fallen back to anyway.
+
 ## 0.0.65
 
 The assets the mod downloads on first run now have somewhere to come from when LDTTeam's Maven is

@@ -4,7 +4,7 @@ package com.minecolonies.core.client.assetfetch;
  * A step of the asset install failed in a way the installer understands and can report.
  *
  * <p>Everything the pipeline throws deliberately is this: a bad patch, a jar whose hash matches nothing
- * known, a file that does not verify. {@link #getMessage()} is written to be shown to a player, not only
+ * known, a patch that will not apply. {@link #getMessage()} is written to be shown to a player, not only
  * logged, so keep new messages concrete and free of stack-trace vocabulary.</p>
  */
 public class AssetInstallException extends Exception

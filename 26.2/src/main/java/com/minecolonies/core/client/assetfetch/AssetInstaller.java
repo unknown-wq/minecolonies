@@ -101,10 +101,11 @@ public final class AssetInstaller
     /**
      * The installer for source 4, the manual escape hatch: a jar the player already has.
      *
-     * <p>The file runs through the identical extract, patch and verify pipeline. A jar whose whole-jar hash is
-     * one this build knows is treated as that source; a jar with an unknown hash is still attempted and is
-     * accepted only if every single file verifies against the manifest, and otherwise refused with a message
-     * naming the supported upstream versions.</p>
+     * <p>The file runs through the identical extract, patch and assemble pipeline. A jar whose whole-jar hash
+     * is one this build knows is treated as that source; a jar with an unknown hash is still attempted, and
+     * is then accepted for whatever it carries — nothing checks it, because there is nothing to check it
+     * against — provided it unpacks and the patch bundle applies to it. One that does not get that far is
+     * refused with a message naming the upstream versions this build knows by hash.</p>
      *
      * <p>This is the last thing in the chain and the only part of it the installer does not reach on its own:
      * it is the player's own action, offered once everything automatic has been tried.</p>

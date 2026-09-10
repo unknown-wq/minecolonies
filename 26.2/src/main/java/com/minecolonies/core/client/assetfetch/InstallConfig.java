@@ -8,7 +8,7 @@ import java.util.List;
  *
  * <p>The pack format arrives as a plain {@code int} rather than being read from {@code SharedConstants},
  * and the cache root arrives as a {@link Path} rather than being derived from the game directory, precisely
- * so that the download, extract, patch and verify pipeline can be run headlessly against a scratch directory.
+ * so that the download, extract, patch and assemble pipeline can be run headlessly against a scratch directory.
  * The glue that fills these in from the running client is {@link AssetInstaller}.</p>
  *
  * @param baseDir         the cache root: {@code <gameDir>/minecolonies/fetched-assets}.

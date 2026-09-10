@@ -18,13 +18,13 @@ import java.nio.file.Path;
 
 /**
  * The manual escape hatch (source 4): the player types the path of a MineColonies 1.21.1 jar they already
- * have — from CurseForge, from another instance, from a backup — and the identical extract, patch and verify
+ * have — from CurseForge, from another instance, from a backup — and the identical extract, patch and assemble
  * pipeline runs against it.
  *
  * <p>This is a plain path field rather than a native file chooser on purpose: a native dialog needs either
  * AWT on the render thread or an LWJGL/tinyfd call, both of which are their own portability problem, and this
  * screen has to work on a client whose resources are missing. The path is only checked for "is a readable
- * file" here; everything that matters — the whole-jar hash, the manifest verification — is the installer's
+ * file" here; everything that matters — the whole-jar hash, the manifest's file list — is the installer's
  * job and its failure text is what the player sees.</p>
  */
 @Environment(EnvType.CLIENT)

@@ -23,8 +23,26 @@ import java.util.List;
  *         Each starts from a {@code copyFrom} path and takes at most one patch.</li>
  * </ul>
  *
- * <p>JSON results are written through {@link CanonicalJson}, which is the only byte form the manifest hashes
- * were computed against. XML results are written back as UTF-8 exactly as the diff produced them.</p>
+ * <p>JSON results are written through {@link CanonicalJson}; XML results are written back as UTF-8 exactly
+ * as the diff produced them.</p>
+ *
+ * <h2>A file to patch that is not there</h2>
+ *
+ * <p>Every other missing file is now forgiven — a path the archive does not carry is taken from the pack
+ * already installed, or left out — and these 66 are the deliberate exception: the run stops and the source
+ * fails. Two reasons, and both of them are about honesty rather than strictness.</p>
+ * <ul>
+ *     <li>What these entries produce is not upstream's file, it is this port's, made by editing upstream's.
+ *         With the input gone there is nothing to make it out of, and quietly falling back to the copy in the
+ *         player's existing pack would put a file derived from one upstream build into a pack made of
+ *         another — the one case where taking the old file is not the safe answer.</li>
+ *     <li>It is the only structural check left on an archive nothing else vouches for. An unpinned source
+ *         reaches the pack on the strength of what it carries; requiring that it carry the files this port
+ *         has to edit is what tells a MineColonies asset tree from any other zip that happened to answer.</li>
+ * </ul>
+ *
+ * <p>For an unpinned source that is not fatal to the install: the chain treats it as that source failing and
+ * goes on to the next.</p>
  */
 public final class PatchBundle
 {
@@ -152,6 +170,8 @@ public final class PatchBundle
         final Path target = assetsRoot.resolve(targetRel);
         if (!Files.isRegularFile(source))
         {
+            // Deliberately fatal to this archive; see the note on this class about why this one absence is
+            // not forgiven the way every other one is.
             throw new AssetInstallException("The downloaded assets do not contain " + sourceRel + ", which the install bundle has to patch");
         }
 

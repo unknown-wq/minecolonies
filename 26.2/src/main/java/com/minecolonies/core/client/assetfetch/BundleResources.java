@@ -10,7 +10,7 @@ import java.nio.file.Path;
  * {@code manifest.json}.
  *
  * <p>In the game that is the mod jar's {@code /assetfetch/} directory. In a headless test it is an ordinary
- * directory. Keeping it an interface is what lets the whole patch and verify pipeline run outside Minecraft,
+ * directory. Keeping it an interface is what lets the whole patch and assemble pipeline run outside Minecraft,
  * over nothing but {@link Path} arguments.</p>
  *
  * <p>Paths are relative to the bundle root and always use {@code /}, matching the way
