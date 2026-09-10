@@ -3,7 +3,6 @@ package com.ldtteam.structurize.api;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
@@ -62,21 +61,6 @@ public final class BlockPosUtil
         final int y = coordsCompound.getIntOr("y", 0);
         final int z = coordsCompound.getIntOr("z", 0);
         return new BlockPos(x, y, z);
-    }
-
-    /**
-     * Write a compound with chunk coordinate to a tag list.
-     *
-     * @param tagList Tag list to write compound with chunk coordinates to.
-     * @param pos     Coordinate to write to the tag list.
-     */
-    public static void writeToNBTTagList(final ListTag tagList, final BlockPos pos)
-    {
-        final CompoundTag coordsCompound = new CompoundTag();
-        coordsCompound.putInt("x", pos.getX());
-        coordsCompound.putInt("y", pos.getY());
-        coordsCompound.putInt("z", pos.getZ());
-        tagList.add(coordsCompound);
     }
 
     /**

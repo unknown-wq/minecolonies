@@ -8,21 +8,27 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.fabricmc.fabric.api.item.v1.FabricItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import static com.ldtteam.structurize.api.constants.Constants.GROUNDSTYLE_RELATIVE;
-/**
-import net.minecraft.world.item.Item.Properties;
 
+/**
  * Class handling the buildTool item.
  */
-public class ItemBuildTool extends AbstractItemStructurize
+public class ItemBuildTool extends AbstractItemStructurize implements FabricItem
 {
     /**
      * Instantiates the buildTool on load.
+     *
+     * @param properties {@link Item.Properties}, qualified because {@link FabricItem} declares a nested
+     *                   {@code Properties} of its own.
      */
-    public ItemBuildTool(final Properties properties)
+    public ItemBuildTool(final Item.Properties properties)
     {
         super("sceptergold", properties);
     }
@@ -62,26 +68,23 @@ public class ItemBuildTool extends AbstractItemStructurize
     }
 
     /**
-     * TODO(port-26.2): DISABLED — {@code IItemExtension#getCraftingRemainingItem} /
-     * {@code hasCraftingRemainingItem} are NeoForge extensions. Vanilla 26.2 declares the crafting remainder
-     * statically through {@code Item.Properties#craftRemainder(Item)}
-     * (/opt/mc-src/net/minecraft/world/item/Item.java:412), which cannot express "give the very same stack
-     * back". Effect: using the build tool in a crafting recipe consumes it. The mod ships no recipe that
-     * uses it, so this is only visible to datapacks that add one.
-     * Original:
-     * <pre>
-     * &#64;Override
-     * public ItemStack getCraftingRemainingItem(final ItemStack itemStack)
-     * {
-     *     if (ItemStackUtils.isEmpty(itemStack)) { return ItemStack.EMPTY; }
-     *     return itemStack.copy();
-     * }
+     * The tool survives being used as a crafting ingredient, which is what NeoForge's
+     * {@code IItemExtension#getCraftingRemainingItem(ItemStack)} did. Vanilla's static
+     * {@code Item.Properties#craftRemainder} cannot express "the same stack back", but
+     * {@link FabricItem#getCraftingRemainder(ItemStack)} is the per-stack hook for exactly this, and
+     * fabric-item-api-v1 routes the vanilla crafting code through it.
      *
-     * &#64;Override
-     * public boolean hasCraftingRemainingItem(final ItemStack itemStack)
-     * {
-     *     return !ItemStackUtils.isEmpty(itemStack);
-     * }
-     * </pre>
+     * <p>{@code implements FabricItem} is declared explicitly so this really is an override that javac
+     * checks: every {@code Item} implements the interface at runtime, but the compile-time declaration
+     * only arrives through Loom's interface injection, which this build does not use.</p>
+     *
+     * @param stack the stack sitting in the crafting grid; the tool always stacks to one.
+     * @return the same tool, components and all, or null for an empty stack.
      */
+    @Override
+    @Nullable
+    public ItemStackTemplate getCraftingRemainder(final ItemStack stack)
+    {
+        return ItemStackUtils.isEmpty(stack) ? null : ItemStackTemplate.fromNonEmptyStack(stack);
+    }
 }

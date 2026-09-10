@@ -172,9 +172,10 @@ public class BlueprintRenderer implements AutoCloseable
                 state = blockAccess.prepareBlockStateForRendering(state, blockPos);
             }
 
-            // TODO(port-26.2): DISABLED — fluid geometry. BlockRenderDispatcher#renderLiquid, ItemBlockRenderTypes
-            //  and the ChunkOffsetBufferBuilderWrapper it fed no longer exist; 26.2 renders fluids from
-            //  FluidRenderer inside the terrain section builder, which is not reachable for a fake level.
+            // TODO(port-26.2): DISABLED — fluid geometry. BlockRenderDispatcher#renderLiquid and
+            //  ItemBlockRenderTypes no longer exist; 26.2 renders fluids from FluidRenderer inside the terrain
+            //  section builder, which is not reachable for a fake level. The chunk-offset VertexConsumer
+            //  wrapper that fed renderLiquid has been removed with the rest of the dead code.
             /*
             final FluidState fluidState = state.getFluidState();
             if (!fluidState.isEmpty())

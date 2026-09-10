@@ -4,11 +4,11 @@ import com.ldtteam.common.fakelevel.SingleBlockFakeLevel.SidedSingleBlockFakeLev
 import com.ldtteam.structurize.compat.itemhandler.IItemHandler;
 import com.ldtteam.structurize.compat.itemhandler.ItemHandlers;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.GlowItemFrame;
@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -51,7 +52,7 @@ public final class ItemStackUtils
      * @param state the block.
      * @param level real vanilla instance for fakeLevel
      * @return the list of itemstacks.
-     * @see #getListOfStackForEntity(Entity, BlockPos)
+     * @see #getListOfStackForEntity(Entity)
      */
     public static List<ItemStack> getItemStacksOfTileEntity(final CompoundTag compound, final BlockState state, final Level level)
     {
@@ -105,21 +106,39 @@ public final class ItemStackUtils
      */
     public static Set<IItemHandler> getItemHandlersFromProvider(@Nullable final BlockEntity provider, final BlockPos pos, final BlockState state)
     {
-        // TODO(port-26.2): DEGRADED — NeoForge capability lookups replaced by the vanilla Container view.
-        // Original:
-        /*
-         *  final IItemHandler unsidedItemHandler = provider.getLevel().getCapability(ItemHandler.BLOCK, pos, state, provider, null);
-         *  if (unsidedItemHandler != null) { return Set.of(unsidedItemHandler); }
-         *  final Set<IItemHandler> handlerSet = new HashSet<>();
-         *  for (final Direction side : Direction.values())
-         *  {
-         *      final IItemHandler cap = provider.getLevel().getCapability(ItemHandler.BLOCK, pos, state, provider, side);
-         *      if (cap != null) { handlerSet.add(cap); }
-         *  }
-         *  return handlerSet;
-         */
-        final IItemHandler handler = ItemHandlers.of(provider);
-        return handler == null ? Set.of() : Set.of(handler);
+        if (provider == null)
+        {
+            return Set.of();
+        }
+
+        // Without a level there is nothing to run an api lookup against, which happens for a block entity that
+        // has been loaded but not attached; fall back to whatever it exposes by itself.
+        final Level level = provider.getLevel();
+        if (level == null)
+        {
+            final IItemHandler handler = ItemHandlers.of(provider);
+            return handler == null ? Set.of() : Set.of(handler);
+        }
+
+        // Same shape as the NeoForge original: ask unsided first and take that whole view if it answers,
+        // otherwise collect what the six faces publish. State and block entity are handed to the lookup
+        // explicitly, so this also works inside ITEM_HANDLER_FAKE_LEVEL, where the level knows one block.
+        final IItemHandler unsided = ItemHandlers.of(level, pos, state, provider, null);
+        if (unsided != null)
+        {
+            return Set.of(unsided);
+        }
+
+        final Set<IItemHandler> handlerSet = new HashSet<>();
+        for (final Direction side : Direction.values())
+        {
+            final IItemHandler sided = ItemHandlers.of(level, pos, state, provider, side);
+            if (sided != null)
+            {
+                handlerSet.add(sided);
+            }
+        }
+        return handlerSet;
     }
 
     /**
@@ -149,15 +168,6 @@ public final class ItemStackUtils
         }
 
         return stack.getCount();
-    }
-
-    /**
-     * @deprecated {@link #getListOfStackForEntity(Entity)}
-     */
-    @Deprecated(forRemoval = true, since = "1.21.1")
-    public static List<ItemStack> getListOfStackForEntity(final Entity entity, final BlockPos pos)
-    {
-        return getListOfStackForEntity(entity);
     }
 
     /**
@@ -205,8 +215,10 @@ public final class ItemStackUtils
 
         final List<ItemStack> entityContent = new ArrayList<>();
 
-        // TODO(port-26.2): DEGRADED — NeoForge Capabilities.ItemHandler.ENTITY / ENTITY_AUTOMATION lookups
-        // (incl. the per-side loop) have no Fabric equivalent; only vanilla Container entities are seen.
+        // TODO(port-26.3): DEGRADED — NeoForge Capabilities.ItemHandler.ENTITY / ENTITY_AUTOMATION lookups
+        // (incl. the per-side loop) still have no Fabric equivalent: fabric-transfer-api-v1 publishes
+        // ItemStorage.SIDED for blocks and ItemStorage.ITEM for stacks and nothing for entities, so only
+        // vanilla Container entities are seen. Blocks and stacks are no longer degraded, see ItemHandlers.
         final IItemHandler itemHandler = ItemHandlers.of(entity);
 
         if (itemHandler != null)
@@ -346,33 +358,4 @@ public final class ItemStackUtils
         return false;
     }
 
-    /**
-     * Item serializer helper, including air
-     *
-     * @param stack
-     * @param buf
-     */
-    public static void serializeToBuffer(final ItemStack stack, RegistryFriendlyByteBuf buf)
-    {
-        buf.writeBoolean(stack.isEmpty());
-        if (!stack.isEmpty())
-        {
-            ItemStack.STREAM_CODEC.encode(buf, stack);
-        }
-    }
-
-    /**
-     * Item deserializer helper, including air. Must be serialized with the above util
-     *
-     * @param buf
-     */
-    public static ItemStack deserializeFromBuffer(RegistryFriendlyByteBuf buf)
-    {
-        if (!buf.readBoolean())
-        {
-            return ItemStack.STREAM_CODEC.decode(buf);
-        }
-
-        return ItemStack.EMPTY;
-    }
 }

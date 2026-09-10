@@ -33,11 +33,6 @@ public class ItemPositionsStorage
         }
     }
 
-    public void addPos(final BlockPos pos)
-    {
-        positions.add(pos);
-    }
-
     public void addItemAndPos(final ItemStorage toAdd, final BlockPos pos)
     {
         if (!toAdd.equals(itemStorage))
@@ -48,11 +43,6 @@ public class ItemPositionsStorage
 
         positions.add(pos);
         itemStorage.setAmount(positions.size());
-    }
-
-    public void removePos(final BlockPos pos)
-    {
-        positions.remove(pos);
     }
 
     public boolean isEmpty()

@@ -34,14 +34,6 @@ public class SelfUpgradingBlockItem extends BlockItem
         super(block, properties);
     }
 
-    // TODO(port-26.2): DISABLED — no 26.2/Fabric equivalent of NeoForge's verifyComponentsAfterLoad.
-    // @Override
-    // public void verifyComponentsAfterLoad(final ItemStack itemStack)
-    // {
-    //     super.verifyComponentsAfterLoad(itemStack);
-    //     upgrade(itemStack);
-    // }
-
     /**
      * Migrates pre-1.21 DO item NBT onto the data-component layout.
      * <p>

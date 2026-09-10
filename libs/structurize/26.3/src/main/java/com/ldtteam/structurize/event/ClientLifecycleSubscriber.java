@@ -83,11 +83,9 @@ public class ClientLifecycleSubscriber
          * ItemBlockRenderTypes.setRenderLayer(ModBlocks.blockSubstitution.get(), RenderType.translucent());
          */
 
-        // TODO(port-26.2): DISABLED — CLOSED FOR GOOD. IGeometryLoader / IUnbakedGeometry / BakedModel are all
-        // gone from 26.2, so OverlaidModelLoader has nothing left to implement and nothing to register into.
-        /*
-         * event.register(Constants.resLocStruct("overlaid"), new OverlaidModelLoader());
-         */
+        // DISABLED — CLOSED FOR GOOD. The "overlaid" model loader registered here needed IGeometryLoader /
+        // IUnbakedGeometry / BakedModel, all gone from 26.2; the three client/model classes that carried it
+        // were empty shells and have been removed.
 
         // The in-world half of the tag anchor renderer is back: TagSubstitutionRenderer now implements the
         // 26.2 render-state BlockEntityRenderer<T, S>. Its item half stays cut, see the renderer's own markers.

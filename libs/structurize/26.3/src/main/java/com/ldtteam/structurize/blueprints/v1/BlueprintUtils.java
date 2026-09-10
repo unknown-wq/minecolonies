@@ -1,9 +1,7 @@
 package com.ldtteam.structurize.blueprints.v1;
 
-import com.ldtteam.structurize.client.BlueprintBlockInfoTransformHandler;
 import com.ldtteam.structurize.client.BlueprintEntityInfoTransformHandler;
 import com.ldtteam.structurize.api.Log;
-import com.ldtteam.structurize.util.BlockEntityInfo;
 import com.ldtteam.structurize.util.BlockInfo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -17,15 +15,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import org.jetbrains.annotations.Nullable;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Utility functions for blueprints.
@@ -35,38 +30,6 @@ public final class BlueprintUtils
     private BlueprintUtils()
     {
         throw new IllegalArgumentException("Utils class");
-    }
-
-    /**
-     * Creates a list of tileentities located in the blueprint, placed inside that blueprints block access world.
-     *
-     * @param blueprint   The blueprint whos tileentities need to be instantiated.
-     * @param beLevel The blueprint world.
-     * @return A list of tileentities in the blueprint.
-     */
-    // TODO(port-26.2): DEGRADED — NeoForge's ModelData has no Fabric/26.2 equivalent, the per-block-entity model
-    // data map parameter was dropped. Callers (client/BlueprintRenderer) must supply model data themselves.
-    public static Map<BlockPos, BlockEntity> instantiateTileEntities(final Blueprint blueprint, final Level beLevel)
-    {
-        return blueprint.getBlockInfoAsList()
-            .stream()
-            .map(blockInfo -> BlueprintBlockInfoTransformHandler.getInstance().Transform(blockInfo))
-            .filter(BlockInfo::hasTileEntityData)
-            .map(blockInfo -> {
-                @Nullable
-                final BlockEntity be = constructTileEntity(blockInfo, beLevel, blueprint.getRegistryAccess());
-                if (be != null)
-                {
-                    return new BlockEntityInfo(blockInfo.getPos(), be);
-                }
-                else
-                {
-                    Log.getLogger().error("TileEntity creation failed for: " + blueprint + " " + blockInfo.getPos());
-                }
-                return null;
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toMap(BlockEntityInfo::pos, BlockEntityInfo::blockEntity));
     }
 
     /**

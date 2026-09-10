@@ -240,16 +240,6 @@ public class ScrollingListContainer extends ScrollingContainer
         }
 
         /**
-         * Set a new width for this row item.
-         *
-         * @param width the new width.
-         */
-        public void setWidth(int width)
-        {
-            setSize(width, this.height);
-        }
-
-        /**
          * Get the current height of the row item.
          *
          * @return the height.
@@ -267,17 +257,6 @@ public class ScrollingListContainer extends ScrollingContainer
         public void setHeight(int height)
         {
             setSize(this.width, height);
-        }
-
-        /**
-         * Adjust the existing size by a given offset.
-         *
-         * @param diffW the difference in width.
-         * @param diffH the difference in height.
-         */
-        public void adjustSize(int diffW, int diffH)
-        {
-            setSize(this.width + diffW, this.height + diffH);
         }
 
         /**

@@ -1,7 +1,6 @@
 package com.ldtteam.domumornamentum.item;
 
 import net.minecraft.world.item.DoubleHighBlockItem;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
 /**
@@ -14,12 +13,4 @@ public class SelfUpgradingDoubleHighBlockItem extends DoubleHighBlockItem
         super(block, properties);
     }
 
-    // TODO(port-26.2): DISABLED — no 26.2/Fabric equivalent of NeoForge's
-    //   IItemExtension#verifyComponentsAfterLoad. See SelfUpgradingBlockItem.
-    // @Override
-    // public void verifyComponentsAfterLoad(final ItemStack itemStack)
-    // {
-    //     super.verifyComponentsAfterLoad(itemStack);
-    //     SelfUpgradingBlockItem.upgrade(itemStack);
-    // }
 }

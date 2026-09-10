@@ -2,9 +2,7 @@ package com.ldtteam.structurize.blueprints.v1;
 
 import com.ldtteam.structurize.api.Log;
 import com.ldtteam.common.fakelevel.IFakeLevelBlockGetter;
-import com.ldtteam.common.util.BlockToItemHelper;
 import com.ldtteam.structurize.api.BlockPosUtil;
-import com.ldtteam.structurize.api.ItemStackUtils;
 import com.ldtteam.structurize.blockentities.BlockEntityTagSubstitution;
 import com.ldtteam.structurize.blockentities.ModBlockEntities;
 import com.ldtteam.structurize.blocks.ModBlocks;
@@ -12,7 +10,6 @@ import com.ldtteam.structurize.blocks.interfaces.IAnchorBlock;
 import com.ldtteam.structurize.component.CapturedBlock;
 import com.ldtteam.structurize.blockentities.interfaces.IBlueprintDataProviderBE;
 import com.ldtteam.structurize.util.BlockInfo;
-import com.ldtteam.structurize.util.BlockUtils;
 import com.ldtteam.structurize.util.BlueprintPositionInfo;
 import com.mojang.serialization.DynamicOps;
 import com.ldtteam.structurize.api.RotationMirror;
@@ -32,8 +29,6 @@ import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.entity.decoration.HangingEntity;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -448,14 +443,6 @@ public class Blueprint implements IFakeLevelBlockGetter
     }
 
     /**
-     * @return An Array of all missing mods that are required to generate this structure (only works if structure was loaded from file)
-     */
-    public String[] getMissingMods()
-    {
-        return this.missingMods;
-    }
-
-    /**
      * Sets the missing mods
      *
      * @param missingMods the missing mods list.
@@ -548,35 +535,6 @@ public class Blueprint implements IFakeLevelBlockGetter
         te.putInt("y", tePos.getY());
         te.putInt("z", tePos.getZ());
         return te;
-    }
-
-    /**
-     * Calculate the item needed to place the current block in the structure.
-     * 
-     * @param pos the pos its at.
-     * @return an item or null if not initialized.
-     * @deprecated use {@link BlockToItemHelper}
-     */
-    @Nullable
-    @Deprecated(forRemoval = true, since = "1.21.1")
-    public Item getItem(final BlockPos pos)
-    {
-        @Nullable
-        final BlockInfo info = this.getBlockInfoAsMap().getOrDefault(pos, null);
-        if (info == null || info.getState() == null || info.getState().isAir()
-            || BlockUtils.isLiquidOnlyBlock(info.getState().getBlock()))
-        {
-            return null;
-        }
-
-        final ItemStack stack = BlockUtils.getItemStackFromBlockState(info.getState());
-
-        if (!ItemStackUtils.isEmpty(stack))
-        {
-            return stack.getItem();
-        }
-
-        return null;
     }
 
     /**

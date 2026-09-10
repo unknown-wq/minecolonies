@@ -145,9 +145,9 @@ dependencies {
 	}
 }
 
-// JEI and JourneyMap are parked, not deleted: 3826 lines in 25 files that compile
+// JEI is parked, not deleted: 2559 lines in 18 files that compile
 // against APIs we do not need to get the mod running. The cut is clean -- nothing
-// outside those two packages references them, and Compatibility.jeiProxy already
+// outside that package references it, and Compatibility.jeiProxy already
 // defaults to a no-op IJeiProxy. Delete a line from optional-integrations.txt to
 // bring a file back.
 def parkedIntegrations = file("optional-integrations.txt")
@@ -164,8 +164,8 @@ if (parkedIntegrations.exists()) {
 // to compile it against is actually on this machine.
 //
 // WARNING -- the exclusion below does NOT currently give a green build on a machine without the jar,
-// and an earlier version of this comment claimed it did. The cut is not clean the way the JEI and
-// JourneyMap ones are: seven references reach into the package from outside it, so excluding it from
+// and an earlier version of this comment claimed it did. The cut is not clean the way the JEI one
+// is: seven references reach into the package from outside it, so excluding it from
 // the source set leaves them dangling. Measured, not guessed -- `compileJava
 // -Psimpleplanes_jar=/nonexistent/x.jar` fails with exactly these 7 errors in these 2 files:
 //

@@ -18,6 +18,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import org.jspecify.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
@@ -57,10 +58,11 @@ public class EntityIcon<STATE extends EntityIcon.EntityIconState> extends Pane
         }
 
         EntityRenderState ers = new EntityRenderState();
-        ers.entityType = BuiltInRegistries.ENTITY_TYPE.get(entityName).get().value();
+        final EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.get(entityName).get().value();
+        ers.entityType = entityType;
 
         // 26.2: the EntityType constants moved to net.minecraft.world.entity.EntityTypes
-        if (ers.entityType == EntityTypes.MANNEQUIN || ers.entityType == EntityTypes.PLAYER)
+        if (entityType == EntityTypes.MANNEQUIN || entityType == EntityTypes.PLAYER)
         {
             requireNonNull(null, "Cannot load avatar entityType");
             ers = new AvatarRenderState();
@@ -69,6 +71,13 @@ public class EntityIcon<STATE extends EntityIcon.EntityIconState> extends Pane
         {
             // TODO: this doesn't allow player skins
             ers = mc.getEntityRenderDispatcher().getRenderer(ers).createRenderState();
+
+            // createRenderState() hands back a *fresh*, blank state - the type above was only used to pick the
+            // renderer and does not travel with it. Rendering looks the renderer up again from the state
+            // (EntityRenderDispatcher#getRenderer(S) reads entityType and nothing else), so leaving it null makes
+            // every <entityicon> in an xml layout crash the frame with
+            // "Cannot invoke EntityRenderer.getRenderOffset(...) because renderer is null".
+            ers.entityType = entityType;
         }
 
         final CompoundTag ersDataRaw = params.getCompoundTag("renderState");
@@ -133,11 +142,6 @@ public class EntityIcon<STATE extends EntityIcon.EntityIconState> extends Pane
         }
     }
 
-    public STATE getEntityState()
-    {
-        return entityState;
-    }
-
     public void setCount(final int count)
     {
         this.count = count;
@@ -146,16 +150,6 @@ public class EntityIcon<STATE extends EntityIcon.EntityIconState> extends Pane
     public int getCount()
     {
         return count;
-    }
-
-    public void setTransformation(final Transformation transformation)
-    {
-        this.transformation = transformation;
-    }
-
-    public Transformation getTransformation()
-    {
-        return transformation;
     }
 
     @Override

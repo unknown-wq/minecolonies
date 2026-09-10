@@ -14,5 +14,5 @@ package com.minecolonies.core.compatibility.jei;
 // PORT-TODO(optional-integration): DISABLED for the 26.2 port.
 // This file is excluded from compilation via 26.2/optional-integrations.txt. Nothing
 // outside this package depends on it -- Compatibility.jeiProxy already defaults to a
-// no-op IJeiProxy, and the JourneyMap code was never referenced from the mod proper.
+// no-op IJeiProxy when JEI is absent.
 // To bring the integration back, delete the matching line from that list.

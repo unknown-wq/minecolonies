@@ -34,7 +34,6 @@
   "mixins": [
     "domum_ornamentum.mixins.json"
   ],
-  "accessWidener": "domum_ornamentum.accesswidener",
 
   "depends": {
     "fabricloader": ">=0.19.3",

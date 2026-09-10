@@ -45,14 +45,4 @@ public final class ManualBarrier
         }
     }
 
-    /**
-     * Closes the barrier and requests all future threads to wait.
-     */
-    public void close()
-    {
-        synchronized (monitor)
-        {
-            open = false;
-        }
-    }
 }

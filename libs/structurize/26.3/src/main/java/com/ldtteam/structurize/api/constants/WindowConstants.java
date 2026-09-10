@@ -6,11 +6,6 @@ package com.ldtteam.structurize.api.constants;
 public final class WindowConstants
 {
     /**
-     * Id of the paste button.
-     */
-    public static final String BUTTON_PASTE = "pastecomplete";
-
-    /**
      * Id of the rename button in the GUI.
      */
     public static final String BUTTON_RENAME = "rename";
@@ -96,21 +91,6 @@ public final class WindowConstants
     public static final String BUTTON_SELECT = "select";
 
     /**
-     * This button is used to set the previous available building type.
-     */
-    public static final String BUTTON_PREVIOUS_TYPE_ID = "previousBuildingType";
-
-    /**
-     * This drop down list is used to set the section either huts (Builder, Town Hall), decorations or scan mode.
-     */
-    public static final String DROPDOWN_TYPE_ID = "buildingType";
-
-    /**
-     * This button is used to set the next available building type.
-     */
-    public static final String BUTTON_NEXT_TYPE_ID = "nextBuildingType";
-
-    /**
      * This button is used to set the previous available style.
      */
     public static final String BUTTON_PREVIOUS_STYLE_ID = "previousStyle";
@@ -124,21 +104,6 @@ public final class WindowConstants
      * This button is used to set the next available style.
      */
     public static final String BUTTON_NEXT_STYLE_ID = "nextStyle";
-
-    /**
-     * This button is used to set the previous available schematic.
-     */
-    public static final String BUTTON_PREVIOUS_SCHEMATIC_ID = "previousSchematic";
-
-    /**
-     * This drop down list is used to set the schematic.
-     */
-    public static final String DROPDOWN_SCHEMATIC_ID = "schematic";
-
-    /**
-     * This button is used to set the next available schematic.
-     */
-    public static final String BUTTON_NEXT_SCHEMATIC_ID = "nextSchematic";
 
     /**
      * This button will send a packet to the server telling it to place this hut/decoration.
@@ -204,11 +169,6 @@ public final class WindowConstants
     public static final String SHAPE_VIEW      = "shapeInput";
 
     /**
-     * The shapeTool Replace Blocks toggle.
-     */
-    public static final String BUTTON_REPLACE = "replaceBlocks";
-
-    /**
      * The shapeTool Hollow toggle.
      */
     public static final String BUTTON_HOLLOW = "hollowShape";
@@ -224,18 +184,12 @@ public final class WindowConstants
      */
     public static final String LIST_RESOURCES            = "resources";
     public static final String LIST_OPERATIONS           = "operations";
-    public static final String LIST_TAGS                 = "nbttags";
     public static final String LIST_ENTITIES             = "entities";
     public static final String RESOURCE_NAME             = "resourceName";
     public static final String RESOURCE_ICON             = "resourceIcon";
     public static final String RESOURCE_QUANTITY_MISSING = "resourceQuantity";
     public static final String RESOURCE_ICON_FILL        = "resourceIconFill";
     public static final String RESOURCE_ICON_MAIN        = "resourceIconMain";
-
-    /**
-     * Name of the input range field.
-     */
-    public static final String INPUT_RANGE_NAME = "range";
 
     /**
      * Undo button
@@ -251,11 +205,6 @@ public final class WindowConstants
      * undoredo button
      */
     public static final String BUTTON_UNDOREDO = "undoredo";
-
-    /**
-     * Id of the speed input field.
-     */
-    public static final String INPUT_SPEED = "speed";
 
     /**
      * This button will remove the currently rendered structure.
@@ -306,11 +255,6 @@ public final class WindowConstants
      * Button to pick the fill block to use.
      */
     public static final String BUTTON_PICK_FILL_BLOCK = "pickFillBlock";
-
-    /**
-     * Resource suffix of the multiblock GUI.
-     */
-    public static final String MULTI_BLOCK_RESOURCE_SUFFIX = ":gui/windowmultiblock.xml";
 
     /**
      * Remove filtered button.

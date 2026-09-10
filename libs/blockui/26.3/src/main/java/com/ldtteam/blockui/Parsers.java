@@ -68,7 +68,14 @@ public final class Parsers
         Matcher m = HEXADECIMAL_PATTERN.matcher(v);
         if (m.find())
         {
-            return Integer.parseInt(m.group(1), 16);
+            // parseUnsignedInt, not parseInt: the pattern accepts eight hex digits, and any eight-digit value whose
+            // alpha byte is 0x80 or above does not fit a signed int. Through parseInt those threw
+            // NumberFormatException out of this lambda, up through PaneParams#getProperty and the pane constructor,
+            // and took the whole window's parse down with them - so "#FF336699", the only spelling that gives an
+            // opaque colour here, was the one spelling guaranteed to fail. Six-digit values still leave the alpha
+            // byte at zero and therefore still draw nothing; that is unchanged on purpose, since making them opaque
+            // would alter how every existing layout in every consuming mod renders.
+            return Integer.parseUnsignedInt(m.group(1), 16);
         }
 
         m = RGBA_PATTERN.matcher(v);

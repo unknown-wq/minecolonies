@@ -814,8 +814,6 @@ public final class TranslationConstants
     @NonNls
     public static final String PARTIAL_JEI_INFO                           = "com.minecolonies.coremod.jei.";
     @NonNls
-    public static final String PARTIAL_JOURNEY_MAP_INFO                   = "com.minecolonies.coremod.journeymap.";
-    @NonNls
     public static final String PARTIAL_EXPEDITION_STATUS                  = "com.minecolonies.gui.workerhuts.expedition.";
     @NonNls
     public static final String PARTIAL_STATS_MODIFIER_NAME                = "com.minecolonies.coremod.gui.townhall.stats.";

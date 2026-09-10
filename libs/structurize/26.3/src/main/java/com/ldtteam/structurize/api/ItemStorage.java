@@ -96,7 +96,7 @@ public class ItemStorage
      */
     public ItemStorage(final RegistryFriendlyByteBuf buf)
     {
-        this.stack = ItemStackUtils.deserializeFromBuffer(buf);
+        this.stack = ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
         this.shouldIgnoreDamageValue = buf.readBoolean();
         this.shouldIgnoreNBTValue = buf.readBoolean();
         this.amount = buf.readInt();
@@ -220,7 +220,7 @@ public class ItemStorage
      */
     public void serialize(final RegistryFriendlyByteBuf buf)
     {
-        ItemStackUtils.serializeToBuffer(getItemStack(), buf);
+        ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, getItemStack());
         buf.writeBoolean(ignoreDamageValue());
         buf.writeBoolean(ignoreNBTValue());
         buf.writeInt(getAmount());

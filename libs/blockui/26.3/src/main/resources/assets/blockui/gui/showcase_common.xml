@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    A reusable fragment. It is pulled in two different ways by two different files:
+
+      - blockui:gui/showcase_inherit.xml names it in the window's inherit= attribute, which makes the loader run
+        this file's <window> against the *including* window before that window's own attributes and children;
+      - blockui:gui/showcase_parser.xml drops it into a plain <view> with <layout source="…"/>, which makes the
+        loader append these children to that view.
+
+    Both paths go through Loader#createFromXMLFile, so the root element has to be <window> even here: a file whose
+    root is <layout> is not something Loader can start from, whatever the schema says.
+
+    Everything below is sized absolutely on purpose. Under inherit= the fragment is parsed before the including
+    window has applied its own size=, so percentages here would be taken against BOWindow's 420x240 default.
+-->
+<window xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="block_ui.xsd">
+    <box id="fragment_box" pos="0 0" size="300 40" color="#FF44DD88" linewidth="1">
+        <text pos="4 2" size="292 10" textscale="0.85" textcolor="#FF44DD88" text="blockui:gui/showcase_common.xml — a shared fragment"/>
+        <itemicon id="fragment_icon" pos="4 14" size="20 20" item="minecraft:amethyst_shard"/>
+        <button id="fragment_button" pos="28 16" size="120 18" label="from the fragment" textscale="0.7"/>
+        <checkbox id="fragment_check" pos="152 16" size="14 15"
+                  source="blockui:button_mini" disabled="blockui:button_mini_disabled" checkmark="blockui:overlay_mini_check"/>
+        <text id="fragment_note" pos="172 20" size="124 10" textscale="0.7" textcolor="lightgray" text="same nodes, two hosts"/>
+    </box>
+</window>

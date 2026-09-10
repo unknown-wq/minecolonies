@@ -1,6 +1,7 @@
 package com.minecolonies.core.client.gui.townhall;
 
 
+import com.mojang.blaze3d.Blaze3D;
 import com.ldtteam.blockui.Pane;
 import com.ldtteam.blockui.PaneBuilders;
 import com.ldtteam.blockui.controls.AbstractTextBuilder;
@@ -18,7 +19,6 @@ import com.minecolonies.core.network.messages.server.colony.ColonyStructureStyle
 import com.minecolonies.core.network.messages.server.colony.ColonyTextureStyleMessage;
 import com.minecolonies.core.network.messages.server.colony.TeamColonyColorChangeMessage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ConfirmLinkScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +46,11 @@ import static com.minecolonies.core.event.TextureReloadListener.TEXTURE_PACKS;
  */
 public class WindowMainPage extends AbstractWindowTownHall
 {
+    /**
+     * The upstream project's Patreon page, offered behind a confirmation prompt.
+     */
+    private static final URI PATREON_URI = URI.create("https://www.patreon.com/Minecolonies");
+
     /**
      * Is the special feature unlocked.
      */
@@ -357,11 +363,11 @@ public class WindowMainPage extends AbstractWindowTownHall
         Minecraft.getInstance().gui.setScreen(new ConfirmLinkScreen((check) -> {
             if (check)
             {
-                Util.getPlatform().openUri("https://www.patreon.com/Minecolonies");
+                Blaze3D.openUri(PATREON_URI);
             }
 
             Minecraft.getInstance().gui.setScreen(this.screen);
-        }, "https://www.patreon.com/Minecolonies", true));
+        }, PATREON_URI, true));
     }
 
     @Override

@@ -12,9 +12,6 @@ public class Constants
 
     public static final String     MOD_ID                           = "domum_ornamentum";
     public static final Identifier MATERIALLY_TEXTURED_MODEL_LOADER = resLocDO("materially_textured");
-    public static final Identifier TRAPDOOR_MODEL_OVERRIDE          = resLocDO("trapdoor_type");
-    public static final Identifier DOOR_MODEL_OVERRIDE              = resLocDO("door_type");
-    public static final Identifier POST_MODEL_OVERRIDE              = resLocDO("post_type");
     public static final String     DEFAULT_LANG                     = "en_us";
     public static final String BLOCK_ENTITY_TEXTURE_DATA = "textureData";
     public static final String TYPE_BLOCK_PROPERTY = "type";

@@ -291,107 +291,6 @@ public class ZoomDragView extends View
         super.addChild(child);
     }
 
-    public double getDragFactor()
-    {
-        return dragFactor;
-    }
-
-    public void setDragFactor(final double dragFactor)
-    {
-        if (dragFactor < 1.0d)
-        {
-            throw new IllegalArgumentException("dragFactor can't be less than one");
-        }
-        this.dragFactor = dragFactor;
-    }
-
-    public boolean isDragEnabled()
-    {
-        return dragEnabled;
-    }
-
-    public void enableDrag()
-    {
-        setDragEnabled(true);
-    }
-
-    public void disableDrag()
-    {
-        setDragEnabled(false);
-    }
-
-    public void setDragEnabled(final boolean dragEnabled)
-    {
-        this.dragEnabled = dragEnabled;
-    }
-
-    public double getZoomFactor()
-    {
-        return zoomFactor;
-    }
-
-    public void setZoomFactor(final double zoomFactor)
-    {
-        if (zoomFactor < 1.0d)
-        {
-            throw new IllegalArgumentException("zoomFactor can't be less than one");
-        }
-        this.zoomFactor = zoomFactor;
-    }
-
-    public boolean isZoomEnabled()
-    {
-        return zoomEnabled;
-    }
-
-    public void enableZoom()
-    {
-        setZoomEnabled(true);
-    }
-
-    public void disableZoom()
-    {
-        setZoomEnabled(false);
-    }
-
-    public void setZoomEnabled(final boolean zoomEnabled)
-    {
-        this.zoomEnabled = zoomEnabled;
-    }
-
-    public double getMinScale()
-    {
-        return minScale;
-    }
-
-    public void setMinScale(final double minScale)
-    {
-        if (minScale > maxScale)
-        {
-            throw new IllegalArgumentException("minScale can't be greater than maxScale");
-        }
-        this.minScale = minScale;
-    }
-
-    public double getMaxScale()
-    {
-        return maxScale;
-    }
-
-    public void setMaxScale(final double maxScale)
-    {
-        if (maxScale < minScale)
-        {
-            throw new IllegalArgumentException("maxScale can't be less than minScale");
-        }
-        this.maxScale = maxScale;
-    }
-
-    public double getScrollX()
-    {
-        return scrollX;
-    }
-
     public double getScrollY()
     {
         return scrollY;
@@ -416,8 +315,4 @@ public class ZoomDragView extends View
         return contentHeight;
     }
 
-    public int getContentWidth()
-    {
-        return contentWidth;
-    }
 }

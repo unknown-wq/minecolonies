@@ -123,11 +123,11 @@ public final class ModBlocks implements IModBlocks {
         STANDING_BARREL = registerSimpleBlockItem("blockbarreldeco_standing", BarrelBlock::new);
         LAYING_BARREL = registerSimpleBlockItem("blockbarreldeco_onside", BarrelBlock::new);
 
-        FENCE = registerCustomBlockItem("vanilla_fence_compat", FenceBlock::new, FenceBlockItem::new);
-        FENCE_GATE = registerCustomBlockItem("vanilla_fence_gate_compat", FenceGateBlock::new, FenceGateBlockItem::new);
-        SLAB = registerCustomBlockItem("vanilla_slab_compat", SlabBlock::new, SlabBlockItem::new);
-        WALL = registerCustomBlockItem("vanilla_wall_compat", WallBlock::new, WallBlockItem::new);
-        STAIR = registerCustomBlockItem("vanilla_stairs_compat", StairBlock::new, StairsBlockItem::new);
+        FENCE = registerCustomBlockItem("vanilla_fence_compat", FenceBlock::new, (b, p) -> new VanillaShapeBlockItem<>(b, "fence", p));
+        FENCE_GATE = registerCustomBlockItem("vanilla_fence_gate_compat", FenceGateBlock::new, (b, p) -> new VanillaShapeBlockItem<>(b, "fence-gate", p));
+        SLAB = registerCustomBlockItem("vanilla_slab_compat", SlabBlock::new, (b, p) -> new VanillaShapeBlockItem<>(b, "slab", p));
+        WALL = registerCustomBlockItem("vanilla_wall_compat", WallBlock::new, (b, p) -> new VanillaShapeBlockItem<>(b, "wall", p));
+        STAIR = registerCustomBlockItem("vanilla_stairs_compat", StairBlock::new, (b, p) -> new VanillaShapeBlockItem<>(b, "stair", p));
         TRAPDOOR = registerCustomBlockItem("vanilla_trapdoors_compat", TrapdoorBlock::new, TrapdoorBlockItem::new);
         DOOR = registerCustomBlockItem("vanilla_doors_compat", DoorBlock::new, DoorBlockItem::new);
         PANEL = registerCustomBlockItem("panel", PanelBlock::new, PanelBlockItem::new);

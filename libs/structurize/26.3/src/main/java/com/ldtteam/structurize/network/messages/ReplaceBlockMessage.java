@@ -2,7 +2,6 @@ package com.ldtteam.structurize.network.messages;
 
 import com.ldtteam.common.network.AbstractServerPlayMessage;
 import com.ldtteam.common.network.PlayMessageType;
-import com.ldtteam.structurize.api.ItemStackUtils;
 import com.ldtteam.structurize.api.constants.Constants;
 import com.ldtteam.structurize.client.gui.util.ItemPositionsStorage;
 import com.ldtteam.structurize.management.Manager;
@@ -40,7 +39,7 @@ public class ReplaceBlockMessage extends AbstractServerPlayMessage
     protected ReplaceBlockMessage(final RegistryFriendlyByteBuf buf, final PlayMessageType<?> type)
     {
         super(buf, type);
-        this.blockTo = ItemStackUtils.deserializeFromBuffer(buf);
+        this.blockTo = ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
         this.pct = buf.readInt();
         toReplace = new ItemPositionsStorage(buf);
     }
@@ -61,7 +60,7 @@ public class ReplaceBlockMessage extends AbstractServerPlayMessage
     @Override
     protected void toBytes(final RegistryFriendlyByteBuf buf)
     {
-        ItemStackUtils.serializeToBuffer(blockTo, buf);
+        ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, blockTo);
         buf.writeInt(pct);
         toReplace.serialize(buf);
     }

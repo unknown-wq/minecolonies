@@ -1,11 +1,9 @@
 package com.ldtteam.structurize.util;
 
 import com.ldtteam.common.util.BlockToItemHelper;
-import com.ldtteam.structurize.compat.DomumCompat;
 import com.ldtteam.structurize.api.ItemStackUtils;
 import com.ldtteam.structurize.api.RotationMirror;
 import com.ldtteam.structurize.api.constants.Constants;
-import com.ldtteam.structurize.blocks.ModBlocks;
 import com.ldtteam.structurize.placement.SimplePlacementContext;
 import com.ldtteam.structurize.placement.handlers.placement.IPlacementHandler;
 import com.ldtteam.structurize.placement.handlers.placement.PlacementHandlers;
@@ -13,11 +11,7 @@ import com.ldtteam.structurize.tag.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.*;
@@ -28,7 +22,6 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -49,7 +42,6 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import static com.ldtteam.structurize.tag.ModTags.GOOD_SOLID_FOR_PLACEHOLDER;
 
@@ -291,90 +283,6 @@ public final class BlockUtils
     private static Item getItemFromBlock(final Block block)
     {
         return Item.BY_BLOCK.get(block);
-    }
-
-    /**
-     * For structure placement, check if two blocks are alike or if action has to be taken.
-     * @param structureState the first blockState.
-     * @param worldState the second blockState.
-     * @param shallReplace the not solid condition.
-     * @param fancy if fancy paste.
-     * @param tileEntityData
-     * @param worldEntity
-     * @return true if nothing has to be done.
-     */
-    public static boolean areBlockStatesEqual(
-      final BlockState structureState,
-      final BlockState worldState,
-      final Predicate<BlockState> shallReplace,
-      final boolean fancy,
-      final BiPredicate<BlockState, BlockState> specialEqualRule,
-      final CompoundTag tileEntityData, final BlockEntity worldEntity)
-    {
-        if (structureState == null || worldState == null)
-        {
-            return true;
-        }
-
-        final Block structureBlock = structureState.getBlock();
-        final Block worldBlock = worldState.getBlock();
-        if (fancy && structureBlock == ModBlocks.blockSubstitution.get())
-        {
-            return true;
-        }
-
-        if (worldState.equals(structureState))
-        {
-            if (tileEntityData == null)
-            {
-                return true;
-            }
-            else if (worldEntity == null)
-            {
-                return false;
-            }
-            else if (DomumCompat.isMateriallyTexturedBlockEntity(worldEntity) && tileEntityData.contains(DomumCompat.TEXTURE_DATA_TAG))
-            {
-                return DomumCompat.textureDataMatches(worldEntity, tileEntityData);
-            }
-            return true;
-        }
-        else if (DomumCompat.isMateriallyTexturedBlockEntity(worldEntity))
-        {
-            return false;
-        }
-
-        if (fancy)
-        {
-            if (structureBlock instanceof AirBlock && worldBlock instanceof AirBlock)
-            {
-                return true;
-            }
-
-            if (structureBlock == Blocks.DIRT && worldState.is(BlockTags.DIRT))
-            {
-                return true;
-            }
-
-            if (structureBlock == ModBlocks.blockSolidSubstitution.get() && !shallReplace.test(worldState))
-            {
-                return true;
-            }
-
-            // if the other block has fluid already or is not waterloggable, take no action
-            if (
-                // structure -> world
-                (structureBlock == ModBlocks.blockFluidSubstitution.get() &&
-                (worldState.getFluidState().isSource() || !worldState.hasProperty(BlockStateProperties.WATERLOGGED) && BlockUtils.isAnySolid(worldState))) ||
-                // world -> structure
-                (worldBlock == ModBlocks.blockFluidSubstitution.get() &&
-                (structureState.getFluidState().isSource() || !structureState.hasProperty(BlockStateProperties.WATERLOGGED) && BlockUtils.isAnySolid(structureState))))
-            {
-                return true;
-            }
-        }
-
-        return specialEqualRule.test(structureState, worldState);
     }
 
     /**
@@ -761,16 +669,4 @@ public final class BlockUtils
         return (isGoodFullBlock(blockState) && !blockState.is(ModTags.UNSUITABLE_SOLID_FOR_PLACEHOLDER)) || blockState.is(GOOD_SOLID_FOR_PLACEHOLDER);
     }
 
-    public static SolidnessInfo getSolidInfo(final BlockState blockState)
-    {
-        return new SolidnessInfo(canBlockFloatInAir(blockState), isWeakSolidBlock(blockState));
-    }
-
-    public record SolidnessInfo(boolean canFloatInAir, boolean isWeakSolid)
-    {
-        public boolean isAnySolid()
-        {
-            return canFloatInAir || isWeakSolid;
-        }
-    }
 }

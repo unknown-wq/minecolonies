@@ -153,27 +153,6 @@ public abstract class WorldRenderMacros
         poseStack.popPose();
     }
 
-    // TODO(port-26.2): DISABLED — RenderSystem#applyModelViewMatrix is gone in 26.2; the model view matrix
-    //  is owned by the submit pipeline and cannot be pushed from mod code. No caller inside Structurize.
-    public void pushShaderMvMatrixFromPose()
-    {
-        /*
-        final Matrix4fStack mvMatrix = RenderSystem.getModelViewStack();
-        mvMatrix.pushMatrix();
-        mvMatrix.mul(poseStack.last().pose());
-        RenderSystem.applyModelViewMatrix();
-        */
-    }
-
-    // TODO(port-26.2): DISABLED — see pushShaderMvMatrixFromPose
-    public void popShaderMvMatrix()
-    {
-        /*
-        RenderSystem.getModelViewStack().popMatrix();
-        RenderSystem.applyModelViewMatrix();
-        */
-    }
-
     /**
      * @return true if given aabb can be in any way seen by camera
      */

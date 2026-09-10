@@ -146,29 +146,6 @@ public class FakeLevelLightEngine extends LevelLightEngine
         // Noop
     }
 
-    /*
-    @Override
-    public int getLightSectionCount()
-    {
-        // super is fine
-        return super.getLightSectionCount();
-    }
-
-    @Override
-    public int getMaxLightSection()
-    {
-        // super is fine
-        return super.getMaxLightSection();
-    }
-
-    @Override
-    public int getMinLightSection()
-    {
-        // super is fine
-        return super.getMinLightSection();
-    }
-    */
-
     private class FakeLevelLayerLightEventListener implements LayerLightEventListener
     {
         private final LightLayer lightLayer;

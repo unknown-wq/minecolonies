@@ -310,7 +310,7 @@ looking for a setting that does not exist.
 | **Citizen voices** | Fabric API has no sound-playback veto, and vanilla exposes none | The `enablecitizenvoices` client option mutes nothing any more |
 | **Colony lines on F3** | There is no extension point on the debug screen | The colony name and distance are gone from the F3 overlay |
 | **`TravellingManager` save format** | Moved to `BlockPos.CODEC` | Old worlds read that one field back as `BlockPos.ZERO` |
-| **JEI and JourneyMap** | Both integrations are excluded from compilation, listed file by file in `26.3/optional-integrations.txt` | No MineColonies recipe categories or teaching transfers in JEI; no colony borders, deathpoints or radar labels on a JourneyMap map. Neither is load-bearing — the mod runs without them |
+| **JEI** | The integration is excluded from compilation, listed file by file in `26.3/optional-integrations.txt` | No MineColonies recipe categories or teaching transfers in JEI. Not load-bearing — the mod runs without it. The JourneyMap integration that used to sit beside it was removed in this line: the bundled world map draws colony borders and graves itself, and honours the same `MAP_BORDER`/`MAP_DEATHS` permissions |
 | **Dynamic Trees** | There is no Dynamic Trees build for this version to compile against | Every dynamic-tree query answers "no": colonists treat those trees as ordinary blocks, so lumberjacks neither fell them as trees nor replant dynamic saplings |
 
 Smaller hooks went the same way: a mod spear does not claim the vanilla sword tool actions (sweeping,

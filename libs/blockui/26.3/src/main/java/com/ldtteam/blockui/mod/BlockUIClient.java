@@ -3,7 +3,6 @@ package com.ldtteam.blockui.mod;
 import com.ldtteam.blockui.BOScreen;
 import com.ldtteam.blockui.Loader;
 import com.ldtteam.blockui.UiRenderMacros;
-import com.ldtteam.blockui.hooks.HookManager;
 import com.ldtteam.blockui.mod.item.BlockStatePipRenderer;
 import com.ldtteam.common.network.ModNetworking;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -14,7 +13,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.AtlasRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
-import net.fabricmc.fabric.api.event.client.player.ClientHotbarScrollEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -81,15 +79,9 @@ public class BlockUIClient implements ClientModInitializer
         // PictureInPictureRenderer#getRenderStateClass() instead of being passed in
         PictureInPictureRendererRegistry.register(context -> new BlockStatePipRenderer());
 
-        // was: ClientTickEvent.Pre / ClientTickEvent.Post
+        // was: ClientTickEvent.Pre. The Post handler is gone with the hooks package: its whole body was
+        // HookRegistries.tick(...), and nothing else ever needed the end of a client tick.
         ClientTickEvents.START_CLIENT_TICK.register(ClientEventSubscriber::onClientTickStart);
-        ClientTickEvents.END_CLIENT_TICK.register(ClientEventSubscriber::onClientTickEnd);
-
-        // was: InputEvent.MouseScrollingEvent with EventPriority.HIGHEST.
-        // Fabric has no generic "mouse scrolled in world" callback; the hotbar-scroll ALLOW hook sits on
-        // the exact vanilla branch the NeoForge event guarded (MouseHandler#onScroll, no screen open).
-        ClientHotbarScrollEvents.ALLOW.register((inventory, currentSlot, nextSlot, horizontal, vertical) ->
-            !HookManager.onScroll(horizontal, vertical));
 
         // was: RenderGuiLayerEvent.Pre + VanillaGuiLayers.CROSSHAIR (cancel while a BOScreen is open)
         HudElementRegistry.replaceElement(VanillaHudElements.CROSSHAIR, original -> (graphics, deltaTracker) -> {
@@ -98,6 +90,11 @@ public class BlockUIClient implements ClientModInitializer
                 original.extractRenderState(graphics, deltaTracker);
             }
         });
+
+        // Developer test screens, gated on -Dblockui.testgui. Without that launch argument this call returns on its
+        // first statement and registers nothing; with it, one of the showcase layouts opens once the client has a
+        // screen. It sits behind the client entrypoint, so a dedicated server never reaches it. See TestGuiLauncher.
+        TestGuiLauncher.armIfRequested();
     }
 
     /**

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    The two ways one layout can pull in another. Opened by -Dblockui.testgui=inherit.
+
+    inherit= runs another window's contents against this window before this window's own size= and children are
+    applied; <layout source="…"/> appends another file's children to whatever view the tag sits in. Both end up in
+    Loader#createFromXMLFile, and both are how a consuming mod avoids copying a common header into thirty layouts —
+    which makes them exactly the paths that quietly stop working when the loader is touched.
+
+    Reading the screen: the green fragment box must appear three times — once at the very top left because it was
+    inherited, and twice more where the two <layout> tags are.
+-->
+<window xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="block_ui.xsd"
+        inherit="blockui:gui/showcase_common.xml"
+        size="900 460" type="FULLSCREEN_VANILLA" lightbox="true">
+
+    <text pos="4 44" size="890 11" textcolor="#FFFFD966" textscale="1.1" text="BlockUI include paths — blockui:gui/showcase_inherit.xml"/>
+    <text pos="4 58" size="890 20" wrap="true" textscale="0.85" textcolor="lightgray"
+          text="The box at the top left came from inherit=. It was parsed before this window applied its own size, so it sits at 0,0 in the window's own coordinates."/>
+
+    <text pos="4 84" size="890 10" textcolor="aqua" textscale="0.9" text="&lt;layout&gt; inside a plain View"/>
+    <view id="include_in_view" pos="4 96" size="440 44">
+        <layout source="blockui:gui/showcase_common.xml"/>
+    </view>
+
+    <text pos="452 84" size="440 10" textcolor="aqua" textscale="0.9" text="&lt;layout&gt; inside a Box inside a Group"/>
+    <group id="include_group" pos="452 96" size="440 60" spacing="2">
+        <box size="440 46" color="#FF8888FF" linewidth="1">
+            <view pos="2 2" size="434 42">
+                <layout source="blockui:gui/showcase_common.xml"/>
+            </view>
+        </box>
+        <text size="440 10" textscale="0.75" textcolor="lightgray" text="…three container levels between the window and the include"/>
+    </group>
+
+    <text pos="4 164" size="890 10" textcolor="aqua" textscale="0.9" text="the same fragment inside a scrolling list row"/>
+    <list id="include_rows" pos="4 176" size="890 130" childspacing="4">
+        <view size="874 44">
+            <layout source="blockui:gui/showcase_common.xml"/>
+            <text id="row_index" pos="306 16" size="560 10" textscale="0.75" textcolor="orange"/>
+        </view>
+    </list>
+
+    <text pos="4 312" size="890 20" wrap="true" textscale="0.85" textcolor="lightgray"
+          text="Every copy above is a separate pane tree built from one cached PaneParams. Editing the fragment and reloading resources (F3+T) must change all of them at once."/>
+
+    <box id="inherit_notes" pos="4 338" size="890 116" color="#FFB36AFF" linewidth="1">
+        <text pos="4 3" size="882 10" textcolor="aqua" textscale="0.9" text="what this exercises in Loader"/>
+        <text pos="4 16" size="882 12" textscale="0.8" textcolor="ivory" text="• the xml cache is keyed per resource, so one parse feeds every include"/>
+        <text pos="4 30" size="882 12" textscale="0.8" textcolor="ivory" text="• PaneParams instances are reused across windows — the property cache must not leak a value from one host into another"/>
+        <text pos="4 44" size="882 12" textscale="0.8" textcolor="ivory" text="• &lt;layout&gt; returns null from createFromPaneParams and must not be treated as a pane"/>
+        <text pos="4 58" size="882 12" textscale="0.8" textcolor="ivory" text="• inherit= recurses into createFromXMLFile with the window itself as the parent"/>
+        <text pos="4 72" size="882 12" textscale="0.8" textcolor="ivory" text="• a row template that contains a &lt;layout&gt; is re-instantiated per row"/>
+        <text pos="4 86" size="882 24" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="If any of those breaks, the fragment disappears from one of the three places above rather than crashing, which is why this file states how many copies to expect."/>
+    </box>
+</window>

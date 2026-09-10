@@ -40,36 +40,6 @@ public class TextFieldVanilla extends TextField
         filter = new FilterVanilla();
     }
 
-    public boolean isBackgroundEnabled()
-    {
-        return backgroundEnabled;
-    }
-
-    public void setBackgroundEnabled(final boolean e)
-    {
-        backgroundEnabled = e;
-    }
-
-    public int getBackgroundOuterColor()
-    {
-        return backgroundOuterColor;
-    }
-
-    public void setBackgroundOuterColor(final int c)
-    {
-        backgroundOuterColor = c;
-    }
-
-    public int getBackgroundInnerColor()
-    {
-        return backgroundInnerColor;
-    }
-
-    public void setBackgroundInnerColor(final int c)
-    {
-        backgroundInnerColor = c;
-    }
-
     @Override
     public int getInternalWidth()
     {
@@ -112,30 +82,6 @@ public class TextFieldVanilla extends TextField
         super.handleClick(mouseX, my);
         return true;
     }
-
-    /*
-     * private static class FilterNumeric implements Filter
-     * {
-     * @Override
-     * public String filter(final String s)
-     * {
-     * final StringBuilder sb = new StringBuilder();
-     * for (final char c : s.toCharArray())
-     * {
-     * if (isAllowedCharacter(c))
-     * {
-     * sb.append(c);
-     * }
-     * }
-     * return sb.toString();
-     * }
-     * @Override
-     * public boolean isAllowedCharacter(final char c)
-     * {
-     * return Character.isDigit(c);
-     * }
-     * }
-     */
 
     private static class FilterVanilla implements Filter
     {

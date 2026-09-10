@@ -35,7 +35,6 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -706,38 +705,4 @@ public class ItemScanTool extends AbstractItemWithPosSelector implements IScroll
         });
     }
 
-    /**
-     * Loads the anchor coordinates from this stack.
-     * @param tool The tool stack (assumed already been validated)
-     * @return the anchor position or null
-     */
-    @Nullable
-    @Deprecated(forRemoval = true, since = "1.21")
-    public static BlockPos getAnchorPos(@NotNull final ItemStack tool)
-    {
-        return ScanToolData.readFromItemStack(tool).currentSlot().box().anchor().orElse(null);
-    }
-
-    /**
-     * Saves the structure name on this stack.
-     * @param tool The tool stack (assumed already validated)
-     * @param name The structure name (or null/empty to clear)
-     */
-    @Deprecated(forRemoval = true, since = "1.21")
-    public static void setStructureName(@NotNull final ItemStack tool,
-                                        @Nullable String name)
-    {
-        ScanToolData.updateItemStack(tool, data -> data.withCurrentSlot(data.currentSlot().withName(name == null ? "" : name)));
-    }
-
-    /**
-     * Gets the structure name saved on this stack.
-     * @param tool The tool stack (assumed already validated)
-     * @return The structure name (or empty string)
-     */
-    @Deprecated(forRemoval = true, since = "1.21")
-    public static String getStructureName(@NotNull final ItemStack tool)
-    {
-        return ScanToolData.readFromItemStack(tool).currentSlot().name();
-    }
 }

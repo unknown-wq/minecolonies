@@ -23,7 +23,6 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringRepresentable;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -34,10 +33,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
-import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -185,15 +182,6 @@ public class DynamicTimberFrameBlock extends AbstractBlock<DynamicTimberFrameBlo
         super(Properties.of().mapColor(MapColor.WOOD).pushReaction(PushReaction.PUSH).strength(BLOCK_HARDNESS, RESISTANCE).noOcclusion());
     }
 
-    // TODO(port-26.2): DISABLED — IBlockExtension#shouldDisplayFluidOverlay is a NeoForge-only hook
-    //   (no vanilla or Fabric equivalent in 26.2). Waterlogged dynamic timber frames render the plain
-    //   water surface instead of the "overlay" variant.
-    // @Override
-    // public boolean shouldDisplayFluidOverlay(final BlockState state, final BlockAndTintGetter level, final BlockPos pos, final FluidState fluidState)
-    // {
-    //     return true;
-    // }
-
     @Override
     protected void createBlockStateDefinition(@NotNull final StateDefinition.Builder<Block, BlockState> builder)
     {
@@ -314,28 +302,10 @@ public class DynamicTimberFrameBlock extends AbstractBlock<DynamicTimberFrameBlo
         new ArchitectsCutterRecipeBuilder(this, RecipeCategory.BUILDING_BLOCKS).count(COMPONENTS.size()).save(recipeOutput);
     }
 
-    // TODO(port-26.2): DISABLED — per-material explosion resistance. NeoForge's
-    //   Block#getExplosionResistance(BlockState, BlockGetter, BlockPos, Explosion) does not exist in
-    //   vanilla 26.2 (only Block#getExplosionResistance(), /opt/mc-src/.../block/Block.java:445) and
-    //   Fabric has no hook for it, so the resistance of the skin block can no longer be applied.
-    // @Override
-    // public float getExplosionResistance(BlockState state, BlockGetter level, BlockPos pos, Explosion explosion) {
-    //     return getDOExplosionResistance(super::getExplosionResistance, state, level, pos, explosion);
-    // }
-
     @Override
     public float getDestroyProgress(@NotNull BlockState state, @NotNull Player player, @NotNull BlockGetter level, @NotNull BlockPos pos) {
         return getDODestroyProgress(super::getDestroyProgress, state, player, level, pos);
     }
-
-    // TODO(port-26.2): DISABLED — per-material sound type. NeoForge's
-    //   Block#getSoundType(BlockState, LevelReader, BlockPos, Entity) does not exist in vanilla 26.2
-    //   (only BlockBehaviour#getSoundType(BlockState), /opt/mc-src/.../BlockBehaviour.java:404, which
-    //   has no position to read the block entity from) and Fabric has no hook for it.
-    // @Override
-    // public SoundType getSoundType(BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
-    //     return getDOSoundType(super::getSoundType, state, level, pos, entity);
-    // }
 
     @Override
     public IMateriallyTexturedBlockComponent getMainComponent() {
@@ -346,20 +316,6 @@ public class DynamicTimberFrameBlock extends AbstractBlock<DynamicTimberFrameBlo
     public void fillItemCategory(final @NotNull NonNullList<ItemStack> items) {
         fillDOItemCategory(this, items, fillItemGroupCache);
     }
-
-    // TODO(port-26.2): DISABLED — Block#rotate(BlockState, LevelAccessor, BlockPos, Rotation) is a
-    //   NeoForge-only overload; vanilla 26.2 only has rotate(BlockState, Rotation)
-    //   (/opt/mc-src/net/minecraft/world/level/block/state/BlockBehaviour.java:255), which has no
-    //   position and therefore no block entity to rotate. Rotating a dynamic timber frame (structure
-    //   tooling / MineColonies blueprints) no longer rotates its internal offset map.
-    // @Override
-    // public BlockState rotate(final BlockState state, final LevelAccessor level, final BlockPos pos, final Rotation direction)
-    // {
-    //     if (level.getBlockEntity(pos) instanceof DynamicTimberFrameBlockEntity dynamicTimberFrameBlockEntity) {
-    //         dynamicTimberFrameBlockEntity.rotate(direction.ordinal());
-    //     }
-    //     return super.rotate(state, level, pos, direction);
-    // }
 
     @Override
     public BlockState rotate(final BlockState p_60530_, final Rotation p_60531_)

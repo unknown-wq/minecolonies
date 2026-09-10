@@ -21,19 +21,15 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Explosion;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -44,7 +40,6 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.pathfinder.PathComputationType;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
@@ -336,28 +331,10 @@ public class ShingleSlabBlock extends AbstractBlockDirectional<ShingleSlabBlock>
         new ArchitectsCutterRecipeBuilder(this, RecipeCategory.BUILDING_BLOCKS).count(COMPONENTS.size() * 2).save(recipeOutput);
     }
 
-    // TODO(port-26.2): DISABLED — per-material explosion resistance. NeoForge's
-    //   Block#getExplosionResistance(BlockState, BlockGetter, BlockPos, Explosion) does not exist in
-    //   vanilla 26.2 (only Block#getExplosionResistance(), /opt/mc-src/.../block/Block.java:445) and
-    //   Fabric has no hook for it, so the resistance of the skin block can no longer be applied.
-    // @Override
-    // public float getExplosionResistance(BlockState state, BlockGetter level, BlockPos pos, Explosion explosion) {
-    //     return getDOExplosionResistance(super::getExplosionResistance, state, level, pos, explosion);
-    // }
-
     @Override
     public float getDestroyProgress(@NotNull BlockState state, @NotNull Player player, @NotNull BlockGetter level, @NotNull BlockPos pos) {
         return getDODestroyProgress(super::getDestroyProgress, state, player, level, pos);
     }
-
-    // TODO(port-26.2): DISABLED — per-material sound type. NeoForge's
-    //   Block#getSoundType(BlockState, LevelReader, BlockPos, Entity) does not exist in vanilla 26.2
-    //   (only BlockBehaviour#getSoundType(BlockState), /opt/mc-src/.../BlockBehaviour.java:404, which
-    //   has no position to read the block entity from) and Fabric has no hook for it.
-    // @Override
-    // public SoundType getSoundType(BlockState state, LevelReader level, BlockPos pos, @org.jetbrains.annotations.Nullable Entity entity) {
-    //     return getDOSoundType(super::getSoundType, state, level, pos, entity);
-    // }
 
     @Override
     public IMateriallyTexturedBlockComponent getMainComponent() {

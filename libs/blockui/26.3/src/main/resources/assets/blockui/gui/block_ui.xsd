@@ -17,15 +17,16 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <!-- Parsers.SCALED splits on "\\s*[,\\s]\\s*", so a comma separates just as well as a space. -->
     <xs:simpleType name="sizePair">
         <xs:restriction base="xs:string">
-            <xs:pattern value="([-+]?\d+)(%|px)?( +([-+]?\d+)(%|px)?)?"/>
+            <xs:pattern value="([-+]?\d+)(%|px)?(\s*[,\s]\s*([-+]?\d+)(%|px)?)?"/>
         </xs:restriction>
     </xs:simpleType>
 
     <xs:simpleType name="fixedSizePair">
         <xs:restriction base="xs:string">
-            <xs:pattern value="(-)?\d+( +\d+)?"/>
+            <xs:pattern value="(-)?\d+(\s*[,\s]\s*(-)?\d+)?"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -122,6 +123,8 @@
         <xs:choice>
             <xs:element name="layout" type="layoutElementType"/>
             <xs:element name="view" type="viewType"/>
+            <!-- Loader registers "overlay" for OverlayView; it was missing here until 26.3. -->
+            <xs:element name="overlay" type="viewType"/>
             <xs:element name="zoomdragview" type="zoomDragType"/>
             <xs:element name="group" type="groupType"/>
             <xs:element name="scrollgroup" type="scrollViewType"/>
@@ -292,21 +295,32 @@
                 <xs:attribute name="colordisabled" type="xs:string"/>
                 <xs:attribute name="shadow" type="xs:boolean"/>
                 <xs:attribute name="tab" type="xs:string"/>
+                <!-- TextFieldVanilla reads these three; they were missing here until 26.3. -->
+                <xs:attribute name="background" type="xs:boolean"/>
+                <xs:attribute name="backgroundOuter" type="xs:string"/>
+                <xs:attribute name="backgroundInner" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
 
-    <!-- <dropdown> -->
+    <!--
+        <dropdown>
+        DropDownList hands its own PaneParams to both a ButtonImage and a ScrollingList, so it accepts every
+        attribute either of those reads. It used to be declared here as a bare pane, which made a perfectly valid
+        layout fail validation on, for instance, textscale=.
+    -->
     <xs:complexType name="dropdownType">
         <xs:complexContent>
-            <xs:extension base="paneType">
+            <xs:extension base="buttonType">
                 <xs:group ref="paneContainerGroup" minOccurs="1" maxOccurs="1"/>
                 <xs:attribute name="padding" type="xs:integer"/>
                 <xs:attribute name="maxContentHeight" type="xs:integer"/>
                 <xs:attribute name="dropDownSize" type="fixedSizePair"/>
-                <xs:attribute name="source" type="xs:string"/>
-                <xs:attribute name="textcolor" type="xs:string"/>
+                <xs:attribute name="childspacing" type="xs:integer"/>
                 <xs:attribute name="scrollbarOffset" type="fixedSizePair"/>
+                <xs:attribute name="emptytext" type="xs:string"/>
+                <xs:attribute name="emptyscale" type="xs:string"/>
+                <xs:attribute name="emptycolor" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

@@ -341,11 +341,6 @@ public class BlueprintPreviewData
         return renderKey;
     }
 
-    public boolean isServerSyncEnabled()
-    {
-        return serverSyncEnabled;
-    }
-
     /**
      * Sets whether substitution blocks should render nice
      *
@@ -373,11 +368,6 @@ public class BlueprintPreviewData
     public void setOverridePreviewTransparency(final float overridePreviewTransparency)
     {
         this.overridePreviewTransparency = Mth.clamp(overridePreviewTransparency, -1, 1);
-    }
-
-    public float getOverridePreviewTransparency()
-    {
-        return overridePreviewTransparency;
     }
 
     /**

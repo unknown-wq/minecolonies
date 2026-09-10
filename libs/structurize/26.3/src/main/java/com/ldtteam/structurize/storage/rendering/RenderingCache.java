@@ -1,6 +1,5 @@
 package com.ldtteam.structurize.storage.rendering;
 
-import com.ldtteam.structurize.Structurize;
 import com.ldtteam.structurize.network.messages.SyncPreviewCacheToClient;
 import com.ldtteam.structurize.storage.rendering.types.BlueprintPreviewData;
 import com.ldtteam.structurize.storage.rendering.types.BoxPreviewData;
@@ -119,24 +118,6 @@ public class RenderingCache
     public static BlueprintPreviewData getOrCreateBlueprintPreviewData(final String key)
     {
         return blueprintRenderingCache.computeIfAbsent(key, k -> new BlueprintPreviewData());
-    }
-
-    /**
-     * @return true when should use light level from {@link #getOurLightLevel()}
-     */
-    @Deprecated(forRemoval = true, since = "1.21.1")
-    public static boolean forceLightLevel()
-    {
-        return Structurize.getConfig().getClient().rendererLightLevel.get() >= 0;
-    }
-
-    /**
-     * @return static light level
-     */
-    @Deprecated(forRemoval = true, since = "1.21.1")
-    public static int getOurLightLevel()
-    {
-        return Structurize.getConfig().getClient().rendererLightLevel.get();
     }
 
     /**

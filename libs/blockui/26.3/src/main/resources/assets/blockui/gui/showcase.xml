@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Every control and every view BlockUI ships, on one screen.
+
+    Opened by -Dblockui.testgui=showcase, or from the ctrl+alt+shift+X menu. Its job is to be looked at: if the
+    library still works, this screen renders in full, and every deviation from it is a regression. The code-side
+    half (data providers, checkbox states, the plain TextField that has no xml tag) lives in ShowcaseGui#showcase.
+
+    Deliberate contents worth keeping:
+      - colours in all five notations the parser accepts (#hex, rgb(), rgba(), name, raw unsigned int).
+        Hex is written with eight digits on purpose: six digits leave the alpha byte at zero and draw nothing,
+        which showcase_parser.xml demonstrates side by side.
+      - sizes and positions given both absolutely and as percentages of the parent;
+      - a texture that does not exist, which must render as missingno and must not throw;
+      - an id nothing ever looks up, and an attribute no pane reads, which the parser must ignore.
+-->
+<window xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="block_ui.xsd"
+        size="1280 720" type="FULLSCREEN_VANILLA" lightbox="true">
+
+    <text pos="6 3" size="900 11" textcolor="#FFFFD966" textscale="1.1" text="BlockUI showcase — blockui:gui/showcase.xml"/>
+    <text pos="6 16" size="1268 10" textcolor="lightgray" textscale="0.85"
+          text="Every control and view at once. Esc closes. Hover anything with a border for its tooltip."/>
+
+    <!-- ============================ text elements ============================ -->
+    <box id="sec_text" pos="4 30" size="300 262" color="rgb(90,140,255)" linewidth="1">
+        <text pos="4 3" size="292 10" textcolor="aqua" text="Text / AbstractTextElement"/>
+        <text pos="4 16" size="292 10" text="default colour, default scale"/>
+        <text pos="4 28" size="292 10" textcolor="#FFFF5555" shadow="true" text="#FF5555 hex, shadow=true"/>
+        <text pos="4 40" size="292 10" textcolor="rgb(80,220,120)" shadow="false" text="rgb(80,220,120), shadow=false"/>
+        <text pos="4 52" size="292 10" textcolor="rgba(255,170,0,1.0)" text="rgba(255,170,0,1.0)"/>
+        <text pos="4 64" size="292 10" textcolor="orangered" text="named colour: orangered"/>
+        <text pos="4 76" size="292 10" textcolor="4294902015" text="raw unsigned int 4294902015"/>
+        <text pos="4 88" size="292 20" textscale="1.7" textcolor="ivory" text="textscale 1.7"/>
+        <text pos="4 110" size="292 42" wrap="true" textcolor="white" textscale="0.9"
+              text="wrap=true — Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."/>
+        <text pos="4 154" size="292 10" wrap="false" textcolor="dimgray" textscale="0.9"
+              text="wrap=false — this single line is far too long for the box it was given and has to be cut off somewhere"/>
+        <text pos="4 168" size="292 34" linespace="5" textscale="0.9" textcolor="lightgray"
+              text="linespace=5\nsecond line\nthird line"/>
+        <text pos="4 204" size="142 22" textalign="MIDDLE" textcolor="yellow" textscale="0.9" text="align MIDDLE"/>
+        <text pos="150 204" size="146 22" textalign="BOTTOM_RIGHT" textcolor="yellow" textscale="0.9" text="BOTTOM_RIGHT"/>
+        <text pos="4 228" size="292 10" textcolor="lime" textscale="0.9"
+              tooltip="Tooltip built from the tooltip= attribute.\nSecond line of it."
+              text="[hover] tooltip= attribute"/>
+        <text id="text_hover_source" pos="4 240" size="292 10" textcolor="lime" textscale="0.9"
+              onHoverId="text_hover_target" text="[hover] onHoverId= to a sibling pane"/>
+        <text id="text_hover_target" pos="4 250" size="292 10" textcolor="fuchsia" textscale="0.9"
+              text="…and this is the sibling."/>
+    </box>
+
+    <!-- ============================ buttons and input ============================ -->
+    <box id="sec_buttons" pos="308 30" size="300 262" color="#FF5A8CFF" linewidth="1">
+        <text pos="4 3" size="292 10" textcolor="aqua" text="Button / ButtonImage / CheckBox / ToggleButton"/>
+
+        <button id="btn_vanilla" pos="4 16" size="142 20" label="vanilla button"/>
+        <button id="btn_disabled" pos="150 16" size="146 20" label="enabled=false" enabled="false"/>
+
+        <button id="btn_img" pos="4 40" size="142 20" label="source=blockui:button"
+                source="blockui:button" textscale="0.8"/>
+        <button id="btn_mini" pos="150 40" size="60 20" label="mini"
+                source="blockui:button_mini" disabled="blockui:button_mini_disabled" textscale="0.8"/>
+        <button id="btn_mini_off" pos="214 40" size="82 20" label="mini off" enabled="false"
+                source="blockui:button_mini" disabled="blockui:button_mini_disabled" textscale="0.8"/>
+
+        <button id="btn_scaled" pos="4 64" size="142 28" label="textscale 1.4" textscale="1.4" textcolor="#FFFFEE55"/>
+        <button id="btn_cursor" pos="150 64" size="146 28" label="custom cursor" textscale="0.8"
+                cursor="blockui:textures/gui/test_cursor.png"
+                tooltip="ButtonImage with cursor= and tooltip=.\nThe cursor swaps while hovering."/>
+
+        <button id="btn_offset" pos="4 96" size="292 22" label="textoffset 40 7 / textbox 240 8"
+                source="blockui:button" textoffset="40 7" textbox="240 8" textscale="0.8"/>
+
+        <checkbox id="cb_on" pos="4 124" size="14 15"
+                  source="blockui:button_mini" disabled="blockui:button_mini_disabled" checkmark="blockui:overlay_mini_check"/>
+        <text pos="22 126" size="120 10" textscale="0.9" text="checked (set in code)"/>
+        <checkbox id="cb_off" pos="150 124" size="14 15"
+                  source="blockui:button_mini" disabled="blockui:button_mini_disabled" checkmark="blockui:overlay_mini_check"/>
+        <text pos="168 126" size="128 10" textscale="0.9" text="unchecked"/>
+        <checkbox id="cb_disabled" pos="4 142" size="14 15" enabled="false"
+                  source="blockui:button_mini" disabled="blockui:button_mini_disabled" checkmark="blockui:overlay_mini_check"/>
+        <text pos="22 144" size="270 10" textscale="0.9" text="disabled — uses the disabled= texture"/>
+
+        <toggle id="toggle_states" pos="4 162" size="142 20" options="first|second|third" textscale="0.8"/>
+        <text pos="150 166" size="146 10" textscale="0.85" text="ToggleButton, click to cycle"/>
+
+        <text pos="4 188" size="292 10" textcolor="aqua" text="TextFieldVanilla (&lt;input&gt;) and TextField"/>
+        <input id="input_plain" pos="4 200" size="142 18" textContent="editable" maxlength="24" tab="input_colour"/>
+        <input id="input_colour" pos="150 200" size="146 18" textContent="color/colordisabled"
+               color="#FF55FF55" colordisabled="#FF707070" shadow="true" maxlength="40" tab="input_plain"/>
+        <input id="input_disabled" pos="4 222" size="142 18" textContent="disabled" enabled="false"/>
+        <text pos="150 226" size="146 10" textscale="0.85" text="tab= moves between the two"/>
+        <view id="plain_textfield_host" pos="4 244" size="292 16"/>
+    </box>
+
+    <!-- ============================ images and icons ============================ -->
+    <box id="sec_images" pos="612 30" size="300 262" color="rgba(255,170,0,1.0)" linewidth="1">
+        <text pos="4 3" size="292 10" textcolor="aqua" text="Image / ItemIcon / ItemIconWithBlockState / EntityIcon"/>
+
+        <image id="img_button" pos="4 16" size="120 24" source="blockui:button"/>
+        <image id="img_uv" pos="130 16" size="166 24" source="minecraft:textures/atlas/gui.png"
+               imageoffset="185 548" imagesize="182 5"/>
+        <image id="img_animated" pos="4 44" size="40 40" source="blockui:spritesheet_leaves"/>
+        <image id="img_repeat" pos="48 44" size="40 40" source="blockui:repeat_blit"/>
+        <image id="img_repeat_stretch" pos="92 44" size="40 40" source="blockui:repeat_blit_stretch"/>
+        <image id="img_missing" pos="136 44" size="40 40" source="blockui:this_texture_does_not_exist"
+               tooltip="Deliberately missing texture.\nIt must render as missingno and must not throw."/>
+        <text pos="180 44" size="116 40" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="missingno on the left is on purpose"/>
+
+        <text pos="4 90" size="292 10" textcolor="aqua" textscale="0.9" text="ItemIcon"/>
+        <itemicon id="item_log" pos="4 102" size="24 24" item="minecraft:birch_log"/>
+        <itemicon id="item_pick" pos="32 102" size="24 24" item="minecraft:diamond_pickaxe"/>
+        <itemicon id="item_no_decorations" pos="60 102" size="24 24" item="minecraft:egg" renderItemDecorations="false"/>
+        <itemicon id="item_bundle" pos="88 102" size="24 24" item="minecraft:bundle"
+                  nbt='{"minecraft:bundle_contents": [{count: 1, id: "minecraft:redstone"}, {count: 8, id: "minecraft:egg"}]}'/>
+        <itemicon id="item_shulker" pos="116 102" size="24 24" item="minecraft:lime_shulker_box"
+                  nbt='{"minecraft:container": [{item: {count: 1, id: "minecraft:birch_stairs"}, slot: 0}]}'/>
+
+        <text pos="4 132" size="292 10" textcolor="aqua" textscale="0.9" text="ItemIconWithBlockState (nbt=block_state)"/>
+        <itemicon id="bs_stairs_south" pos="4 144" size="32 32" item="minecraft:oak_stairs"
+                  nbt="{block_state:{facing:'south',waterlogged:'true'}}" alwaysAddBlockStateTooltip="true"/>
+        <itemicon id="bs_stairs_east" pos="40 144" size="32 32" item="minecraft:oak_stairs"
+                  nbt="{block_state:{facing:'east'}}"/>
+        <itemicon id="bs_fence" pos="76 144" size="32 32" item="minecraft:oak_fence"
+                  nbt="{block_state:{south:'true',waterlogged:'true'}}"/>
+        <itemicon id="bs_plain" pos="112 144" size="32 32" item="minecraft:oak_stairs"/>
+
+        <text pos="4 180" size="292 10" textcolor="aqua" textscale="0.9" text="EntityIcon"/>
+        <entityicon id="entity_pig" pos="4 192" size="44 44" entity="minecraft:pig" yaw="30" pitch="-10"/>
+        <entityicon id="entity_allay" pos="52 192" size="44 44" entity="minecraft:allay" yaw="-25" pitch="0"/>
+        <entityicon id="entity_counted" pos="100 192" size="44 44" entity="minecraft:cow" count="12"/>
+        <text pos="148 192" size="148 44" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="yaw/pitch from xml; the third one carries count=12"/>
+
+        <text pos="4 240" size="292 10" textcolor="aqua" textscale="0.9" text="Gradient"/>
+        <gradient id="grad_bw" pos="4 250" size="140 8" gradientstart="rgb(0,0,0)" gradientend="rgb(255,255,255)"/>
+        <gradient id="grad_named" pos="150 250" size="146 8" gradientstart="purple" gradientend="#FF00FFAA"/>
+    </box>
+
+    <!-- ============================ views: group, switch, dropdown ============================ -->
+    <box id="sec_views" pos="916 30" size="360 262" color="#FFB36AFF" linewidth="1">
+        <text pos="4 3" size="352 10" textcolor="aqua" text="View / Group / SwitchView / DropDownList / OverlayView"/>
+
+        <text pos="4 16" size="352 10" textscale="0.9" textcolor="lightgray" text="Group — stacks children, spacing=3"/>
+        <group id="grp" pos="4 28" size="170 74" spacing="3">
+            <button size="100% 18" label="group child 1" textscale="0.8"/>
+            <button size="100% 18" label="group child 2" textscale="0.8"/>
+            <text size="100% 10" textscale="0.85" textcolor="ivory" text="…and a text, size=100%"/>
+        </group>
+
+        <text pos="180 16" size="176 10" textscale="0.9" textcolor="lightgray" text="View, padding=6, 50% wide"/>
+        <view id="view_padded" pos="180 28" size="50% 74" padding="6">
+            <box pos="0 0" size="100% 100%" color="lime" linewidth="1">
+                <text pos="2 2" size="100% 34" wrap="true" textscale="0.8"
+                      text="a plain View with padding, holding a Box that is 100% of it"/>
+            </box>
+        </view>
+
+        <text pos="4 108" size="352 10" textscale="0.9" textcolor="lightgray" text="SwitchView — default=&quot;page_b&quot;"/>
+        <switch id="switch_pages" pos="4 120" size="230 40" default="page_b">
+            <view id="page_a" size="230 40">
+                <text size="230 40" textcolor="red" textscale="1.2" text="page A (hidden)"/>
+            </view>
+            <view id="page_b" size="230 40">
+                <text size="230 40" textcolor="lime" textscale="1.2" text="page B — the default"/>
+            </view>
+            <view id="page_c" size="230 40">
+                <text size="230 40" textcolor="blue" textscale="1.2" text="page C (hidden)"/>
+            </view>
+        </switch>
+        <button id="switch_next" pos="238 120" size="118 20" label="next page" textscale="0.8"/>
+        <text id="switch_label" pos="238 142" size="118 10" textscale="0.85" textcolor="ivory" text="showing: page_b"/>
+
+        <text pos="4 166" size="352 10" textscale="0.9" textcolor="lightgray" text="DropDownList — click to open its overlay"/>
+        <dropdown id="dropdown" pos="4 178" size="150 20" dropDownSize="150 80" source="blockui:button" textscale="0.8">
+            <button id="button" size="150 20" source="blockui:button" textscale="0.8"/>
+        </dropdown>
+        <text id="dropdown_label" pos="160 182" size="196 10" textscale="0.85" textcolor="ivory" text="nothing picked yet"/>
+
+        <text pos="4 202" size="352 10" textscale="0.9" textcolor="lightgray" text="OverlayView — click it to hide it"/>
+        <overlay id="overlay" pos="4 214" size="352 44">
+            <gradient size="352 44" gradientstart="rgba(20,20,60,1.0)" gradientend="rgba(90,30,120,1.0)"/>
+            <text pos="6 4" size="340 36" wrap="true" textscale="0.9" textcolor="white"
+                  text="OverlayView: swallows clicks and hides itself on click or Esc. DropDownList uses one of these for its list."/>
+        </overlay>
+    </box>
+
+    <!-- ============================ scrolling views ============================ -->
+    <box id="sec_scroll" pos="4 296" size="604 406" color="#FF5AD1FF" linewidth="1">
+        <text pos="4 3" size="596 10" textcolor="aqua" text="ScrollingList / ScrollingGroup / Scrollbar"/>
+
+        <text pos="4 16" size="145 10" textscale="0.85" textcolor="lightgray" text="200 rows, scrollbar"/>
+        <list id="list_many" pos="4 28" size="145 180" childspacing="1">
+            <text size="137 12" textscale="0.85"/>
+        </list>
+
+        <text pos="153 16" size="145 10" textscale="0.85" textcolor="lightgray" text="rows of varying height"/>
+        <list id="list_varying" pos="153 28" size="145 180" childspacing="2">
+            <view size="137 14">
+                <gradient size="137 14" gradientstart="rgba(40,40,40,1.0)" gradientend="rgba(90,90,90,1.0)"/>
+                <text pos="2 2" size="133 10" textscale="0.85"/>
+            </view>
+        </list>
+
+        <text pos="302 16" size="145 10" textscale="0.85" textcolor="lightgray" text="checkbox rows (nested view)"/>
+        <list id="list_checks" pos="302 28" size="145 180" childspacing="1">
+            <view size="137 16">
+                <text pos="0 3" size="112 10" textscale="0.85"/>
+                <checkbox id="checkbox" pos="118 1" size="14 15"
+                          source="blockui:button_mini" disabled="blockui:button_mini_disabled"
+                          checkmark="blockui:overlay_mini_check"/>
+            </view>
+        </list>
+
+        <text pos="451 16" size="149 10" textscale="0.85" textcolor="lightgray" text="empty list (emptytext=)"/>
+        <list id="list_empty" pos="451 28" size="149 180" emptytext="This list is empty" emptyscale="0.8" emptycolor="white">
+            <text size="141 12" textscale="0.85"/>
+        </list>
+
+        <text pos="4 212" size="596 10" textcolor="aqua" textscale="0.9"
+              text="ScrollingGroup — lays its children out itself and scrolls them"/>
+        <scrollgroup id="scrollgroup" pos="4 224" size="180 176" childspacing="4">
+            <button size="164 22" label="scroll child 0" textscale="0.8"/>
+            <button size="164 22" label="scroll child 1" textscale="0.8" source="blockui:button"/>
+            <text size="164 22" wrap="true" textscale="0.8" textcolor="ivory" text="a text child that wraps over two lines inside the group"/>
+            <itemicon size="24 24" item="minecraft:diamond"/>
+            <gradient size="164 12" gradientstart="black" gradientend="orange"/>
+            <button size="164 22" label="scroll child 2" textscale="0.8"/>
+            <checkbox size="14 15" source="blockui:button_mini" disabled="blockui:button_mini_disabled"
+                      checkmark="blockui:overlay_mini_check"/>
+            <button size="164 22" label="scroll child 3" textscale="0.8"/>
+            <button size="164 22" label="scroll child 4" textscale="0.8"/>
+            <button size="164 22" label="scroll child 5" textscale="0.8"/>
+        </scrollgroup>
+
+        <text pos="190 224" size="410 10" textscale="0.85" textcolor="lightgray"
+              text="A list inside a scrolling group inside a box — three scroll containers deep."/>
+        <scrollgroup id="scrollgroup_nested" pos="190 238" size="410 162" childspacing="6">
+            <text size="394 10" textscale="0.85" textcolor="ivory" text="↓ a ScrollingList nested in this ScrollingGroup"/>
+            <list id="list_nested" size="394 90" childspacing="1">
+                <view size="386 14">
+                    <text pos="0 2" size="260 10" textscale="0.85"/>
+                    <itemicon pos="264 0" size="14 14" item="minecraft:gold_ingot"/>
+                </view>
+            </list>
+            <text size="394 10" textscale="0.85" textcolor="ivory" text="↓ and a Group nested in it as well"/>
+            <group size="394 60" spacing="2">
+                <button size="100% 18" label="deeply nested button" textscale="0.8"/>
+                <input size="100% 18" textContent="deeply nested input"/>
+                <text size="100% 10" textscale="0.85" text="deeply nested text"/>
+            </group>
+        </scrollgroup>
+    </box>
+
+    <!-- ============================ zoom / drag ============================ -->
+    <box id="sec_zoom" pos="612 296" size="664 406" color="#FFFF7ACF" linewidth="1">
+        <text pos="4 3" size="656 10" textcolor="aqua"
+              text="ZoomDragView — drag with the mouse, scroll to zoom (minscale 0.25, maxscale 4)"/>
+        <zoomdragview id="zoomdrag" pos="4 16" size="656 386" minscale="0.25" maxscale="4" zoomfactor="1.15" dragfactor="1">
+            <gradient pos="0 0" size="400 300" gradientstart="rgba(25,25,45,1.0)" gradientend="rgba(15,60,60,1.0)"/>
+            <text pos="6 4" size="390 10" textcolor="yellow" textscale="0.9" text="content of the ZoomDragView"/>
+            <box pos="6 18" size="180 120" color="lime" linewidth="2">
+                <text pos="4 2" size="170 10" textscale="0.85" text="a Box inside the zoom view"/>
+                <itemicon pos="4 16" size="32 32" item="minecraft:netherite_upgrade_smithing_template"/>
+                <itemicon pos="40 16" size="32 32" item="minecraft:enchanted_golden_apple"/>
+                <button pos="4 52" size="170 20" label="button at 1:1" textscale="0.8"/>
+                <input pos="4 76" size="170 18" textContent="input inside a zoom view"/>
+            </box>
+            <scrollgroup pos="192 18" size="120 260" childspacing="4">
+                <button size="104 22" label="z 0" textscale="0.8"/>
+                <button size="104 22" label="z 1" textscale="0.8"/>
+                <button size="104 22" label="z 2" textscale="0.8"/>
+                <button size="104 22" label="z 3" textscale="0.8"/>
+                <button size="104 22" label="z 4" textscale="0.8"/>
+                <button size="104 22" label="z 5" textscale="0.8"/>
+                <button size="104 22" label="z 6" textscale="0.8"/>
+                <button size="104 22" label="z 7" textscale="0.8"/>
+            </scrollgroup>
+            <dropdown id="zoom_dropdown" pos="318 18" size="120 20" dropDownSize="120 80" source="blockui:button" textscale="0.8">
+                <button id="button" size="120 20" source="blockui:button" textscale="0.8"/>
+            </dropdown>
+            <itemicon pos="318 44" size="48 48" item="domum_ornamentum:plain"
+                      nbt="{block_state:{facing:'up'}, block_entity_data:{id:'domum_ornamentum:materially_retexturable',textureData:{'minecraft:block/oak_planks':'minecraft:polished_basalt','minecraft:block/dark_oak_planks':'minecraft:red_stained_glass'}}}"/>
+            <text pos="318 96" size="120 30" wrap="true" textscale="0.8" textcolor="lightgray"
+                  text="Domum Ornamentum retextured block, if that mod is present"/>
+            <text pos="6 144" size="180 60" wrap="true" textscale="0.8" textcolor="ivory"
+                  text="Zooming rescales the whole subtree, including the text, the scrollbars and the hit boxes."/>
+        </zoomdragview>
+    </box>
+</window>

@@ -373,19 +373,9 @@ public abstract class AbstractTextElement extends Pane
         ms.popMatrix();
     }
 
-    public Alignment getTextAlignment()
-    {
-        return textAlignment;
-    }
-
     public void setTextAlignment(final Alignment textAlignment)
     {
         this.textAlignment = textAlignment;
-    }
-
-    public double getTextScale()
-    {
-        return textScale;
     }
 
     public void setTextScale(final double textScale)
@@ -426,51 +416,6 @@ public abstract class AbstractTextElement extends Pane
     public void setTextColor(final int textColor)
     {
         this.textColor = textColor;
-    }
-
-    public int getTextHoverColor()
-    {
-        return textHoverColor;
-    }
-
-    public void setTextHoverColor(final int textHoverColor)
-    {
-        this.textHoverColor = textHoverColor;
-    }
-
-    public int getTextDisabledColor()
-    {
-        return textDisabledColor;
-    }
-
-    public void setTextDisabledColor(final int textDisabledColor)
-    {
-        this.textDisabledColor = textDisabledColor;
-    }
-
-    public int getTextLinespace()
-    {
-        return textLinespace;
-    }
-
-    public void setTextLinespace(final int textLinespace)
-    {
-        this.textLinespace = textLinespace;
-    }
-
-    public boolean isTextShadow()
-    {
-        return textShadow;
-    }
-
-    public void setTextShadow(final boolean textShadow)
-    {
-        this.textShadow = textShadow;
-    }
-
-    public boolean isTextWrap()
-    {
-        return textWrap;
     }
 
     public void setTextWrap(final boolean textWrap)
@@ -524,15 +469,6 @@ public abstract class AbstractTextElement extends Pane
     }
 
     /**
-     * @return null if empty, otherwise first line as string
-     */
-    @Nullable
-    public String getTextAsStringStrict()
-    {
-        return isTextEmpty() ? null : text.get(0).getString();
-    }
-
-    /**
      * @return emptyString if empty, otherwise first line as string
      */
     public String getTextAsString()
@@ -551,16 +487,6 @@ public abstract class AbstractTextElement extends Pane
     public int getRenderedTextWidth()
     {
         return renderedTextWidth;
-    }
-
-    public int getRenderedTextHeight()
-    {
-        return renderedTextHeight;
-    }
-
-    public List<FormattedCharSequence> getPreparedText()
-    {
-        return preparedText;
     }
 
     @Override

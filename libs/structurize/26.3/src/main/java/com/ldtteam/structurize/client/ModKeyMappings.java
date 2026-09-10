@@ -2,6 +2,7 @@ package com.ldtteam.structurize.client;
 
 import com.ldtteam.structurize.api.constants.Constants;
 import com.ldtteam.structurize.client.gui.GuiStubs;
+import com.google.common.base.Suppliers;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
@@ -68,34 +69,34 @@ public class ModKeyMappings
     /**
      * Teleport using active Scan Tool
      */
-    public static final Supplier<KeyMapping> TELEPORT = lazy(() -> new KeyMapping("key.structurize.teleport",
+    public static final Supplier<KeyMapping> TELEPORT = Suppliers.memoize(() -> new KeyMapping("key.structurize.teleport",
             InputConstants.Type.KEYBOARD, InputConstants.UNKNOWN.getValue(), CATEGORY));
 
     /**
      * Move build previews
      */
-    public static final Supplier<KeyMapping> MOVE_FORWARD = lazy(() -> new KeyMapping("key.structurize.move_forward",
+    public static final Supplier<KeyMapping> MOVE_FORWARD = Suppliers.memoize(() -> new KeyMapping("key.structurize.move_forward",
             InputConstants.Type.KEYBOARD, InputConstants.KEY_UP, CATEGORY));
-    public static final Supplier<KeyMapping> MOVE_BACK = lazy(() -> new KeyMapping("key.structurize.move_back",
+    public static final Supplier<KeyMapping> MOVE_BACK = Suppliers.memoize(() -> new KeyMapping("key.structurize.move_back",
             InputConstants.Type.KEYBOARD, InputConstants.KEY_DOWN, CATEGORY));
-    public static final Supplier<KeyMapping> MOVE_LEFT = lazy(() -> new KeyMapping("key.structurize.move_left",
+    public static final Supplier<KeyMapping> MOVE_LEFT = Suppliers.memoize(() -> new KeyMapping("key.structurize.move_left",
             InputConstants.Type.KEYBOARD, InputConstants.KEY_LEFT, CATEGORY));
-    public static final Supplier<KeyMapping> MOVE_RIGHT = lazy(() -> new KeyMapping("key.structurize.move_right",
+    public static final Supplier<KeyMapping> MOVE_RIGHT = Suppliers.memoize(() -> new KeyMapping("key.structurize.move_right",
             InputConstants.Type.KEYBOARD, InputConstants.KEY_RIGHT, CATEGORY));
-    public static final Supplier<KeyMapping> MOVE_UP = lazy(() -> new KeyMapping("key.structurize.move_up",
+    public static final Supplier<KeyMapping> MOVE_UP = Suppliers.memoize(() -> new KeyMapping("key.structurize.move_up",
             InputConstants.Type.KEYBOARD, InputConstants.KEY_ADD, CATEGORY));
-    public static final Supplier<KeyMapping> MOVE_DOWN = lazy(() -> new KeyMapping("key.structurize.move_down",
+    public static final Supplier<KeyMapping> MOVE_DOWN = Suppliers.memoize(() -> new KeyMapping("key.structurize.move_down",
             InputConstants.Type.KEYBOARD, SDLScancode.SDL_SCANCODE_KP_MINUS, CATEGORY));
     // TODO(port-26.2): DEGRADED — KeyModifier.SHIFT dropped, 26.2 KeyMapping has no modifier support.
     //  ROTATE_CW/CCW would collide with MOVE_RIGHT/MOVE_LEFT, so they are rebound to X/Z by default.
     /* ROTATE_CW  = shift + GLFW_KEY_RIGHT, ROTATE_CCW = shift + GLFW_KEY_LEFT */
-    public static final Supplier<KeyMapping> ROTATE_CW = lazy(() -> new KeyMapping("key.structurize.rotate_cw",
+    public static final Supplier<KeyMapping> ROTATE_CW = Suppliers.memoize(() -> new KeyMapping("key.structurize.rotate_cw",
             InputConstants.Type.KEYBOARD, InputConstants.KEY_X, CATEGORY));
-    public static final Supplier<KeyMapping> ROTATE_CCW = lazy(() -> new KeyMapping("key.structurize.rotate_ccw",
+    public static final Supplier<KeyMapping> ROTATE_CCW = Suppliers.memoize(() -> new KeyMapping("key.structurize.rotate_ccw",
             InputConstants.Type.KEYBOARD, InputConstants.KEY_Z, CATEGORY));
-    public static final Supplier<KeyMapping> MIRROR = lazy(() -> new KeyMapping("key.structurize.mirror",
+    public static final Supplier<KeyMapping> MIRROR = Suppliers.memoize(() -> new KeyMapping("key.structurize.mirror",
             InputConstants.Type.KEYBOARD, InputConstants.KEY_M, CATEGORY));
-    public static final Supplier<KeyMapping> PLACE = lazy(() -> new KeyMapping("key.structurize.place",
+    public static final Supplier<KeyMapping> PLACE = Suppliers.memoize(() -> new KeyMapping("key.structurize.place",
             InputConstants.Type.KEYBOARD, InputConstants.KEY_RETURN, CATEGORY));
 
     /**
@@ -114,28 +115,6 @@ public class ModKeyMappings
         KeyMappingHelper.registerKeyMapping(ROTATE_CCW.get());
         KeyMappingHelper.registerKeyMapping(MIRROR.get());
         KeyMappingHelper.registerKeyMapping(PLACE.get());
-    }
-
-    /**
-     * Minimal stand-in for NeoForge's {@code Lazy}: keeps every {@code .get()} call site untouched while the
-     * {@link KeyMapping} constructor (which self-registers into a static vanilla map) stays deferred.
-     */
-    private static <T> Supplier<T> lazy(final Supplier<T> factory)
-    {
-        return new Supplier<>()
-        {
-            private T value;
-
-            @Override
-            public T get()
-            {
-                if (value == null)
-                {
-                    value = factory.get();
-                }
-                return value;
-            }
-        };
     }
 
     /**

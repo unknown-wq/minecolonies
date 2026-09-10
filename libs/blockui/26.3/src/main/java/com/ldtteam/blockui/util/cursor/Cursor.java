@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Interface to wrap various cursors
@@ -36,19 +38,33 @@ public class Cursor
     public static final CursorType RESIZE = CursorTypes.RESIZE_ALL;
     public static final CursorType NOT_ALLOWED = CursorTypes.NOT_ALLOWED;
 
-    private static final Map<String, CursorType> CURSOR_MAP = Map.ofEntries(
-        Map.entry(DEFAULT.name, DEFAULT),
-        Map.entry(ARROW.name, ARROW),
-        Map.entry(TEXT_CURSOR.name, TEXT_CURSOR),
-        Map.entry(CROSSHAIR.name, CROSSHAIR),
-        Map.entry(HAND.name, HAND),
-        Map.entry(HORIZONTAL_RESIZE.name, HORIZONTAL_RESIZE),
-        Map.entry(VERTICAL_RESIZE.name, VERTICAL_RESIZE),
-        Map.entry(RESIZE_NWSE.name, RESIZE_NWSE),
-        Map.entry(RESIZE_NESW.name, RESIZE_NESW),
-        Map.entry(RESIZE.name, RESIZE),
-        Map.entry(NOT_ALLOWED.name, NOT_ALLOWED)
-    );
+    /**
+     * Name -> cursor lookup behind the {@code blockui_std:} namespace in {@link #of(Identifier)}.
+     * <p>
+     * The constants above are not guaranteed to be distinct objects: {@code CursorType#createStandardCursor} returns the
+     * fallback it was handed - here always {@link #DEFAULT}, whose name is {@code "default"} - whenever the platform
+     * cannot supply that shape - which cursors those are is up to the OS and the active cursor theme, and on Linux the
+     * two diagonal resize shapes are the usual casualties. The list below then holds {@link #DEFAULT} more than once,
+     * and {@code Map.ofEntries} rejects the repeated key outright: {@code IllegalArgumentException: duplicate key:
+     * default} killed this class initializer, and with it every window, the first time a Pane was constructed.
+     * <p>
+     * Duplicates are therefore collapsed rather than treated as an error: a cursor the platform did not provide simply
+     * has no entry of its own, and {@link #of(Identifier)} resolves its name to {@link #DEFAULT} - the cursor it had
+     * already fallen back to anyway.
+     */
+    private static final Map<String, CursorType> CURSOR_MAP = Stream
+        .of(DEFAULT,
+            ARROW,
+            TEXT_CURSOR,
+            CROSSHAIR,
+            HAND,
+            HORIZONTAL_RESIZE,
+            VERTICAL_RESIZE,
+            RESIZE_NWSE,
+            RESIZE_NESW,
+            RESIZE,
+            NOT_ALLOWED)
+        .collect(Collectors.toUnmodifiableMap(cursor -> cursor.name, cursor -> cursor, (first, second) -> first));
 
     public static CursorType of(final Identifier resLoc)
     {

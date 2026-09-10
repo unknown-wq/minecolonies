@@ -48,22 +48,6 @@ public class CheckBox extends ButtonImage
         return true;
     }
 
-    /**
-     * Set the checkmark image.
-     *
-     * @param loc Identifier for the checkmark.
-     */
-    public void setCheckmarkImage(final Identifier loc)
-    {
-        this.checkmarkImage = loc;
-        requireNonNull(checkmarkImage, "Missing checkmark texture");
-    }
-
-    public Identifier getCheckmarkImage()
-    {
-        return checkmarkImage;
-    }
-
     @Override
     public void postDrawBackground(final BOGuiGraphics target, final double mx, final double my)
     {

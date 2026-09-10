@@ -12,17 +12,17 @@ public enum DataVersion
      * - successors match
      * - upcoming has data version = (latest data version + 1)
      */
-    UPCOMING(5018 + 1, null, null),
+    UPCOMING(5019 + 1, null, null),
 
-    // TODO(port-26.3): 26.3-pre-2 carries world_version 5018 (version.json in the client jar, matching
-    // DetectedVersion#createBuiltIn); pre-1 carried 5017 and snapshot-10 carried 5015. Only the newest value is
-    // listed -- the chain drives the step-by-step walk in DataFixerUtils, and no blueprint in the wild was saved by
-    // a snapshot of the version currently being ported. Without an entry at or above the running data version the
-    // chain ends at UPCOMING, so DataFixerUtils#runDataFixerCascade walks past the last known version and NPEs on a
-    // null successor (BlueprintUtilTileEntityFixTest#ordinaryBlockEntitiesStillSurvive), and
+    // TODO(port-26.3): 26.3-pre-3 carries world_version 5019 (version.json in the client jar, matching
+    // DetectedVersion#createBuiltIn); pre-2 carried 5018, pre-1 carried 5017 and snapshot-10 carried 5015. Only the
+    // newest value is listed -- the chain drives the step-by-step walk in DataFixerUtils, and no blueprint in the
+    // wild was saved by a snapshot of the version currently being ported. Without an entry at or above the
+    // running data version the chain ends at UPCOMING, so DataFixerUtils#runDataFixerCascade walks past the last
+    // known version and NPEs on a null successor (BlueprintUtilTileEntityFixTest#ordinaryBlockEntitiesStillSurvive), and
     // Structurize#checkDataFixer throws "Missing some newest data versions" in any dev run because CURRENT resolves
     // to UPCOMING. Bump both this and UPCOMING on every version move.
-    v26_3(5018, "26.3", UPCOMING),
+    v26_3(5019, "26.3", UPCOMING),
 
     // 26.2 data version, /opt/mc-src/net/minecraft/DetectedVersion.java:28. The releases between 1.21.1 and
     // 26.2 (1.21.2 ... 1.21.11, 26.1.x) are deliberately not listed: this chain only drives the step-by-step
@@ -108,41 +108,9 @@ public enum DataVersion
     /**
      * @return mc version as readable string
      */
-    public String getMcVersion()
-    {
-        return mcVersion;
-    }
-
-    /**
-     * @return mc version as readable string
-     */
     public DataVersion getSuccessor()
     {
         return successor;
-    }
-
-    /**
-     * Find data version based on string in format "x.y.z" which should represent Minecraft release version.
-     * Default is data version "0" which is pre 1.9
-     *
-     * @param mcVersion string in format "x.y.z" representing Minecraft release version
-     * @return data version enum
-     */
-    public static DataVersion findFromMcVersion(final String mcVersion)
-    {
-        if (mcVersion == null)
-        {
-            return DataVersion.DEFAULT;
-        }
-
-        for (final DataVersion ver : DataVersion.values())
-        {
-            if (ver.mcVersion != null && ver.mcVersion.equals(mcVersion))
-            {
-                return ver;
-            }
-        }
-        return DataVersion.DEFAULT;
     }
 
     /**

@@ -14,16 +14,26 @@ repositories {
 }
 
 loom {
-	// Compile-time half of the access widener: Loom widens the vanilla classes before javac reads
-	// them. The runtime half is the "accessWidener" key in src/main/resources/fabric.mod.json —
-	// without it a dev run still works (the classes are already widened here) while a real client
-	// throws IllegalAccessError, so the two must always be changed together.
-	accessWidenerPath = file('src/main/resources/domum_ornamentum.accesswidener')
+	// Build-time only. The widener exists for the datagen source set alone -- it opens three private
+	// fields of net.minecraft.client.data.models.BlockModelGenerators, a class that only runs during
+	// data generation. Loom applies this to the compile classpath of every source set, which is all
+	// the generators need; a dev run works off the same widened jar. It is deliberately NOT named by
+	// the "accessWidener" key in fabric.mod.json and deliberately NOT under src/main/resources, so
+	// it is neither shipped in the jar nor applied on players' clients.
+	accessWidenerPath = file('src/datagen/resources/domum_ornamentum.accesswidener')
 }
 
 fabricApi {
 	configureDataGeneration {
 		client = true
+		// Keep the generators out of the shipped jar: they compile into their own "datagen" source
+		// set (src/datagen/java), which nothing packages, while the output they write stays where it
+		// has always been and keeps being added to the main resources.
+		createSourceSet = true
+		// Has to stay the real mod id: FabricDataGenerator#getModId() is the default namespace for
+		// the lang file and the recipe advancements, so a build-time-only id would move 124 of the
+		// 876 generated files into assets/<that id>/ and data/<that id>/.
+		modId = "domum_ornamentum"
 	}
 }
 
@@ -54,8 +64,38 @@ java {
 	targetCompatibility = JavaVersion.VERSION_25
 }
 
+// The generators compile into the datagen source set and are not packaged, so the shipped
+// fabric.mod.json must not advertise the fabric-datagen entrypoint either. Fabric instantiates that
+// entrypoint for every mod on the classpath before it filters by
+// -Dfabric-api.datagen.modid, so a jar naming a class it does not carry kills any other mod's
+// datagen run -- MineColonies' own included -- with ClassNotFoundException.
+//
+// src/main/resources keeps the declaration, because that copy (via processResources) is what this
+// project's own runDatagen reads. Only the copy that goes into the jar loses the key.
+// Named ".stripped" on disk so the `exclude` below, which drops the processResources copy,
+// does not also drop this one; the rename in the jar spec runs after the filter.
+def shippedFabricModJson = layout.buildDirectory.file("shipped-metadata/fabric.mod.json.stripped")
+def stripDatagenEntrypoint = tasks.register("stripDatagenEntrypoint") {
+	def source = layout.buildDirectory.file("resources/main/fabric.mod.json")
+	dependsOn tasks.named("processResources")
+	inputs.file(source)
+	outputs.file(shippedFabricModJson)
+	doLast {
+		final Map json = new groovy.json.JsonSlurper().parse(source.get().asFile) as Map
+		((Map) json.entrypoints).remove("fabric-datagen")
+		final File out = shippedFabricModJson.get().asFile
+		out.parentFile.mkdirs()
+		out.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(json)) + "\n"
+	}
+}
+
 jar {
 	from("LICENSE") {
 		rename { "${it}_${project.base.archivesName.get()}"}
+	}
+
+	exclude "fabric.mod.json"
+	from(stripDatagenEntrypoint) {
+		rename { "fabric.mod.json" }
 	}
 }

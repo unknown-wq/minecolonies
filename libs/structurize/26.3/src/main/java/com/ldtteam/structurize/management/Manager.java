@@ -4,17 +4,14 @@ import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.ldtteam.structurize.Structurize;
 import com.ldtteam.structurize.operations.RedoOperation;
 import com.ldtteam.structurize.operations.UndoOperation;
-import com.ldtteam.structurize.placement.StructurePlacementUtils;
 import com.ldtteam.structurize.util.BlockUtils;
 import com.ldtteam.structurize.util.ChangeStorage;
 import com.ldtteam.structurize.util.ITickedWorldOperation;
-import com.ldtteam.structurize.api.RotationMirror;
 import com.ldtteam.structurize.api.Shape;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -116,43 +113,6 @@ public final class Manager
     public static List<ChangeStorage> getChangeStoragesForPlayer(final UUID player)
     {
         return changeQueue.getOrDefault(player, new ArrayList<>());
-    }
-
-    /**
-     * Paste a structure into the world.
-     *
-     * @param server         the server world.
-     * @param pos            the position.
-     * @param width          the width.
-     * @param length         the length.
-     * @param height         the height.
-     * @param frequency      the frequency.
-     * @param equation       the equation.
-     * @param shape          the shape.
-     * @param inputBlock     the input block.
-     * @param inputFillBlock the fill block.
-     * @param hollow         if hollow or not.
-     * @param player         the player.
-     * @param rotMir         the mirror and the rotation.
-     */
-    public static void pasteStructure(
-      final ServerLevel server,
-      final BlockPos pos,
-      final int width,
-      final int length,
-      final int height,
-      final int frequency,
-      final String equation,
-      final Shape shape,
-      final ItemStack inputBlock,
-      final ItemStack inputFillBlock,
-      final boolean hollow,
-      final ServerPlayer player,
-      final RotationMirror rotMir,
-      final HolderLookup.Provider provider)
-    {
-        final Blueprint blueprint = Manager.getStructureFromFormula(width, length, height, frequency, equation, shape, inputBlock, inputFillBlock, hollow, provider);
-        StructurePlacementUtils.loadAndPlaceStructureWithRotation(server, blueprint, pos, rotMir, true, player);
     }
 
     /**

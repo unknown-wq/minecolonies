@@ -8,7 +8,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import com.ldtteam.structurize.api.Tuple;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -23,7 +22,6 @@ import net.minecraft.world.level.Level;
 
 import java.util.Optional;
 import java.util.function.UnaryOperator;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Abstract item mechanic for pos selecting
@@ -152,34 +150,6 @@ public abstract class AbstractItemWithPosSelector extends Item
     public float getDestroySpeed(final ItemStack stack, final BlockState state)
     {
         return Float.MAX_VALUE;
-    }
-
-    /**
-     * Saves the start/end coordinates on this stack.
-     * @param tool The tool stack (assumed already been validated)
-     * @param start The new start position
-     * @param end The new end position
-     * @deprecated use datacomponents
-     */
-    @Deprecated(forRemoval = true, since = "1.21")
-    public static void setBounds(@NotNull final ItemStack tool,
-                                 @NotNull final BlockPos start,
-                                 @NotNull final BlockPos end)
-    {
-        PosSelection.updateItemStack(tool, data -> data.setSelection(start, end));
-    }
-
-    /**
-     * Loads the start/end coordinates from this stack.
-     * @param tool The tool stack (assumed already been validated)
-     * @return the start/end positions
-     * @deprecated use datacomponents
-     */
-    @Deprecated(forRemoval = true, since = "1.21")
-    public static Tuple<BlockPos, BlockPos> getBounds(@NotNull final ItemStack tool)
-    {
-        final PosSelection tag = PosSelection.readFromItemStack(tool);
-        return new Tuple<>(tag.startPos().orElse(null), tag.endPos().orElse(null));
     }
 
     /**

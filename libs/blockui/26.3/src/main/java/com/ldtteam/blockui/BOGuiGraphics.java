@@ -21,8 +21,10 @@ public class BOGuiGraphics extends GuiGraphicsExtractor
     private CursorType selectedCursor = Cursor.DEFAULT;
 
     /**
-     * Own handle on the client. {@code GuiGraphicsExtractor#minecraft} is private in 26.2 and there is no
-     * accessor for it, so we keep the very same instance the super class was built with.
+     * Own handle on the client. {@code GuiGraphicsExtractor#minecraft} is private in 26.2 and there is no accessor
+     * for it, so we keep the very same instance the super class was built with. This field is why
+     * {@code blockui.accesswidener} does <em>not</em> open that private field: one copied reference is cheaper than
+     * an access-widener entry, and the widener has to stay as small as it can be.
      */
     private final Minecraft mc;
 

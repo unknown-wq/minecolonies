@@ -63,11 +63,6 @@ public class TextField extends Pane
         this.cursor = this.cursor == Cursor.DEFAULT ? Cursor.TEXT_CURSOR : this.cursor;
     }
 
-    public Filter getFilter()
-    {
-        return filter;
-    }
-
     public void setFilter(final Filter f)
     {
         filter = f;
@@ -84,25 +79,9 @@ public class TextField extends Pane
         setCursorPosition(text.length());
     }
 
-    public void setTextIgnoreLength(final String s)
-    {
-        text = s;
-        setCursorPosition(text.length());
-    }
-
     public int getInternalWidth()
     {
         return getWidth();
-    }
-
-    public int getMaxTextLength()
-    {
-        return maxTextLength;
-    }
-
-    public void setMaxTextLength(final int m)
-    {
-        maxTextLength = m;
     }
 
     public int getTextColor()
@@ -113,32 +92,6 @@ public class TextField extends Pane
     public void setTextColor(final int c)
     {
         textColor = c;
-    }
-
-    public int getTextColorDisabled()
-    {
-        return textColorDisabled;
-    }
-
-    public void setTextColorDisabled(final int c)
-    {
-        textColorDisabled = c;
-    }
-
-    @Nullable
-    public String getTabNextPaneID()
-    {
-        return tabNextPaneID;
-    }
-
-    public void setTabNextPaneID(final String nextID)
-    {
-        tabNextPaneID = nextID;
-    }
-
-    public int getCursorPosition()
-    {
-        return cursorPosition;
     }
 
     public void setCursorPosition(final int pos)

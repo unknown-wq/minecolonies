@@ -99,16 +99,6 @@ public final class DomumCompat
     }
 
     /**
-     * @param blockEntity the block entity to test, may be null.
-     * @return true when this block entity exposes DO texture data at all (interface check, wider than
-     *         {@link #isMateriallyTexturedBlockEntity(BlockEntity)}).
-     */
-    public static boolean hasTextureData(final @Nullable BlockEntity blockEntity)
-    {
-        return blockEntity instanceof IMateriallyTexturedBlockEntity;
-    }
-
-    /**
      * Compares the texture data a block entity currently carries against the texture data serialised in a
      * blueprint's block entity tag. Understands both the current and the legacy tag name.
      *

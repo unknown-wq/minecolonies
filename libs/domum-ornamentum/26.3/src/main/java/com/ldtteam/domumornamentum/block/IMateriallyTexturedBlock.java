@@ -4,24 +4,18 @@ import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.entity.block.IMateriallyTexturedBlockEntity;
 import com.ldtteam.domumornamentum.util.Constants;
 import com.ldtteam.domumornamentum.util.QuadFunction;
-import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.RecipeOutput;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Explosion;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -86,31 +80,6 @@ public interface IMateriallyTexturedBlock
         return stack.isCorrectToolForDrops(state);
     }
 
-    /**
-     * Returns the explosion resistance of the skin block placed in the main component, falling back
-     * to this block's own value.
-     * <p>
-     * 26.2: vanilla only has {@code Block#getExplosionResistance()} with no arguments
-     * (/opt/mc-src/net/minecraft/world/level/block/Block.java:445) — NeoForge's positional overload is
-     * gone and Fabric has no replacement hook, so no block calls this any more. Kept (and rewired onto
-     * the no-arg vanilla method) so third parties such as MineColonies keep compiling.
-     */
-    default float getDOExplosionResistance(final QuadFunction<BlockState, BlockGetter, BlockPos, Explosion, Float> inputFunction, BlockState state, BlockGetter level, BlockPos pos, Explosion explosion) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof IMateriallyTexturedBlockEntity mtbe) {
-            if (getMainComponent() == null)
-            {
-                return inputFunction.apply(state, level, pos, explosion);
-            }
-            Block block = mtbe.getTextureData().getTexturedComponents().get(getMainComponent().getId());
-            if (block != null)
-            {
-                return block.getExplosionResistance();
-            }
-        }
-        return inputFunction.apply(state, level, pos, explosion);
-    }
-
     default float getDODestroyProgress(final QuadFunction<BlockState, Player, BlockGetter, BlockPos, Float> inputFunction, BlockState state, Player player, BlockGetter level, BlockPos pos) {
         BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof IMateriallyTexturedBlockEntity mtbe) {
@@ -125,32 +94,6 @@ public interface IMateriallyTexturedBlock
             }
         }
         return inputFunction.apply(state, player, level, pos);
-    }
-
-    /**
-     * Returns the sound type of the skin block placed in the main component, falling back to this
-     * block's own value.
-     * <p>
-     * 26.2: vanilla only has {@code BlockBehaviour#getSoundType(BlockState)}
-     * (/opt/mc-src/net/minecraft/world/level/block/state/BlockBehaviour.java:404) — NeoForge's
-     * positional overload is gone and Fabric has no replacement hook, so no block calls this any more.
-     * Kept (and rewired onto the skin block's default state) so third parties keep compiling.
-     */
-    default SoundType getDOSoundType(final QuadFunction<BlockState, LevelReader, BlockPos, Entity, SoundType> inputFunction, BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof IMateriallyTexturedBlockEntity mtbe) {
-            if (getMainComponent() == null)
-            {
-                return inputFunction.apply(state, level, pos, entity);
-            }
-            Block block = mtbe.getTextureData().getTexturedComponents().get(getMainComponent().getId());
-            if (block != null)
-            {
-                return block.defaultBlockState().getSoundType();
-            }
-        }
-
-        return inputFunction.apply(state, level, pos, entity);
     }
 
     default void fillDOItemCategory(final Block inputBlock, final @NotNull NonNullList<ItemStack> items, List<ItemStack> fillItemGroupCache) {

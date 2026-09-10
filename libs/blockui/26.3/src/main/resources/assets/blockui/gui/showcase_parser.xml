@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Parser edge cases. Opened by -Dblockui.testgui=parser.
+
+    Every pane here is a probe of com.ldtteam.blockui.Parsers / PaneParams rather than of a widget. The rule for
+    this file is that BlockUI must *shrug*: an attribute it cannot make sense of falls back to the default, an
+    unknown attribute is ignored, a texture that is not there renders as missingno. Nothing in here may throw,
+    and each probe says on screen what it expects, so a mismatch is visible without reading the source.
+
+    The loudest thing this file found: a SIX-digit "#RRGGBB" colour parses to alpha 0x00 and therefore draws
+    nothing at all. Parsers.COLOR runs Integer.parseInt(hex, 16) over whatever the pattern matched and never fills
+    the alpha byte in, so "#FF3333" is 0x00FF3333 - fully transparent - while "#FFFF3333" is the visible one. Both
+    are on screen below, one line apart, and that pair is the point of the section. Nothing in this mod's own
+    layouts uses the six-digit form any more; a consuming mod that does has invisible text and no error to explain
+    it. Left as a finding rather than fixed here, because making six digits opaque would change how every existing
+    layout in every consuming mod renders.
+
+    Two cases are deliberately NOT here because they do throw, and shipping a layout that crashes would defeat
+    the point. Both are written up in the report that came with this file:
+      - a size/pos whose value matches no number at all (size="wide") — Parsers.SCALED returns null and Pane's
+        constructor unboxes it into a NullPointerException;
+      - an <image> whose source= is absent or not a parseable Identifier — Image's constructor requires it and
+        SafeError.throwInDev rethrows in a dev workspace.
+
+    This is the ONE layout in the mod that deliberately does not validate against block_ui.xsd, because four of
+    its probes are about the parser being laxer than the schema. xmllint (with the "schema" option pointed at block_ui.xsd)
+    must report exactly these and nothing else:
+
+        enabled="disabled"                      not an xs:boolean, but Parsers.BOOLEAN reads it as false
+        enabled="TRUE"                          not an xs:boolean either, but Boolean.parseBoolean accepts it
+        nosuchattribute= / anotherone=          unknown attributes, which every pane ignores
+        textalign="NOWHERE"                     unknown enum constant, which Parsers.ENUM logs and defaults
+
+    A fifth failure appearing here means either the schema or the parser moved; both are worth a look.
+-->
+<window xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="block_ui.xsd"
+        size="1280 720" type="FULLSCREEN_VANILLA" lightbox="true">
+
+    <text pos="6 3" size="1000 11" textcolor="#FFFFD966" textscale="1.1" text="BlockUI parser edge cases — blockui:gui/showcase_parser.xml"/>
+    <text pos="6 16" size="1268 10" textcolor="lightgray" textscale="0.85"
+          text="Each probe states what it expects. Nothing on this screen is allowed to throw."/>
+
+    <!-- ============ sizes and positions ============ -->
+    <box id="sizes" pos="4 30" size="416 330" color="#FF66FF99" linewidth="1">
+        <text pos="4 3" size="408 10" textcolor="aqua" textscale="0.9" text="size= and pos="/>
+
+        <text pos="4 16" size="408 10" textscale="0.8" textcolor="lightgray" text="size=&quot;24&quot; — one value fills both axes, so 24x24"/>
+        <gradient id="one_value_size" pos="4 28" size="24" gradientstart="lime" gradientend="black"/>
+
+        <text pos="40 28" size="372 10" textscale="0.8" textcolor="lightgray" text="size=&quot;60% 20px&quot; — percent of the parent, then an explicit px"/>
+        <gradient id="percent_and_px" pos="40 40" size="60% 20px" gradientstart="aqua" gradientend="black"/>
+
+        <text pos="4 66" size="408 10" textscale="0.8" textcolor="lightgray"
+              text="size=&quot;150% 12&quot; — percent is clamped to 100, so this is the full parent width"/>
+        <gradient id="over_100_percent" pos="4 78" size="150% 12" gradientstart="orange" gradientend="black"/>
+
+        <text pos="4 94" size="408 10" textscale="0.8" textcolor="lightgray"
+              text="size=&quot;-40 14&quot; — a negative width means parent width minus 40"/>
+        <gradient id="negative_size" pos="4 106" size="-40 14" gradientstart="fuchsia" gradientend="black"/>
+
+        <text pos="4 124" size="408 20" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="pos=&quot;50% 0&quot; — a percentage position is resolved against the parent's own x/y, not against its size (PaneParams passes getParentLeft()/getParentTop()). With a parent at x=4 this lands at x=2, not halfway across."/>
+        <gradient id="percent_pos" pos="50% 146" size="120 12" gradientstart="yellow" gradientend="black"/>
+
+        <text pos="130 146" size="282 12" textscale="0.8" textcolor="orange" text="↖ that bar should be at the far left, not the middle"/>
+
+        <text pos="4 164" size="408 10" textscale="0.8" textcolor="lightgray" text="pos=&quot;-6 0&quot; — negative positions are kept as-is and clip"/>
+        <gradient id="negative_pos" pos="-6 176" size="120 12" gradientstart="white" gradientend="black"/>
+
+        <text pos="4 194" size="408 10" textscale="0.8" textcolor="lightgray" text="size=&quot;60,14&quot; — comma is a separator too"/>
+        <gradient id="comma_shorthand" pos="4 206" size="60,14" gradientstart="red" gradientend="black"/>
+
+        <text pos="4 224" size="408 10" textcolor="aqua" textscale="0.9" text="visible= and enabled="/>
+        <text id="invisible_text" pos="4 236" size="408 10" visible="false" textcolor="red" text="THIS MUST NOT BE VISIBLE"/>
+        <text pos="4 236" size="408 10" textscale="0.8" textcolor="lightgray" text="a text with visible=&quot;false&quot; is sharing this line and must not show"/>
+        <button id="enabled_word_disabled" pos="4 250" size="200 20" label="enabled=&quot;disabled&quot;" enabled="disabled" textscale="0.8"/>
+        <text pos="208 256" size="204 10" textscale="0.8" textcolor="lightgray" text="…parses as false, so greyed out"/>
+        <button id="enabled_uppercase" pos="4 274" size="200 20" label="enabled=&quot;TRUE&quot;" enabled="TRUE" textscale="0.8"/>
+        <text pos="208 280" size="204 10" textscale="0.8" textcolor="lightgray" text="…parses as true, so clickable"/>
+        <text pos="4 300" size="408 24" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="enabled=&quot;&quot; is also false — Parsers.BOOLEAN treats an empty value and the literal word &quot;disabled&quot; as off."/>
+    </box>
+
+    <!-- ============ colours ============ -->
+    <box id="colours" pos="424 30" size="416 330" color="#FFFFCC44" linewidth="1">
+        <text pos="4 3" size="408 10" textcolor="aqua" textscale="0.9" text="colour notations"/>
+
+        <text pos="4 16" size="404 10" textscale="0.85" textcolor="#FF3333"
+              text="textcolor=&quot;#FF3333&quot; — SIX hex digits, and this line is INVISIBLE because of it"/>
+        <text pos="4 16" size="404 10" textscale="0.85" textcolor="orangered"
+              text="                                                  ↑ six-digit hex parses to alpha 0x00, so nothing draws"/>
+        <text pos="4 28" size="404 10" textscale="0.85" textcolor="#FFFF3333"
+              text="textcolor=&quot;#FFFF3333&quot; — the same colour with the alpha byte written out"/>
+        <text pos="4 40" size="404 10" textscale="0.85" textcolor="#8000FF00" text="textcolor=&quot;#8000FF00&quot; (8 hex, alpha 0x80 — half transparent)"/>
+        <text pos="4 52" size="200 10" textscale="0.85" textcolor="rgb(80,160,255)" text="textcolor=&quot;rgb(80,160,255)&quot;"/>
+        <text pos="4 64" size="200 10" textscale="0.85" textcolor="rgba(255,120,0,1.0)" text="textcolor=&quot;rgba(255,120,0,1.0)&quot;"/>
+        <text pos="4 76" size="200 10" textscale="0.85" textcolor="slategray" text="textcolor=&quot;slategray&quot; (named)"/>
+        <text pos="4 88" size="200 10" textscale="0.85" textcolor="4294902015" text="textcolor=&quot;4294902015&quot; (raw unsigned int)"/>
+        <text pos="4 100" size="408 10" textscale="0.85" textcolor="chartreuse"
+              text="textcolor=&quot;chartreuse&quot; — not a name BlockUI knows, so it falls back to the default colour"/>
+        <text pos="4 112" size="408 10" textscale="0.85" textcolor="#GGGGGG"
+              text="textcolor=&quot;#GGGGGG&quot; — not hex either; same fallback, no exception"/>
+
+        <text pos="4 126" size="408 10" textcolor="aqua" textscale="0.9" text="color= overrides all three text colours at once"/>
+        <button id="colour_override" pos="4 138" size="200 20" color="#FFFF66FF" label="color=&quot;#FFFF66FF&quot;" textscale="0.8"/>
+        <button id="colour_override_disabled" pos="208 138" size="204 20" color="#FFFF66FF" enabled="false"
+                label="same, disabled" textscale="0.8"/>
+
+        <text pos="4 154" size="408 10" textcolor="aqua" textscale="0.9" text="Box color= / linewidth="/>
+        <box pos="4 166" size="130 50" color="rgb(255,0,128)" linewidth="4">
+            <text pos="4 18" size="122 10" textscale="0.75" textcolor="ivory" text="linewidth=4"/>
+        </box>
+        <box pos="140 166" size="130 50" color="#FF33FFAA" linewidth="1">
+            <text pos="4 18" size="122 10" textscale="0.75" textcolor="ivory" text="linewidth=1"/>
+        </box>
+        <box pos="276 166" size="136 50" color="notacolour" linewidth="1">
+            <text pos="4 14" size="128 20" wrap="true" textscale="0.75" textcolor="ivory"
+                  text="color=&quot;notacolour&quot; → default black"/>
+        </box>
+
+        <text pos="4 222" size="408 10" textcolor="aqua" textscale="0.9" text="Gradient endpoints in mixed notations"/>
+        <gradient pos="4 234" size="408 16" gradientstart="#FFFF0000" gradientend="rgb(0,0,255)"/>
+        <gradient pos="4 252" size="408 16" gradientstart="lime" gradientend="4278190080"/>
+        <gradient pos="4 270" size="408 16" gradientstart="alsonotacolour" gradientend="white"/>
+        <text pos="4 288" size="408 20" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="The third bar starts from the Gradient default because its start colour is not parseable — it must still render."/>
+    </box>
+
+    <!-- ============ text parsing ============ -->
+    <box id="textparse" pos="844 30" size="432 330" color="#FFFF88AA" linewidth="1">
+        <text pos="4 3" size="424 10" textcolor="aqua" textscale="0.9" text="text= parsing"/>
+
+        <text pos="4 16" size="424 32" linespace="2" textscale="0.85" textcolor="ivory"
+              text="backslash-n splits lines:\nsecond line\nthird line"/>
+
+        <text pos="4 52" size="424 32" linespace="2" textscale="0.85" textcolor="ivory"
+              text="a real newline in the attribute
+splits as well
+three lines here"/>
+
+        <text pos="4 88" size="424 10" textscale="0.85" textcolor="lime"
+              text="$(key.blockui.open_test_gui)"/>
+        <text pos="4 100" size="424 10" textscale="0.8" textcolor="lightgray" text="↑ $(key) resolved against the language file"/>
+
+        <text pos="4 116" size="424 10" textscale="0.85" textcolor="orange"
+              text="${key.blockui.open_test_gui}"/>
+        <text pos="4 128" size="424 10" textscale="0.8" textcolor="lightgray" text="↑ ${key} — the brace form of the same thing"/>
+
+        <text pos="4 144" size="424 10" textscale="0.85" textcolor="red"
+              text="$(blockui.no.such.translation.key)"/>
+        <text pos="4 156" size="424 10" textscale="0.8" textcolor="lightgray" text="↑ an unknown key becomes &quot;MISSING: …&quot; rather than throwing"/>
+
+        <text id="label_not_text" pos="4 172" size="424 10" textscale="0.85" textcolor="ivory" label="label= is read when text= is absent"/>
+        <text id="text_wins" pos="4 184" size="424 10" textscale="0.85" textcolor="ivory"
+              text="text= wins when both are present" label="label= must lose"/>
+
+        <text pos="4 200" size="424 10" textcolor="aqua" textscale="0.9" text="attributes nothing reads"/>
+        <text id="ignored_attributes" pos="4 212" size="424 22" wrap="true" textscale="0.8" textcolor="ivory"
+              nosuchattribute="ignore me" anotherone="42" style="blockui:not_read_by_anything"
+              text="This pane carries nosuchattribute=, anotherone= and style=. None of the three is read by any pane; style= is in the schema but nothing in the code looks it up."/>
+
+        <text id="duplicate_id" pos="4 238" size="424 10" textscale="0.8" textcolor="ivory" text="two panes share id=&quot;duplicate_id&quot; — findPaneByID returns the first"/>
+        <text id="duplicate_id" pos="4 250" size="424 10" textscale="0.8" textcolor="dimgray" text="this is the second one"/>
+        <text id="an_id_nothing_ever_looks_up" pos="4 262" size="424 10" textscale="0.8" textcolor="ivory" text="…and this one has an id nothing looks up"/>
+
+        <text pos="4 278" size="424 10" textcolor="aqua" textscale="0.9" text="tooltips"/>
+        <text pos="4 290" size="210 10" textscale="0.8" textcolor="lime" tooltip="one line" text="[hover] tooltip=&quot;one line&quot;"/>
+        <text pos="218 290" size="210 10" textscale="0.8" textcolor="lime" tooltip="first\nsecond\nthird" text="[hover] a three-line tooltip"/>
+        <text pos="4 304" size="424 20" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="textalign=&quot;NOWHERE&quot; on the line below: an unknown enum constant is logged as a warning and the default alignment is kept."/>
+    </box>
+
+    <text id="bad_enum" pos="848 344" size="424 12" textalign="NOWHERE" textscale="0.85" textcolor="orange"
+          text="textalign=&quot;NOWHERE&quot; — still rendered, top-left as usual"/>
+
+    <!-- ============ textures, items and lists ============ -->
+    <box id="resources" pos="4 366" size="636 338" color="#FF66CCFF" linewidth="1">
+        <text pos="4 3" size="628 10" textcolor="aqua" textscale="0.9" text="resource locations"/>
+
+        <image id="tex_ok" pos="4 16" size="60 24" source="blockui:button"/>
+        <text pos="68 22" size="220 10" textscale="0.8" textcolor="lightgray" text="source=&quot;blockui:button&quot; — a sprite in our atlas"/>
+
+        <image id="tex_no_namespace" pos="4 44" size="60 24" source="button"/>
+        <text pos="68 50" size="300 10" textscale="0.8" textcolor="lightgray" text="source=&quot;button&quot; — no namespace, so minecraft: is assumed"/>
+
+        <image id="tex_missing" pos="4 72" size="40 40" source="blockui:this_texture_does_not_exist"/>
+        <text pos="48 78" size="340 28" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="a texture that is not in the atlas and not a file either — must be missingno, must not throw"/>
+
+        <image id="tex_missing_ns" pos="4 116" size="40 40" source="nosuchmod:nosuchtexture"/>
+        <text pos="48 122" size="340 28" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="…and one whose whole namespace registered no gui atlas: a different branch of GuiAtlasLookup, same outcome"/>
+
+        <text pos="4 160" size="628 10" textcolor="aqua" textscale="0.9" text="ItemIcon with odd input"/>
+        <itemicon id="item_ok" pos="4 172" size="24 24" item="minecraft:diamond"/>
+        <itemicon id="item_unknown" pos="32 172" size="24 24" item="nosuchmod:nosuchitem"/>
+        <itemicon id="item_no_item" pos="60 172" size="24 24"/>
+        <text pos="92 176" size="540 20" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="left: a real item. middle: an item id nothing registers. right: no item= at all. Only the first may draw anything."/>
+
+        <text pos="4 202" size="628 10" textcolor="aqua" textscale="0.9" text="lists"/>
+        <list id="list_no_provider" pos="4 214" size="200 60" emptytext="no data provider was ever set">
+            <text size="192 12" textscale="0.8"/>
+        </list>
+        <text pos="208 214" size="424 30" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="↖ a list that never gets a data provider. refreshElementPanes returns early on a null provider, so it simply stays blank."/>
+
+        <list id="list_with_rows" pos="4 280" size="200 60" emptytext="you should not be reading this">
+            <text size="192 12" textscale="0.8"/>
+        </list>
+        <text pos="208 280" size="424 30" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="↖ a list that does have rows, but also carries emptytext=. The empty text must stay hidden while rows exist."/>
+    </box>
+
+    <!-- ============ shorthand and inheritance ============ -->
+    <box id="shorthands" pos="644 366" size="632 338" color="#FFB36AFF" linewidth="1">
+        <text pos="4 3" size="624 10" textcolor="aqua" textscale="0.9" text="shorthand attributes"/>
+
+        <button id="short_offset_one" pos="4 16" size="300 24" source="blockui:button" textoffset="8" textbox="200 10"
+                label="textoffset=&quot;8&quot; fills both axes" textscale="0.8"/>
+        <button id="short_offset_two" pos="308 16" size="320 24" source="blockui:button" textoffset="30 8" textbox="240 10"
+                label="textoffset=&quot;30 8&quot;" textscale="0.8"/>
+
+        <text pos="4 46" size="624 10" textscale="0.8" textcolor="lightgray"
+              text="image imageoffset=/imagesize= pick a sub-rectangle out of the vanilla gui atlas file"/>
+        <image id="short_uv" pos="4 58" size="364 10" source="minecraft:textures/atlas/gui.png" imageoffset="185 548" imagesize="182 5"/>
+
+        <text pos="4 74" size="624 10" textcolor="aqua" textscale="0.9" text="scrollbarOffset= on a scrolling view"/>
+        <list id="offset_bar" pos="4 86" size="200 90" scrollbarOffset="6 4" childspacing="1">
+            <text size="186 12" textscale="0.8"/>
+        </list>
+        <text pos="208 86" size="420 24" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="↖ the scrollbar of this list is pushed 6px in and 4px down by scrollbarOffset."/>
+
+        <text pos="4 182" size="624 10" textcolor="aqua" textscale="0.9" text="dropDownSize= and maxContentHeight="/>
+        <dropdown id="dd_sized" pos="4 194" size="150 20" dropDownSize="240 120" maxContentHeight="60"
+                  source="blockui:button" textscale="0.8">
+            <button id="button" size="240 20" source="blockui:button" textscale="0.8"/>
+        </dropdown>
+        <text pos="160 198" size="468 20" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="the button is 150 wide but its list is 240 wide and capped at 60 tall"/>
+
+        <text pos="4 226" size="624 10" textcolor="aqua" textscale="0.9" text="toggle options="/>
+        <toggle id="toggle_pipe" pos="4 238" size="200 20" options="alpha|beta|gamma" textscale="0.8"/>
+        <toggle id="toggle_single" pos="208 238" size="200 20" options="only one option" textscale="0.8"/>
+        <toggle id="toggle_translated" pos="412 238" size="216 20" options="$(key.blockui.open_test_gui)|$(blockui.tooltip.properties)" textscale="0.7"/>
+        <text pos="4 262" size="624 20" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="Options are split on the pipe character; each part goes through the same translation pass as text=. Click any of them to cycle."/>
+
+        <text pos="4 280" size="624 10" textcolor="aqua" textscale="0.9" text="a &lt;layout&gt; include, resolved by the same loader"/>
+        <view id="include_host" pos="4 292" size="624 44">
+            <layout source="blockui:gui/showcase_common.xml"/>
+        </view>
+    </box>
+</window>

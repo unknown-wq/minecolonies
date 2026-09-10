@@ -160,12 +160,4 @@ public class FakeLevelChunkSection extends LevelChunkSection
     {
         // Noop
     }
-
-    /*
-    @Override
-    public BlockState setBlockState(int p_62987_, int p_62988_, int p_62989_, BlockState p_62990_)
-    {
-        return super.setBlockState(p_62987_, p_62988_, p_62989_, p_62990_);
-    }
-    */
 }

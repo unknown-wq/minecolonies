@@ -1,12 +1,7 @@
 package com.ldtteam.structurize.placement.handlers.placement;
 
-import com.google.common.collect.Lists;
 import net.minecraft.core.BlockPos;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
 
 public class PlacementError
 {
@@ -33,11 +28,6 @@ public class PlacementError
         return type;
     }
 
-    public void setType(final PlacementErrorType type)
-    {
-        this.type = type;
-    }
-
     public BlockPos getPos()
     {
         return pos;
@@ -48,47 +38,4 @@ public class PlacementError
         this.pos = pos;
     }
 
-    public static String blockListToCommaSeparatedString(final List<BlockPos> blocksToReportList)
-    {
-        final StringBuilder outputListStringBuilder = new StringBuilder();
-        boolean firstItem = true;
-        for (final BlockPos blockPos : blocksToReportList)
-        {
-            if (firstItem)
-            {
-                firstItem = false;
-            }
-            else
-            {
-                outputListStringBuilder.append(", ");
-            }
-            outputListStringBuilder.append('(');
-            outputListStringBuilder.append(blockPos.getX());
-            outputListStringBuilder.append(' ');
-            outputListStringBuilder.append(blockPos.getY());
-            outputListStringBuilder.append(' ');
-            outputListStringBuilder.append(blockPos.getZ());
-            outputListStringBuilder.append(')');
-        }
-        return outputListStringBuilder.toString();
-    }
-
-    public static Map<PlacementErrorType, List<BlockPos>> partitionPlacementErrorsByErrorType(List<PlacementError> placementErrorList)
-    {
-        final Map<PlacementErrorType, List<BlockPos>> blockPosListByErrorTypeMap = new EnumMap<>(PlacementErrorType.class);
-        for (final PlacementError placementError : placementErrorList)
-        {
-            final PlacementErrorType key = placementError.getType();
-            final BlockPos blockPos = placementError.getPos();
-            List<BlockPos> blockPosList = blockPosListByErrorTypeMap.computeIfAbsent(key, k -> Lists.newArrayList());
-
-            if (null == blockPosList)
-            {
-                blockPosList = new ArrayList<>();
-                blockPosListByErrorTypeMap.put(key, blockPosList);
-            }
-            blockPosList.add(blockPos);
-        }
-        return blockPosListByErrorTypeMap;
-    }
 }

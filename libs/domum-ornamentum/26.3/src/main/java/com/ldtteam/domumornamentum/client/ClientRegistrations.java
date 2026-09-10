@@ -1,9 +1,7 @@
 package com.ldtteam.domumornamentum.client;
 
 import com.ldtteam.domumornamentum.client.event.handlers.ClientTickEventHandler;
-import com.ldtteam.domumornamentum.client.event.handlers.MateriallyTexturedBlockPreviewRenderHandler;
 import com.ldtteam.domumornamentum.client.event.handlers.ModBusEventHandler;
-import com.ldtteam.domumornamentum.client.event.handlers.RegisterColorHandlersEventHandler;
 import com.ldtteam.domumornamentum.client.model.loader.MateriallyTexturedModelLoader;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -40,13 +38,5 @@ public final class ClientRegistrations
 
         // Client tick counter (replaces ClientTickEvent.Pre).
         ClientTickEventHandler.register();
-
-        // Disabled no-op; BlockColor/ItemColor were removed from vanilla 26.2, the material
-        // tint is applied while emitting quads instead. See RegisterColorHandlersEventHandler.
-        RegisterColorHandlersEventHandler.register();
-
-        // Disabled no-op; the placement ghost preview needs a rewrite onto
-        // LevelRenderEvents + SubmitNodeCollector. See MateriallyTexturedBlockPreviewRenderHandler.
-        MateriallyTexturedBlockPreviewRenderHandler.register();
     }
 }

@@ -61,11 +61,11 @@ import java.util.Set;
  * itself -- surface pixels are still scanned once per chunk and never revisited, and nothing here touches
  * that.</p>
  *
- * <p>The re-read is batched, for the reason
- * {@code core/compatibility/journeymap/ColonyBorderMapping.java} batches it: on a populated server the claim
- * map has tens of thousands of entries in it and walking all of them inside one client tick is a visible
- * stutter. {@value #UPDATES_PER_TICK} is that file's number, kept deliberately. A poll that has not finished
- * draining blocks the next poll rather than queueing a second copy of the same work behind it.</p>
+ * <p>The re-read is batched, for the reason MineColonies' own map integration batched it: on a populated
+ * server the claim map has tens of thousands of entries in it and walking all of them inside one client
+ * tick is a visible stutter. {@value #UPDATES_PER_TICK} is the number that integration arrived at against
+ * real colonies, kept deliberately. A poll that has not finished draining blocks the next poll rather than
+ * queueing a second copy of the same work behind it.</p>
  *
  * <h2>Memory, and why live always wins</h2>
  * <p>Everything the map knows about a colony is kept in one {@link ColonyMemory} per colony id, seeded from
@@ -120,8 +120,8 @@ import java.util.Set;
 public final class MineColoniesOverlay implements ColonyOverlay
 {
     /**
-     * Claim entries applied per client tick. Straight out of
-     * {@code ColonyBorderMapping.UPDATES_PER_TICK}, which arrived at it against real colonies.
+     * Claim entries applied per client tick. The number MineColonies' own map integration used, which
+     * arrived at it against real colonies.
      */
     private static final int UPDATES_PER_TICK = 250;
 
@@ -722,8 +722,7 @@ public final class MineColoniesOverlay implements ColonyOverlay
      * {@code getId()} and the rest are gone, and the enum is now nothing but a code character. The mapping
      * moved to {@code TextColor.fromLegacyFormat}, which returns null for the formatting codes that are not
      * colours (bold, obfuscated, reset), so the null is real and is handled rather than unboxed on faith.
-     * This is the route MineColonies' own {@code ColonyBorderRenderer} takes for the same value; the parked
-     * JourneyMap file still calls {@code getColor()} and would not compile as it stands.</p>
+     * This is the route MineColonies' own {@code ColonyBorderRenderer} takes for the same value.</p>
      */
     private static int teamColour(final IColonyView colony)
     {

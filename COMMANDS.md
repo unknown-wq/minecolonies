@@ -1568,8 +1568,8 @@ drawn line. The border the build tool draws follows it too, block by block
 rather than chunk by chunk. A chunk with no mask — every chunk, until something
 edits it — costs nothing extra to store or to send.
 
-Not covered: the Journeymap overlay, which is chunk-level and will keep drawing
-a partly claimed chunk as a whole one.
+Not covered: the bundled world map's colony overlay, which is chunk-level and
+will keep drawing a partly claimed chunk as a whole one.
 
 ## Config
 

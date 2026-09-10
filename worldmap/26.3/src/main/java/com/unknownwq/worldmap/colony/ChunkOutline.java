@@ -10,13 +10,11 @@ import java.util.Set;
  * Turns a set of claimed chunks into the boundary of the region they cover.
  *
  * <h2>Why not a box per chunk, and why not a hull</h2>
- * <p>Two obvious approaches are both wrong, and the MineColonies JourneyMap integration
- * ({@code core/compatibility/journeymap/ColonyBorderMapping.java}) says so by construction. Stroking a
- * rectangle around every claimed chunk fills the interior of a colony with a grid of seams and buries the
- * actual border in them. Taking the outer contour and drawing that draws a lie: a colony's claim is
- * <b>not necessarily simply connected</b> -- a chunk in the middle can belong to a neighbour or to nobody --
- * and JourneyMap's own type for this is {@code MapPolygonWithHoles}, hull plus holes, precisely because a
- * single ring cannot describe it.</p>
+ * <p>Two obvious approaches are both wrong. Stroking a rectangle around every claimed chunk fills the
+ * interior of a colony with a grid of seams and buries the actual border in them. Taking the outer contour
+ * and drawing that draws a lie: a colony's claim is <b>not necessarily simply connected</b> -- a chunk in
+ * the middle can belong to a neighbour or to nobody -- so a single ring cannot describe it at all, and any
+ * library asked to do this has to be handed a hull plus a list of holes.</p>
  *
  * <p>What this does instead is keep every grid edge that has a claimed chunk on exactly one side. That set
  * <em>is</em> the boundary, outer ring and every hole together, and it needs no ring-chaining step and no

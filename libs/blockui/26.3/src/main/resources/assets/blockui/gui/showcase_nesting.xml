@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Nesting stress. The same widgets as showcase.xml, but never at top level.
+
+    Opened by -Dblockui.testgui=nesting. A widget behaves differently once it is a child of something that
+    translates, clips, scales or re-lays-out its children, and every view in this library does at least one of
+    those. This layout puts each control under several of them at once, so a regression in child positioning,
+    clipping or hit testing shows up as something visibly out of place rather than as a crash.
+
+    Reading the screen: nothing should overflow the coloured box that contains it, and every scrollbar should
+    end up proportional to the content behind it.
+-->
+<window xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="block_ui.xsd"
+        size="1280 720" type="FULLSCREEN_VANILLA" lightbox="true">
+
+    <text pos="6 3" size="1000 11" textcolor="#FFFFD966" textscale="1.1" text="BlockUI nesting stress — blockui:gui/showcase_nesting.xml"/>
+
+    <!-- ============ six levels of plain containers, sizes in percent all the way down ============ -->
+    <box id="depth_root" pos="4 20" size="420 340" color="#FF66FF99" linewidth="2">
+        <text pos="4 2" size="100% 10" textcolor="aqua" textscale="0.9" text="level 1 — Box, absolute 420x340"/>
+        <view id="depth_2" pos="4 14" size="98% 92%" padding="4">
+            <box size="100% 100%" color="#FFFFCC44" linewidth="1">
+                <text pos="4 2" size="100% 10" textcolor="aqua" textscale="0.85" text="level 2 — View(padding=4) &gt; Box, 98%x92%"/>
+                <group id="depth_3" pos="4 14" size="95% 90%" spacing="2">
+                    <text size="100% 10" textcolor="aqua" textscale="0.85" text="level 3 — Group(spacing=2), 95%x90%"/>
+                    <scrollgroup id="depth_4" size="100% 240" childspacing="3">
+                        <text size="360 10" textcolor="aqua" textscale="0.85" text="level 4 — ScrollingGroup"/>
+                        <list id="depth_5" size="360 120" childspacing="1">
+                            <view size="352 26">
+                                <box size="100% 100%" color="#FF8888FF" linewidth="1">
+                                    <text pos="2 1" size="60% 10" textscale="0.8"/>
+                                    <itemicon pos="220 1" size="12 12" item="minecraft:redstone"/>
+                                    <checkbox id="checkbox" pos="290 1" size="12 13"
+                                              source="blockui:button_mini" disabled="blockui:button_mini_disabled"
+                                              checkmark="blockui:overlay_mini_check"/>
+                                    <text pos="2 13" size="98% 10" textscale="0.7" textcolor="lightgray"
+                                          text="level 6 — Box inside a list row inside a scrolling group"/>
+                                </box>
+                            </view>
+                        </list>
+                        <switch id="depth_switch" size="360 44" default="nest_two">
+                            <view id="nest_one" size="360 44">
+                                <gradient size="360 44" gradientstart="red" gradientend="black"/>
+                            </view>
+                            <view id="nest_two" size="360 44">
+                                <gradient size="360 44" gradientstart="rgba(20,60,20,1.0)" gradientend="rgba(20,20,60,1.0)"/>
+                                <text pos="4 2" size="352 40" wrap="true" textscale="0.8" textcolor="white"
+                                      text="level 5 — a SwitchView inside the scrolling group; its pages are Views holding Gradients"/>
+                            </view>
+                        </switch>
+                        <zoomdragview id="depth_zoom" size="360 160" minscale="0.5" maxscale="3">
+                            <box size="300 200" color="orange" linewidth="1">
+                                <text pos="4 2" size="290 10" textscale="0.8" textcolor="yellow"
+                                      text="level 5 — ZoomDragView inside a ScrollingGroup"/>
+                                <group pos="4 14" size="290 120" spacing="3">
+                                    <button size="100% 18" label="nested button" textscale="0.8"/>
+                                    <input size="100% 18" textContent="nested input"/>
+                                    <toggle size="100% 18" options="alpha|beta|gamma" textscale="0.8"/>
+                                    <dropdown id="nested_dropdown" size="100% 18" dropDownSize="200 60"
+                                              source="blockui:button" textscale="0.8">
+                                        <button id="button" size="200 18" source="blockui:button" textscale="0.8"/>
+                                    </dropdown>
+                                </group>
+                            </box>
+                        </zoomdragview>
+                    </scrollgroup>
+                </group>
+            </box>
+        </view>
+    </box>
+
+    <!-- ============ alignment: the same child in all nine alignments ============ -->
+    <box id="align_root" pos="432 20" size="410 340" color="#FFFF88AA" linewidth="1">
+        <text pos="4 2" size="100% 10" textcolor="aqua" textscale="0.9" text="align= — nine children, nine alignments"/>
+        <view pos="4 14" size="200 100">
+            <box size="100% 100%" color="lightgray" linewidth="1">
+                <text align="TOP_LEFT" size="60 10" textscale="0.7" text="TOP_LEFT"/>
+                <text align="TOP_MIDDLE" size="70 10" textscale="0.7" text="TOP_MIDDLE"/>
+                <text align="TOP_RIGHT" size="66 10" textscale="0.7" text="TOP_RIGHT"/>
+                <text align="MIDDLE_LEFT" size="74 10" textscale="0.7" text="MIDDLE_LEFT"/>
+                <text align="MIDDLE" size="44 10" textscale="0.7" textcolor="yellow" text="MIDDLE"/>
+                <text align="MIDDLE_RIGHT" size="80 10" textscale="0.7" text="MIDDLE_RIGHT"/>
+                <text align="BOTTOM_LEFT" size="74 10" textscale="0.7" text="BOTTOM_LEFT"/>
+                <text align="BOTTOM_MIDDLE" size="86 10" textscale="0.7" text="BOTTOM_MIDDLE"/>
+                <text align="BOTTOM_RIGHT" size="80 10" textscale="0.7" text="BOTTOM_RIGHT"/>
+            </box>
+        </view>
+
+        <text pos="210 14" size="196 10" textcolor="aqua" textscale="0.85" text="textalign= inside a fixed box"/>
+        <box pos="210 26" size="196 88" color="lightgray" linewidth="1">
+            <text pos="2 2" size="94 26" textalign="TOP_LEFT" textscale="0.75" textcolor="ivory" text="TOP_LEFT"/>
+            <text pos="98 2" size="94 26" textalign="TOP_RIGHT" textscale="0.75" textcolor="ivory" text="TOP_RIGHT"/>
+            <text pos="2 30" size="190 26" textalign="MIDDLE" textscale="0.75" textcolor="ivory" text="MIDDLE"/>
+            <text pos="2 58" size="94 26" textalign="BOTTOM_LEFT" textscale="0.75" textcolor="ivory" text="BOTTOM_LEFT"/>
+            <text pos="98 58" size="94 26" textalign="BOTTOM_RIGHT" textscale="0.75" textcolor="ivory" text="BOTTOM_RIGHT"/>
+        </box>
+
+        <text pos="4 120" size="402 10" textcolor="aqua" textscale="0.85" text="an empty View and an empty Box — both must render as nothing"/>
+        <view id="empty_view" pos="4 132" size="80 40"/>
+        <box id="empty_box" pos="88 132" size="80 40" color="#FF444444" linewidth="1"/>
+        <text pos="172 132" size="234 40" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="left: an empty View (invisible on purpose). right: an empty Box, which still draws its own outline."/>
+
+        <text pos="4 178" size="402 10" textcolor="aqua" textscale="0.85" text="two lists side by side, one full and one empty, in a Group"/>
+        <group id="two_lists" pos="4 190" size="402 144" spacing="4">
+            <view size="100% 68">
+                <list id="nest_list_full" size="200 68" childspacing="1">
+                    <text size="192 12" textscale="0.8"/>
+                </list>
+                <list id="nest_list_empty" pos="206 0" size="192 68"
+                      emptytext="nothing here\nand a second line" emptyscale="0.7" emptycolor="orange">
+                    <text size="184 12" textscale="0.8"/>
+                </list>
+            </view>
+            <text size="100% 10" textscale="0.8" textcolor="lightgray" text="both above are children of the same Group row"/>
+        </group>
+    </box>
+
+    <!-- ============ one list whose rows are themselves whole layouts ============ -->
+    <box id="rows_root" pos="850 20" size="426 340" color="#FF66CCFF" linewidth="1">
+        <text pos="4 2" size="100% 10" textcolor="aqua" textscale="0.9"
+              text="ScrollingList whose row template is a nested layout"/>
+        <text pos="4 14" size="418 20" wrap="true" textscale="0.8" textcolor="lightgray"
+              text="Each row is a Box holding a Group, an ItemIcon, a ToggleButton and a Gradient. Forty of them."/>
+        <list id="rich_rows" pos="4 36" size="418 296" childspacing="3">
+            <view size="404 54">
+                <box size="100% 100%" color="#FF556677" linewidth="1">
+                    <gradient pos="1 1" size="98% 52" gradientstart="rgba(30,30,40,1.0)" gradientend="rgba(50,40,70,1.0)"/>
+                    <itemicon id="row_icon" pos="4 4" size="24 24" item="minecraft:stone"/>
+                    <text id="row_title" pos="32 4" size="240 12" textscale="0.85" textcolor="ivory"/>
+                    <text id="row_sub" pos="32 18" size="240 10" textscale="0.7" textcolor="lightgray"/>
+                    <group pos="276 4" size="120 46" spacing="2">
+                        <toggle id="row_toggle" size="100% 14" options="on|off" textscale="0.7"
+                                source="blockui:button_mini" disabled="blockui:button_mini_disabled"/>
+                        <checkbox id="row_check" size="14 14"
+                                  source="blockui:button_mini" disabled="blockui:button_mini_disabled"
+                                  checkmark="blockui:overlay_mini_check"/>
+                    </group>
+                    <gradient pos="4 32" size="264 6" gradientstart="black" gradientend="lime"/>
+                    <text pos="4 40" size="264 10" textscale="0.7" textcolor="dimgray"
+                          text="…and a fourth level of children under the row"/>
+                </box>
+            </view>
+        </list>
+    </box>
+
+    <!-- ============ the whole thing again, inside a zoom-drag view ============ -->
+    <box id="zoom_root" pos="4 366" size="1272 338" color="#FFFFAA55" linewidth="1">
+        <text pos="4 2" size="100% 10" textcolor="aqua" textscale="0.9"
+              text="ZoomDragView holding a full sub-layout — drag it, zoom it, then use the widgets inside it"/>
+        <zoomdragview id="outer_zoom" pos="4 14" size="1264 320" minscale="0.3" maxscale="3" zoomfactor="1.2">
+            <gradient size="900 300" gradientstart="rgba(18,18,28,1.0)" gradientend="rgba(28,18,38,1.0)"/>
+            <group pos="8 8" size="260 280" spacing="4">
+                <text size="100% 10" textscale="0.85" textcolor="yellow" text="Group in a ZoomDragView"/>
+                <button size="100% 20" label="button" textscale="0.8"/>
+                <button size="100% 20" label="textured" source="blockui:button" textscale="0.8"/>
+                <toggle size="100% 20" options="left|middle|right" textscale="0.8"/>
+                <input size="100% 18" textContent="type here while zoomed"/>
+                <checkbox size="14 15" source="blockui:button_mini" disabled="blockui:button_mini_disabled"
+                          checkmark="blockui:overlay_mini_check"/>
+                <gradient size="100% 10" gradientstart="fuchsia" gradientend="aqua"/>
+                <itemicon size="24 24" item="minecraft:golden_apple"/>
+            </group>
+            <list id="zoom_list" pos="276 8" size="300 280" childspacing="2">
+                <view size="292 20">
+                    <text pos="0 0" size="200 10" textscale="0.8"/>
+                    <itemicon pos="206 0" size="14 14" item="minecraft:iron_ingot"/>
+                    <text pos="224 2" size="66 8" textscale="0.65" textcolor="dimgray" text="row child"/>
+                </view>
+            </list>
+            <scrollgroup pos="584 8" size="150 280" childspacing="4">
+                <text size="134 10" textscale="0.8" textcolor="yellow" text="ScrollingGroup"/>
+                <button size="134 20" label="0" textscale="0.8"/>
+                <button size="134 20" label="1" textscale="0.8"/>
+                <button size="134 20" label="2" textscale="0.8"/>
+                <button size="134 20" label="3" textscale="0.8"/>
+                <button size="134 20" label="4" textscale="0.8"/>
+                <button size="134 20" label="5" textscale="0.8"/>
+                <button size="134 20" label="6" textscale="0.8"/>
+                <button size="134 20" label="7" textscale="0.8"/>
+                <button size="134 20" label="8" textscale="0.8"/>
+                <button size="134 20" label="9" textscale="0.8"/>
+            </scrollgroup>
+            <box pos="742 8" size="150 280" color="lime" linewidth="1">
+                <text pos="4 2" size="142 10" textscale="0.8" textcolor="yellow" text="Box in the zoom view"/>
+                <entityicon pos="4 14" size="60 60" entity="minecraft:pig" yaw="45" pitch="-15"/>
+                <entityicon pos="68 14" size="60 60" entity="minecraft:chicken" yaw="-45" pitch="0"/>
+                <itemicon pos="4 78" size="32 32" item="minecraft:oak_stairs" nbt="{block_state:{facing:'west'}}"/>
+                <text pos="4 114" size="142 60" wrap="true" textscale="0.75" textcolor="lightgray"
+                      text="Entities and block-state icons render into the same scaled matrix as everything else here."/>
+            </box>
+        </zoomdragview>
+    </box>
+</window>

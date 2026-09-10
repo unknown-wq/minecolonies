@@ -136,14 +136,6 @@ public class ButtonImage extends Button
         requireNonNull(textures.enabled(), "Missing enabled texture");
     }
 
-    /**
-     * @return group of all possible textures for any combination of enables/hovered
-     */
-    public WidgetSprites getTextures()
-    {
-        return textures;
-    }
-
     private boolean replacedVanillaButton(final Identifier loc)
     {
         if (textures == VANILLA_BUTTON)
@@ -258,19 +250,6 @@ public class ButtonImage extends Button
         textWidth = newTextWidth;
         textHeight = newTextHeight;
         recalcTextRendering();
-    }
-
-    /**
-     * Sets text offset for rendering, relative to element start.
-     * Is automatically shrinked to element width and height.
-     *
-     * @param textOffsetX left offset
-     * @param textOffsetY top offset
-     */
-    public void setTextOffset(final int textOffsetX, final int textOffsetY)
-    {
-        this.textOffsetX = Mth.clamp(textOffsetX, 0, width);
-        this.textOffsetY = Mth.clamp(textOffsetY, 0, height);
     }
 
     /**

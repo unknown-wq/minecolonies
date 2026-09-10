@@ -215,36 +215,11 @@ public class ItemIconWithBlockState extends ItemIcon
     }
 
     /**
-     * @param alwaysRenderItem if true (and applicable) then will render itemStack before blockState rendering, mostly internal and
-     *                         should not be changed from outside
-     */
-    public void setRenderItemAlongBlockState(final boolean alwaysRenderItem)
-    {
-        this.renderItemAlongBlockState = alwaysRenderItem;
-    }
-
-    /**
-     * @return true if (applicable and) should render itemStack before blockState rendering
-     */
-    public boolean shouldRenderItemAlongBlockState()
-    {
-        return renderItemAlongBlockState;
-    }
-
-    /**
      * @param alwaysAddTooltip true for: forcibly show blockState properties in tooltip (otherwise on demand)
      */
     public void setAlwaysAddBlockStateTooltip(final boolean alwaysAddTooltip)
     {
         this.alwaysAddBlockStateTooltip = alwaysAddTooltip;
-    }
-
-    /**
-     * @return true if forcibly show blockState properties in tooltip (otherwise on demand)
-     */
-    public boolean shouldAlwaysAddBlockStateTooltip()
-    {
-        return alwaysAddBlockStateTooltip;
     }
 
     /**

@@ -69,96 +69,6 @@ public class UiRenderMacros
         .withPrimitiveTopology(PrimitiveTopology.DEBUG_LINES)
         .build();
 
-    public static void drawLineRectGradient(final GuiGraphicsExtractor ps,
-        final int x,
-        final int y,
-        final int w,
-        final int h,
-        final int argbColorStart,
-        final int argbColorEnd)
-    {
-        drawLineRectGradient(ps, x, y, w, h, argbColorStart, argbColorEnd, 1);
-    }
-
-    public static void drawLineRectGradient(final GuiGraphicsExtractor ps,
-        final int x,
-        final int y,
-        final int w,
-        final int h,
-        final int argbColorStart,
-        final int argbColorEnd,
-        final int lineWidth)
-    {
-        drawLineRectGradient(ps,
-            x,
-            y,
-            w,
-            h,
-            (argbColorStart >> 16) & 0xff,
-            (argbColorEnd >> 16) & 0xff,
-            (argbColorStart >> 8) & 0xff,
-            (argbColorEnd >> 8) & 0xff,
-            argbColorStart & 0xff,
-            argbColorEnd & 0xff,
-            (argbColorStart >> 24) & 0xff,
-            (argbColorEnd >> 24) & 0xff,
-            lineWidth);
-    }
-
-    public static void drawLineRectGradient(final GuiGraphicsExtractor ps,
-        final int x,
-        final int y,
-        final int w,
-        final int h,
-        final int redStart,
-        final int redEnd,
-        final int greenStart,
-        final int greenEnd,
-        final int blueStart,
-        final int blueEnd,
-        final int alphaStart,
-        final int alphaEnd,
-        final int lineWidth)
-    {
-        if (lineWidth < 1 || (alphaStart == 0 && alphaEnd == 0))
-        {
-            return;
-        }
-
-        submitNoTex(ps, GUI_POS_COLOR_TRIANGLES, x, y, w, h, (m, buffer) -> {
-            populateFillTriangles(m, buffer, x, y, w, lineWidth, redStart, greenStart, blueStart, alphaStart);
-            populateFillGradientTriangles(m,
-                buffer,
-                x,
-                y + lineWidth,
-                lineWidth,
-                h - 2 * lineWidth,
-                redStart,
-                redEnd,
-                greenStart,
-                greenEnd,
-                blueStart,
-                blueEnd,
-                alphaStart,
-                alphaEnd);
-            populateFillGradientTriangles(m,
-                buffer,
-                x + w - lineWidth,
-                y + lineWidth,
-                lineWidth,
-                h - 2 * lineWidth,
-                redStart,
-                redEnd,
-                greenStart,
-                greenEnd,
-                blueStart,
-                blueEnd,
-                alphaStart,
-                alphaEnd);
-            populateFillTriangles(m, buffer, x, y + h - lineWidth, w, lineWidth, redEnd, greenEnd, blueEnd, alphaEnd);
-        });
-    }
-
     public static void drawLineRect(final GuiGraphicsExtractor ps,
         final int x,
         final int y,
@@ -306,40 +216,6 @@ public class UiRenderMacros
                 alphaEnd));
     }
 
-    public static void hLine(final GuiGraphicsExtractor ps, final int x, final int xEnd, final int y, final int argbColor)
-    {
-        line(ps, x, y, xEnd, y, (argbColor >> 16) & 0xff, (argbColor >> 8) & 0xff, argbColor & 0xff, (argbColor >> 24) & 0xff);
-    }
-
-    public static void hLine(final GuiGraphicsExtractor ps,
-        final int x,
-        final int xEnd,
-        final int y,
-        final int red,
-        final int green,
-        final int blue,
-        final int alpha)
-    {
-        line(ps, x, y, xEnd, y, red, green, blue, alpha);
-    }
-
-    public static void vLine(final GuiGraphicsExtractor ps, final int x, final int y, final int yEnd, final int argbColor)
-    {
-        line(ps, x, y, x, yEnd, (argbColor >> 16) & 0xff, (argbColor >> 8) & 0xff, argbColor & 0xff, (argbColor >> 24) & 0xff);
-    }
-
-    public static void vLine(final GuiGraphicsExtractor ps,
-        final int x,
-        final int y,
-        final int yEnd,
-        final int red,
-        final int green,
-        final int blue,
-        final int alpha)
-    {
-        line(ps, x, y, x, yEnd, red, green, blue, alpha);
-    }
-
     public static void line(final GuiGraphicsExtractor ps,
         final int x,
         final int y,
@@ -399,27 +275,6 @@ public class UiRenderMacros
         final int mapH)
     {
         blit(ps, rl, x, y, w, h, (float) u / mapW, (float) v / mapH, (float) (u + uW) / mapW, (float) (v + vH) / mapH, null);
-    }
-
-    public static void blitSprite(final GuiGraphicsExtractor ps,
-        final TextureAtlasSprite sprite,
-        final GuiSpriteScaling guiScaling,
-        final int x,
-        final int y,
-        final int w,
-        final int h)
-    {
-        resolveSprite(sprite, guiScaling).blit(ps, x, y, w, h);
-    }
-
-    public static void blitSprite(final GuiGraphicsExtractor ps,
-        final TextureAtlasSprite sprite,
-        final int x,
-        final int y,
-        final int w,
-        final int h)
-    {
-        blit(ps, sprite.atlasLocation(), x, y, w, h, sprite.getU0(), sprite.getV0(), sprite.getU1(), sprite.getV1(), null);
     }
 
     public static void blit(final GuiGraphicsExtractor ps,

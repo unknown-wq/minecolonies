@@ -11,12 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.fabricmc.loader.api.FabricLoader;
-
-import java.util.Collections;
-import java.util.List;
 
 public class BlockUtils
 {
@@ -26,18 +21,17 @@ public class BlockUtils
         throw new IllegalStateException("Can not instantiate an instance of: BlockUtils. This is a utility class");
     }
 
+    /**
+     * The block's own display name.
+     *
+     * <p>This used to be {@code new ItemStack(block).getHoverName()}, which allocated a stack per call at
+     * roughly thirty tooltip call sites. {@link Block#getName()} is public and returns
+     * {@code Component.translatable(getDescriptionId())}; every block item that can reach this method is
+     * registered with {@code Item.Properties#useBlockDescriptionPrefix()}, so its {@code ITEM_NAME} component
+     * resolves to that very key and the two produce the same component.</p>
+     */
     public static Component getHoverName(final Block block) {
-        return new ItemStack(block).getHoverName();
-    }
-
-    @Deprecated(forRemoval = true, since = "1.21")
-    public static List<ItemStack> getMaterializedDrops(final LootParams.Builder builder, final Property<?>... blockStateProperties)
-    {
-        final ItemStack stack = getMaterializedItemStack(builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY), builder.getLevel().registryAccess(), blockStateProperties);
-        if (!stack.isEmpty())
-            return List.of(stack);
-
-        return Collections.emptyList();
+        return block.getName();
     }
 
     public static ItemStack getMaterializedItemStack(final BlockEntity blockEntity,

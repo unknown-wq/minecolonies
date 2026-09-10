@@ -1,14 +1,13 @@
 # Optional integrations disabled for the 26.2 port -- excluded from compilation.
-# JEI: 7 own recipe categories + 6 recipe-transfer handlers. JourneyMap: colony
-# border polygons, deathpoint waypoints, radar labels. Neither is load-bearing:
-# the mod works without them and IJeiProxy already no-ops when JEI is absent.
+# JEI: 7 own recipe categories + 6 recipe-transfer handlers. It is not load-bearing:
+# the mod works without it and IJeiProxy already no-ops when JEI is absent.
 # Delete a line here to bring that file back into the build.
 
 # Simple Planes (aircraft integration) -- com/minecolonies/core/compatibility/simpleplanes/**
 #
 # Deliberately NOT listed below, and it is the one optional integration whose exclusion is decided by
-# build.gradle instead of by this file. The difference is that JEI and JourneyMap are parked by choice
-# and stay parked; the aircraft package compiles whenever the jar named by `simpleplanes_jar` in
+# build.gradle instead of by this file. The difference is that JEI is parked by choice and stays
+# parked; the aircraft package compiles whenever the jar named by `simpleplanes_jar` in
 # gradle.properties is present, and is excluded automatically when it is not. Listing it here as well
 # would pin it off permanently and there would be no way to build the feature at all.
 #
@@ -39,10 +38,3 @@ com/minecolonies/core/compatibility/jei/transfer/FurnaceCraftingGuiHandler.java
 com/minecolonies/core/compatibility/jei/transfer/PrivateBrewingTeachingTransferHandler.java
 com/minecolonies/core/compatibility/jei/transfer/PrivateCraftingTeachingTransferHandler.java
 com/minecolonies/core/compatibility/jei/transfer/PrivateSmeltingTeachingTransferHandler.java
-com/minecolonies/core/compatibility/journeymap/ColonyBorderMapping.java
-com/minecolonies/core/compatibility/journeymap/ColonyDeathpoints.java
-com/minecolonies/core/compatibility/journeymap/EventListener.java
-com/minecolonies/core/compatibility/journeymap/Journeymap.java
-com/minecolonies/core/compatibility/journeymap/JourneymapOptions.java
-com/minecolonies/core/compatibility/journeymap/JourneymapPlugin.java
-com/minecolonies/core/compatibility/journeymap/package-info.java

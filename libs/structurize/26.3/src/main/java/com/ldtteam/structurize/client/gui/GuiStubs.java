@@ -92,14 +92,6 @@ public final class GuiStubs
     }
 
     /**
-     * @return the last operation history received from the server.
-     */
-    public static List<Tuple<String, Integer>> getLastOperations()
-    {
-        return WindowUndoRedo.lastOperations;
-    }
-
-    /**
      * @return true when the extended build tool window is the screen currently on top.
      *         Called from {@code event/ClientEventSubscriber}.
      */
@@ -124,14 +116,6 @@ public final class GuiStubs
     public static boolean isBlueprintManipulationScreenOpen()
     {
         return currentWindow() instanceof AbstractBlueprintManipulationWindow;
-    }
-
-    /**
-     * @return true when any BlockUI window is the screen currently on top.
-     */
-    public static boolean isAnyBlockUiScreenOpen()
-    {
-        return Minecraft.getInstance().gui.screen() instanceof BOScreen;
     }
 
     /**

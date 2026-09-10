@@ -131,11 +131,6 @@ public class BOWindow extends View
         super.drawSelf(ms, mx, my);
     }
 
-    public void setLightbox(final boolean lightbox)
-    {
-        this.lightbox = lightbox;
-    }
-
     /**
      * Return {@code true} if the 'lightbox' (default dark background) should be displayed.
      *
@@ -146,19 +141,9 @@ public class BOWindow extends View
         return lightbox;
     }
 
-    public void setBlurBackground(final boolean blurBackground)
-    {
-        this.blurBackground = blurBackground;
-    }
-
     public boolean hasBlurredBackground()
     {
         return blurBackground;
-    }
-
-    public void setWindowPausesGame(final boolean windowPausesGame)
-    {
-        this.windowPausesGame = windowPausesGame;
     }
 
     /**

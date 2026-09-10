@@ -33,17 +33,6 @@ public class StructureIterators
         iteratorProducers.put("random", BlueprintIteratorRandom::new);
     }
     /**
-     * Register a new producer.
-     *
-     * @param id       the id of the producer.
-     * @param producer the producer.
-     */
-    public static void registerIterator(final String id, final Function<IStructureHandler, AbstractBlueprintIterator> producer)
-    {
-        iteratorProducers.put(id, producer);
-    }
-
-    /**
      * Get a list of all the possible settings.
      * @return the list of settings.
      */

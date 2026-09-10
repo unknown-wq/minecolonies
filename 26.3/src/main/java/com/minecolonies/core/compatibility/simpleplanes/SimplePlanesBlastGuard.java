@@ -45,7 +45,7 @@ import java.lang.reflect.Proxy;
  * {@code .staged-libs} the way BlockUI, Domum and Structurize are, and the only jar of it that exists locally
  * predates the {@code BlastGuard} API this class registers into. A {@code compileOnly} dependency on that jar
  * would therefore turn the build red rather than green, and parking this file in
- * {@code optional-integrations.txt} the way JEI and JourneyMap are parked would mean the feature never runs
+ * {@code optional-integrations.txt} the way JEI is parked would mean the feature never runs
  * until somebody edits a build file. Reflection buys a class that compiles today, ships today, and starts
  * working the moment a Simple Planes jar carrying the API is present — and silently does nothing when it is
  * not, which is exactly the no-op-proxy behaviour the rest of the compat layer has.
