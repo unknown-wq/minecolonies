@@ -607,6 +607,25 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
      */
     protected boolean skipClearing(final BlueprintPositionInfo info, final BlockPos pos, final IStructureHandler handler)
     {
+        return skipClearingBase(info, pos, handler);
+    }
+
+    /**
+     * The clearing rule itself, without the quarrier's addition to it.
+     * <p>
+     * Static and public for the same reason {@link #skipRemoval} is: the rule is the rule wherever the site is
+     * cleared. {@code /mc colony buildnow} clears a work order that asked to be built from scratch
+     * ({@code IBuilderWorkOrder#isClearBeforeBuild}) in one call rather than over a builder's working day, and a
+     * second copy of this predicate over there would be a second answer to "what does the builder leave standing"
+     * waiting to drift from this one. It reads nothing off the AI.
+     *
+     * @param info
+     * @param pos
+     * @param handler
+     * @return true if the position is left alone.
+     */
+    public static boolean skipClearingBase(final BlueprintPositionInfo info, final BlockPos pos, final IStructureHandler handler)
+    {
         if (info.getBlockInfo().getState().getBlock() == com.ldtteam.structurize.blocks.ModBlocks.blockFluidSubstitution.get())
         {
             return true;
@@ -746,8 +765,9 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
                     this, new BuildingProgressStage[] {REMOVE_WATER, REMOVE});
                 building.setTotalStages(2);
             }
-            else if ((colonyBuilding != null && (colonyBuilding.getBuildingLevel() > 0 || colonyBuilding.hasParent())) ||
-                       (entity instanceof TileEntityDecorationController && Utils.getBlueprintLevel(((TileEntityDecorationController) entity).getBlueprintPath()) != -1))
+            else if (!workOrder.isClearBeforeBuild()
+                       && ((colonyBuilding != null && (colonyBuilding.getBuildingLevel() > 0 || colonyBuilding.hasParent())) ||
+                             (entity instanceof TileEntityDecorationController && Utils.getBlueprintLevel(((TileEntityDecorationController) entity).getBlueprintPath()) != -1)))
             {
                 structure = new BuildingStructureHandler<>(world,
                     workOrder,
@@ -756,6 +776,9 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
             }
             else
             {
+                // Either nothing stands here yet, or the work order asked for the site to be torn down first
+                // (IBuilderWorkOrder#isClearBeforeBuild - the free mode "rebuild from scratch" button). Both want the
+                // same stage list, the one that begins by removing whatever is inside the blueprint's footprint.
                 structure = new BuildingStructureHandler<>(world,
                     workOrder,
                     this, new BuildingProgressStage[] {CLEAR, BUILD_SOLID, WEAK_SOLID, CLEAR_WATER, CLEAR_NON_SOLIDS, DECORATE, SPAWN});

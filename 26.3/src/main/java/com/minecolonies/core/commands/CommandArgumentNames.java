@@ -10,6 +10,7 @@ public abstract class CommandArgumentNames
     public static final String RAID_AMOUNT_ARG   = "raidamount";
     public static final String RAID_LOCATION_ARG = "raidlocation";
     public static final String RAID_STRENGTH_ARG = "raidstrength";
+    public static final String RAID_AIRCRAFT_ARG = "aircraft";
     public static final String RAID_SIZE         = "size";
     public static final String RAID_STRENGTH     = "strength";
     public static final String RAID_TERRITORY    = "territory";

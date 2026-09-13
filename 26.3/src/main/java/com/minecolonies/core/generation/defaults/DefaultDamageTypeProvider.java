@@ -114,6 +114,12 @@ public class DefaultDamageTypeProvider extends FabricCodecDataProvider<DamageTyp
         unconditional.accept(DamageSourceKeys.CAMP_ARCHERPIRATE.identifier(), entityDamage(ModEntities.CAMP_ARCHERPIRATE));
         unconditional.accept(DamageSourceKeys.CAMP_CHIEFPIRATE.identifier(), entityDamage(ModEntities.CAMP_CHIEFPIRATE));
 
+        // The drowned pirate camp types had no damage type of their own, so every melee hit from one resolved a
+        // missing key. They are registered entity types with creative spawn eggs, so that was reachable in play.
+        unconditional.accept(DamageSourceKeys.CAMP_DROWNED_PIRATE.identifier(), entityDamage(ModEntities.CAMP_DROWNED_PIRATE));
+        unconditional.accept(DamageSourceKeys.CAMP_DROWNED_CHIEFPIRATE.identifier(), entityDamage(ModEntities.CAMP_DROWNED_CHIEFPIRATE));
+        unconditional.accept(DamageSourceKeys.CAMP_DROWNED_ARCHERPIRATE.identifier(), entityDamage(ModEntities.CAMP_DROWNED_ARCHERPIRATE));
+
         unconditional.accept(DamageSourceKeys.CAMP_NORSEMENARCHER.identifier(), entityDamage(ModEntities.CAMP_NORSEMEN_ARCHER));
         unconditional.accept(DamageSourceKeys.CAMP_NORSEMENCHIEF.identifier(), entityDamage(ModEntities.CAMP_NORSEMEN_CHIEF));
         unconditional.accept(DamageSourceKeys.CAMP_SHIELDMAIDEN.identifier(), entityDamage(ModEntities.CAMP_SHIELDMAIDEN));

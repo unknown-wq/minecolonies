@@ -8,9 +8,7 @@ import com.minecolonies.core.entity.pathfinding.navigation.AbstractAdvancedPathN
 import com.minecolonies.core.entity.pathfinding.navigation.PathingStuckHandler;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,12 +61,6 @@ public abstract class AbstractDrownedEntityPirateRaider extends AbstractEntityMi
         return level.isUnobstructed(this);
     }
 
-    @Override
-    public boolean checkSpawnRules(final LevelAccessor worldIn, final EntitySpawnReason spawnReasonIn)
-    {
-        return true;
-    }
-
     @NotNull
     @Override
     public AbstractAdvancedPathNavigate getNavigation()
@@ -96,12 +88,6 @@ public abstract class AbstractDrownedEntityPirateRaider extends AbstractEntityMi
             this.newNavigator.setCanFloat(true);
         }
         return newNavigator;
-    }
-
-    @Override
-    protected int decreaseAirSupply(final int supply)
-    {
-        return supply;
     }
 
     @Override

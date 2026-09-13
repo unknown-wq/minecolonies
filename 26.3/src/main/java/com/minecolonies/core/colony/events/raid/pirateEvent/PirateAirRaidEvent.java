@@ -114,6 +114,15 @@ public class PirateAirRaidEvent extends HordeRaidEvent
     private static final int TRANSPORT_TIMEOUT = 6000;
 
     /**
+     * Transports an air raid brings when nobody says otherwise.
+     *
+     * <p>One, which is what this event has always launched -- {@code onStart} used to make a single
+     * {@code launchDropRun} call and there was no count to read. It is spelled out as a constant so that
+     * "the command did not say" and "the command said one" are provably the same run.
+     */
+    public static final int DEFAULT_AIRCRAFT = 1;
+
+    /**
      * NBT keys of this event's own state.
      */
     private static final String TAG_DROP_POS      = "airraid_droppos";
@@ -159,6 +168,18 @@ public class PirateAirRaidEvent extends HordeRaidEvent
     private int waitTicks = 0;
 
     /**
+     * How many transports to ask for. {@link #DEFAULT_AIRCRAFT} unless a caller sets it before the event starts.
+     */
+    private int aircraft = DEFAULT_AIRCRAFT;
+
+    /**
+     * Transports actually launched and still to report back. The drop is reconciled when this reaches zero, not
+     * when the first aircraft finishes: with more than one in the air, closing the books on the first one home
+     * would write off everyone still aboard the others.
+     */
+    private int runsInFlight = 0;
+
+    /**
      * Raiders that vanished with the world under them and are owed a respawn.
      */
     private final List<BlockPos> respawns = new ArrayList<>();
@@ -172,6 +193,29 @@ public class PirateAirRaidEvent extends HordeRaidEvent
     public Identifier getEventTypeID()
     {
         return PIRATE_AIR_RAID_EVENT_TYPE_ID;
+    }
+
+    /**
+     * How many transports this raid should arrive in. Has to be set before {@link #onStart}, which is the only
+     * thing that reads it; afterwards the aircraft are already in the air.
+     *
+     * <p>Not bounded here on purpose. The event is the wrong place to argue with its caller, and the caller that
+     * takes the number from a person -- {@code CommandRaid} -- rejects an unreasonable one as it is typed, which
+     * is the only place a bound does any good.
+     *
+     * @param aircraft the number of transports; anything below one is treated as one.
+     */
+    public void setAircraft(final int aircraft)
+    {
+        this.aircraft = Math.max(1, aircraft);
+    }
+
+    /**
+     * @return the number of transports this raid will ask for.
+     */
+    public int getAircraft()
+    {
+        return aircraft;
     }
 
     /**
@@ -221,15 +265,42 @@ public class PirateAirRaidEvent extends HordeRaidEvent
         getColony().getRaiderManager().updateLastSpawnPoint(getEventTypeID(), dropPos);
 
         buildManifest();
-        if (manifest.isEmpty() || !Compatibility.aircraftCompat.launchDropRun(level, dropPos, new Callbacks()))
+        if (manifest.isEmpty())
         {
-            Log.getLogger().warn("Air raid could not launch a transport for colony " + getColony().getName()
-                                   + "; falling back to a ground raid.");
-            grounded = true;
-            dropPos = null;
-            setSpawnPoint(groundSpawn);
-            super.onStart();
+            groundFallback(groundSpawn);
             return;
+        }
+
+        // One transport per requested aircraft, all against the same drop point and all drawing from the same
+        // manifest. They are separate runs rather than one run flying a formation because that is what the compat
+        // layer offers -- launchDropRun creates exactly one aircraft -- and because separate runs are the better
+        // behaviour anyway: each is shot down on its own, so half a wave getting through becomes a real outcome
+        // instead of an all-or-nothing one. The tracker gives each of them its own random run-in bearing, so they
+        // converge on the drop point from different sides rather than flying in file.
+        //
+        // Never more aircraft than there are raiders to carry: an empty transport is a chunk bubble and a boss bar
+        // full of nothing.
+        final int wanted = Math.max(1, Math.min(aircraft, manifest.size()));
+        for (int i = 0; i < wanted; i++)
+        {
+            if (Compatibility.aircraftCompat.launchDropRun(level, dropPos, new Callbacks()))
+            {
+                runsInFlight++;
+            }
+        }
+
+        if (runsInFlight == 0)
+        {
+            groundFallback(groundSpawn);
+            return;
+        }
+
+        // Fewer than asked for is not a failure. The manifest is shared, so whoever did get airborne carries
+        // everyone; the wave arrives in a thinner formation and takes longer to empty.
+        if (runsInFlight < wanted)
+        {
+            Log.getLogger().warn("Air raid for colony " + getColony().getName() + " asked for " + wanted
+                                   + " transports and got " + runsInFlight + "; the wave flies in on those.");
         }
 
         status = EventStatus.PREPARING;
@@ -243,6 +314,28 @@ public class PirateAirRaidEvent extends HordeRaidEvent
         final PlayAudioMessage audio = new PlayAudioMessage(
           horde.initialSize <= SMALL_HORDE_SIZE ? RaidSounds.WARNING_EARLY : RaidSounds.WARNING, SoundSource.HOSTILE);
         PlayAudioMessage.sendToAll(getColony(), false, false, audio);
+    }
+
+    /**
+     * Gives up on flying and becomes an ordinary ground raid.
+     *
+     * <p>Putting the ground spawn back is the load-bearing part and is why the caller saved it: the parent's
+     * {@code onStart} resolves its spawn through {@code ShipBasedRaiderUtils#getLoadedPositionTowardsCenter},
+     * which refuses any point closer to the colony centre than {@code MIN_CENTER_DISTANCE}, and the drop point is
+     * directly over a building. Falling back with the drop point still in place produces a CANCELED event rather
+     * than a ground raid.
+     *
+     * @param groundSpawn the spawn point the raid manager originally chose.
+     */
+    private void groundFallback(final BlockPos groundSpawn)
+    {
+        Log.getLogger().warn("Air raid could not launch a transport for colony " + getColony().getName()
+                               + "; falling back to a ground raid.");
+        grounded = true;
+        dropPos = null;
+        runsInFlight = 0;
+        setSpawnPoint(groundSpawn);
+        super.onStart();
     }
 
     /**
@@ -394,6 +487,7 @@ public class PirateAirRaidEvent extends HordeRaidEvent
         }
         dropComplete = true;
         manifest.clear();
+        runsInFlight = 0;
 
         // Whatever is still aboard is never coming, so the horde is now exactly what landed. Without
         // this, hordeSize keeps counting raiders that do not exist and the raid never reaches DONE.
@@ -477,7 +571,14 @@ public class PirateAirRaidEvent extends HordeRaidEvent
         @Override
         public void finished(final boolean delivered, final Vec3 where)
         {
-            reconcile(delivered, where);
+            // One aircraft home is not the drop over. The books are closed once, when the last transport has
+            // reported, and the wave counts as delivered only if nothing is left on anybody's manifest -- which
+            // is the shared one, so an aircraft that emptied it delivered for the whole formation.
+            if (--runsInFlight > 0)
+            {
+                return;
+            }
+            reconcile(manifest.isEmpty(), where);
         }
     }
 

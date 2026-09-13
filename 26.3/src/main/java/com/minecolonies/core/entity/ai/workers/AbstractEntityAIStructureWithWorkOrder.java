@@ -144,8 +144,9 @@ public abstract class AbstractEntityAIStructureWithWorkOrder<J extends AbstractJ
                 MessageUtils.forCitizen(worker, COM_MINECOLONIES_COREMOD_ENTITY_BUILDER_BUILD_START, this.building.getWorkOrder().getDisplayName())
                   .sendTo(worker.getCitizenColonyHandler().getColonyOrRegister().getMessagePlayerEntities());
 
-                //Don't go through the CLEAR stage for repairs and upgrades
-                if (building.getBuildingLevel() > 0)
+                //Don't go through the CLEAR stage for repairs and upgrades - unless the order was filed as a
+                // rebuild from scratch, which is the one case that wants an existing building torn down first.
+                if (building.getBuildingLevel() > 0 && !wo.isClearBeforeBuild())
                 {
                     wo.setCleared(true);
                 }

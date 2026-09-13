@@ -6,8 +6,8 @@ import com.minecolonies.api.entity.ai.statemachine.states.IState;
 import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.ITickRateStateMachine;
 import com.minecolonies.api.entity.mobs.AbstractEntityMinecoloniesMonster;
 import com.minecolonies.api.util.BlockPosUtil;
+import com.minecolonies.api.util.DamageSourceKeys;
 import com.minecolonies.api.util.SoundUtils;
-import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.MineColonies;
 import com.minecolonies.core.colony.events.raid.RaiderConstants;
 import com.minecolonies.core.entity.ai.combat.AttackMoveAI;
@@ -15,10 +15,6 @@ import com.minecolonies.core.entity.ai.combat.TargetAI;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
 import com.minecolonies.core.entity.pathfinding.navigation.EntityNavigationUtils;
 import com.minecolonies.core.entity.pathfinding.pathresults.PathResult;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.Identifier;
 
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -48,14 +44,11 @@ public class RaiderMeleeAI<T extends AbstractEntityMinecoloniesMonster & IThreat
     protected void doAttack(final LivingEntity target)
     {
         double damageToBeDealt = user.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(MOB_ATTACK_DAMAGE.get())).getValue();
-        if (user.getName().getContents() instanceof TranslatableContents translatableContents)
-        {
-            target.hurt(target.level().damageSources().source(ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, translatableContents.getKey().replace("entity.minecolonies.", ""))), user), (float) damageToBeDealt);
-        }
-        else
-        {
-            target.hurt(target.level().damageSources().mobAttack(user), (float) damageToBeDealt);
-        }
+        // The raider's own damage type, keyed by its entity type's registry name. It used to be rebuilt on every
+        // swing out of the entity's display name -- a localization key stripped of "entity.minecolonies." -- which
+        // broke on a renamed mob and, through getOrThrow, crashed the server for any raider type without a
+        // damage_type json. DamageSourceKeys.mobAttack does the lookup by registry name and falls back instead.
+        target.hurt(DamageSourceKeys.mobAttack(user), (float) damageToBeDealt);
         user.swingForAttack(InteractionHand.MAIN_HAND);
         user.playSound(SoundEvents.PLAYER_ATTACK_SWEEP, (float) 1.0D, (float) SoundUtils.getRandomPitch(user.getRandom()));
         target.setLastHurtByMob(user);

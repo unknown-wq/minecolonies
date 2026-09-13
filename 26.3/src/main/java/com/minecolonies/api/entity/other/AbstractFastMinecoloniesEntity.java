@@ -14,7 +14,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityTypeTest;
-import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -184,13 +183,18 @@ public abstract class AbstractFastMinecoloniesEntity extends PathfinderMob imple
     }
 
     /**
-     * Prevent citizens and visitors from travelling to other dimensions through portals.
+     * Prevent minecolonies entities from travelling to other dimensions through portals.
+     * <p>
+     * This is the hook the three portal blocks ask -- {@code NetherPortalBlock}, {@code EndPortalBlock} and
+     * {@code EndGatewayBlock} all gate on {@code canUsePortal(false)} -- and it is the whole of what was wanted
+     * here. Refusing {@code teleport(TeleportTransition)} instead, as this used to, reached further than portals:
+     * {@code Entity#teleportTo(ServerLevel, …)} runs through the same method and reads a null return as failure, so
+     * {@code /tp} and every other commanded teleport silently did nothing on a citizen or a raider.
      */
-    @Nullable
     @Override
-    public Entity teleport(final TeleportTransition transition)
+    public boolean canUsePortal(final boolean ignorePassenger)
     {
-        return null;
+        return false;
     }
 
     @Override

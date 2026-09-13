@@ -29,7 +29,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.List;
-import java.util.Random;
 
 import static com.minecolonies.core.colony.events.raid.RaiderConstants.*;
 import java.util.function.Supplier;
@@ -232,6 +231,16 @@ public final class RaiderMobUtils
 
     /**
      * Set the equipment of a certain mob.
+     * <p>
+     * Slot drop chances are deliberately not touched for any branch that already existed: every piece handed out
+     * here keeps vanilla's {@link net.minecraft.world.entity.DropChances#DEFAULT_EQUIPMENT_DROP_CHANCE} of 8.5%,
+     * which is what raiders have always dropped on top of their loot table. Changing that is a balance decision,
+     * not a bug fix. The one exception is the melee fallback below, which is new gear on a mob that carried none:
+     * it is given a drop chance of zero so that arming the mob adds nothing to what players get.
+     * <p>
+     * Called from both monster constructors and again from {@code finalizeSpawn}, i.e. two or three times per
+     * raider. That is left as it was; the method is idempotent apart from the captain's armour set, which is
+     * re-rolled on each call.
      *
      * @param mob the equipment to set up.
      */
@@ -266,7 +275,9 @@ public final class RaiderMobUtils
             mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(ModItems.scimitar));
             if (mob instanceof ICaptainPirateEntity)
             {
-                if (new Random().nextBoolean())
+                // The entity's own RandomSource rather than a "new Random()" built here on every call: same
+                // even split, no allocation, and one source of randomness per entity instead of two.
+                if (mob.getRandom().nextBoolean())
                 {
                     mob.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ModItems.pirateHelmet_1));
                     mob.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ModItems.pirateChest_1));
@@ -281,6 +292,19 @@ public final class RaiderMobUtils
                     mob.setItemSlot(EquipmentSlot.FEET, new ItemStack(ModItems.pirateBoots_2));
                 }
             }
+        }
+        else if (mob instanceof IMeleeMobEntity)
+        {
+            // Everything melee that no branch above names. Today that is exactly the two mummies
+            // (IMeleeMummyEntity: EntityMummy, EntityMummyRaider), which fell through the whole ladder and walked
+            // into the colony bare-handed. The branch is written against the melee marker rather than against the
+            // mummy one so that a raider type added later cannot reopen the same hole.
+            //
+            // A weapon is cosmetic for damage -- a raider hits for mc_mob_damage, never for the item in its hand
+            // (RaiderMeleeAI#doAttack) -- so the only thing this could change for players is the drop, and the
+            // drop chance is pinned to zero to keep even that identical to what a mummy gives today.
+            mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
+            mob.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
         }
     }
 

@@ -4,9 +4,7 @@ import com.minecolonies.api.entity.mobs.AbstractEntityMinecoloniesRaider;
 import com.minecolonies.api.entity.mobs.RaiderType;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 
 import static com.minecolonies.core.colony.events.raid.RaiderConstants.ONE;
 import static com.minecolonies.core.colony.events.raid.RaiderConstants.OUT_OF_ONE_HUNDRED;
@@ -41,12 +39,6 @@ public abstract class AbstractEntityEgyptianRaider extends AbstractEntityMinecol
         {
             this.playSound(soundevent, this.getSoundVolume(), this.getVoicePitch());
         }
-    }
-
-    @Override
-    public boolean checkSpawnRules(final LevelAccessor worldIn, final EntitySpawnReason spawnReasonIn)
-    {
-        return true;
     }
 
     @Override

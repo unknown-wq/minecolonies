@@ -601,6 +601,12 @@ public final class WindowConstants
     public static final String BUTTON_PICKUP_BUILDING = "pickup";
 
     /**
+     * This button tears the building down and builds the picked level again on the bare ground. Only free mode shows
+     * it, see {@link com.minecolonies.core.debug.FreeMode}.
+     */
+    public static final String BUTTON_REBUILD_BUILDING = "rebuild";
+
+    /**
      * Icons used to display the happiness
      */
     public static final String UNHAPPY_ICON     = "minecolonies:textures/gui/unhappy_icon.png";

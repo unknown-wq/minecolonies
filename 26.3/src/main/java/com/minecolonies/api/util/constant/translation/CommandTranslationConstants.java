@@ -175,10 +175,19 @@ public class CommandTranslationConstants
     public static final String COMMAND_RAID_NOW_SUCCESS                      = "com.minecolonies.command.raidnow.success";
     @NonNls
     public static final String COMMAND_RAID_NOW_SUCCESS_DETAIL               = "com.minecolonies.command.raidnow.success.detail";
+    /** A raid was started with an aircraft count and became the air raid that reads it. */
+    @NonNls
+    public static final String COMMAND_RAID_NOW_SUCCESS_AIR                  = "com.minecolonies.command.raidnow.success.air";
+    /** A raid was started with an aircraft count and did not become an air raid, so the count did nothing. */
+    @NonNls
+    public static final String COMMAND_RAID_NOW_AIR_IGNORED                  = "com.minecolonies.command.raidnow.success.airignored";
     @NonNls
     public static final String COMMAND_RAID_NOW_FAILURE                      = "com.minecolonies.command.raidnow.failure";
     @NonNls
     public static final String COMMAND_RAID_TONIGHT_SUCCESS                  = "com.minecolonies.command.raidtonight.success";
+    /** A raid was scheduled for tonight with an aircraft count. */
+    @NonNls
+    public static final String COMMAND_RAID_TONIGHT_SUCCESS_AIR              = "com.minecolonies.command.raidtonight.success.air";
     @NonNls
     public static final String COMMAND_RAID_LOCATE_NONE                      = "com.minecolonies.command.raidlocate.none";
     @NonNls

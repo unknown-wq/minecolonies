@@ -86,7 +86,12 @@ public class SchemFixerUtil
                 try
                 {
                     CompoundTag compoundNBT = NbtIo.readCompressed(new ByteArrayInputStream(java.nio.file.Files.readAllBytes(blueprintFile.toPath())), NbtAccounter.unlimitedHeap());
-                    final Blueprint blueprint = BlueprintUtil.readBlueprintFromNBT(compoundNBT, provider.get());
+                    final Blueprint blueprint = BlueprintUtil.readBlueprintFromNBT(compoundNBT, provider.get(), blueprintFile.getName());
+                    if (blueprint == null)
+                    {
+                        // Unreadable or too old; BlueprintUtil already said which and why.
+                        continue;
+                    }
                     if (fixSchematicNameAndCorners(blueprint))
                     {
                         BlueprintUtil.writeToStream(new FileOutputStream(blueprintFile), blueprint);

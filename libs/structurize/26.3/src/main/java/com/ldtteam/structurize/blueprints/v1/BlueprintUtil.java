@@ -15,7 +15,6 @@ import net.minecraft.nbt.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.SharedConstants;
 import net.minecraft.util.datafix.fixes.References;
-import net.minecraft.util.datafix.fixes.ChunkPalettedStorageFix;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -31,7 +30,6 @@ import org.apache.logging.log4j.LogManager;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.function.Function;
 
 import static com.ldtteam.structurize.blockentities.interfaces.IBlueprintDataProviderBE.*;
 
@@ -43,7 +41,27 @@ import static com.ldtteam.structurize.api.constants.Constants.MOD_ID;
  */
 public class BlueprintUtil
 {
-    public static final int DEFAULT_FIXER_IF_NOT_FOUND = DataVersion.v1_12_2.getDataVersion();
+    /**
+     * Data version assumed for a blueprint that carries no "mcversion" tag at all. Such a file predates the tag,
+     * i.e. it is 1.12-era (1343 is Minecraft 1.12.2), and is therefore refused by {@link #isTooOldToLoad}.
+     */
+    public static final int DEFAULT_FIXER_IF_NOT_FOUND = 1343;
+
+    /**
+     * Oldest data version a blueprint may carry and still be loaded: 1519, Minecraft 1.13, the first release after
+     * the flattening.
+     * <p>
+     * Everything below it needs the hand-written migration chain that used to live in this package - a step-by-step
+     * walk through the vanilla data fixer working around a DFU bug over the flattening, plus a cross-fixup turning
+     * 1.12 flower-pot and note-block <em>block entities</em> into block states. That machinery is gone; a blueprint
+     * that old is reported and refused instead of being migrated.
+     */
+    public static final int MIN_SUPPORTED_DATA_VERSION = 1519;
+
+    /**
+     * Stand-in name used in the too-old error when the caller did not say which file the tag came from.
+     */
+    private static final String UNNAMED_BLUEPRINT = "<unnamed>";
 
     public static final String NBT_OPTIONAL_DATA_TAG = "optional_data";
 
@@ -337,15 +355,6 @@ public class BlueprintUtil
             {
                 final CompoundTag fixedNbt = DataFixerUtils.runDataFixer(nbt, References.BLOCK_STATE, oldDataVersion);
 
-                switch (oldDataVersion)
-                {
-                    case 1343:
-                        fixPalette1343(fixedNbt);
-                    default:
-                        // don't fix anything
-                        break;
-                }
-
                 final BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, fixedNbt);
                 palette.add(i, state);
             }
@@ -357,48 +366,6 @@ public class BlueprintUtil
         }
 
         return palette;
-    }
-
-    private static void fixPalette1343(final CompoundTag oldBlockState)
-    {
-        final String name = oldBlockState.getStringOr("Name", "");
-        oldBlockState.putString("Name", name.toLowerCase(Locale.US));
-        if (name.contains(MOD_ID))
-        {
-            if (name.contains("blockshingle_"))
-            {
-                final String[] split = name.split(":")[1].split("_");
-                oldBlockState.putString("Name",
-                  "structurize:clay_" + (split.length > 2 ? split[1] + "_" + split[2] : split[1]) + "_shingle");
-            }
-            else if (name.contains("blockshingleslab"))
-            {
-                oldBlockState.putString("Name", "structurize:clay_shingle_slab");
-            }
-            else if (name.contains("blocktimberframe"))
-            {
-                final String[] split = name.split(":")[1].split("_");
-                String output = "structurize:" + (split.length > 3 ? split[3] : split[2]) + "_"
-                                  + (split.length > 3 ? split[1] + "_" + split[2] : split[1]) + "_paper_timber_frame";
-                output = output.replace("doublecrossed", "double_crossed");
-                output = output.replace("sideframed", "side_framed");
-                output = output.replace("upgated", "up_gated");
-                output = output.replace("downgated", "down_gated");
-                output = output.replace("onecrossedlr", "one_crossed_lr");
-                output = output.replace("onecrossedrl", "one_crossed_rl");
-                output = output.replace("horizontalplain", "horizontal_plain");
-                output = output.replace("sideframedhorizontal", "side_framed_horizontal");
-
-                oldBlockState.putString("Name", output);
-                // blocktimberframe_spruce_plain
-                // plain_spruce_paper_timber_frame
-            }
-            else if (name.contains("blockpaperwall") && !name.contains("_"))
-            {
-                oldBlockState.putString("Name",
-                  "structurize:" + oldBlockState.getCompoundOrEmpty("Properties").getStringOr("variant", "") + "_blockpaperwall");
-            }
-        }
     }
 
     public static CompoundTag[] fixTileEntities(final int oldDataVersion, final ListTag tileEntitiesTag)
@@ -420,13 +387,14 @@ public class BlueprintUtil
                     tileEntities[i] = nbt;
                     continue;
                 }
-                // no longer a block entity, fixed in #fixCross1343()
-                if (id.equals("minecraft:flower_pot") || id.equals("minecraft:noteblock"))
-                {
-                    tileEntities[i] = nbt;
-                    continue;
-                }
-                // Also no longer a block entity, but with nothing left to salvage. Beds lost theirs at
+                // Flower pots and note blocks stopped being block entities at the flattening (1.13, data version
+                // 1519), which is exactly the floor MIN_SUPPORTED_DATA_VERSION now draws, so a loadable blueprint
+                // can no longer legitimately contain one. They used to be kept here for the 1.12-era cross-fixer to turn back
+                // into block states; with that gone there is nothing left to salvage, and handing either id to a
+                // bare References.BLOCK_ENTITY update makes the data fixer throw (no rule exists for them outside
+                // CHUNK/ITEM_STACK/ENTITY/STRUCTURE). Drop them, same as the bed below.
+                //
+                // Beds are the other one, and they are not 1.12-specific. Beds lost theirs at
                 // data version 4885 (V4885#registerBlockEntities removes "minecraft:bed"), which is inside
                 // the range 26.2 fixes over and outside the range 1.21.1 did - so this only started biting
                 // on this version, for every blueprint written before 4885 rather than only 1.12-era ones.
@@ -438,7 +406,7 @@ public class BlueprintUtil
                 // BlockEntity#loadStatic logs "Skipping block entity with invalid type" and returns null.
                 // The bed itself is unaffected either way - it comes from the palette, where the
                 // BLOCK_STATE fixer turns minecraft:bed into minecraft:red_bed.
-                if (id.equals("minecraft:bed"))
+                if (id.equals("minecraft:bed") || id.equals("minecraft:flower_pot") || id.equals("minecraft:noteblock"))
                 {
                     tileEntities[i] = null;
                     continue;
@@ -482,116 +450,6 @@ public class BlueprintUtil
         return entities;
     }
 
-    private static List<BlockPos> searchForBlockIdInBlocks(final short idToCheck, final short[][][] blocks)
-    {
-        final List<BlockPos> result = new ArrayList<>();
-        for (short y = 0; y < blocks.length; y++)
-        {
-            final short[][] temp = blocks[y];
-            for (short z = 0; z < temp.length; z++)
-            {
-                final short[] temp2 = temp[z];
-                for (short x = 0; x < temp2.length; x++)
-                {
-                    final short id = temp2[x];
-                    if (id == idToCheck)
-                    {
-                        result.add(new BlockPos(x, y, z));
-                    }
-                }
-            }
-        }
-        return result;
-    }
-
-    private static Map<Integer, BlockPos> searchForTEposInTEs(final List<BlockPos> blockPosToFind, final CompoundTag[] tileEntities)
-    {
-        final Map<Integer, BlockPos> result = new HashMap<>();
-        for (int i = 0; i < tileEntities.length; i++)
-        {
-            final CompoundTag compound = tileEntities[i];
-            if (compound != null)
-            {
-                final BlockPos bp = new BlockPos(compound.getIntOr("x", 0), compound.getIntOr("y", 0), compound.getIntOr("z", 0));
-                if (blockPosToFind.contains(bp))
-                {
-                    result.put(i, bp);
-                }
-            }
-        }
-        return result;
-    }
-
-    private static void teToBlockStateFix(
-      final List<BlockState> palette,
-      final short[][][] blocks,
-      final CompoundTag[] tileEntities,
-      final short paletteIndex,
-      final Function<CompoundTag, CompoundTag> dataFixer)
-    {
-        final Map<Integer, BlockPos> teToReplace = searchForTEposInTEs(searchForBlockIdInBlocks(paletteIndex, blocks), tileEntities);
-        final Map<BlockState, Short> newBlocksToBlockId = new HashMap<>();
-        boolean paletteFull = false;
-
-        palette.set(paletteIndex, null);
-        for (final Map.Entry<Integer, BlockPos> e : teToReplace.entrySet())
-        {
-            final CompoundTag teCompound = tileEntities[e.getKey()];
-            tileEntities[e.getKey()] = null;
-            final CompoundTag newBScompound = dataFixer.apply(teCompound);
-            final BlockState newBlockState = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, newBScompound);
-            final short newBlockId = paletteFull ? newBlocksToBlockId.getOrDefault(newBlockState, (short) palette.size()) : paletteIndex;
-            if (newBlockId == palette.size())
-            {
-                palette.add(newBlockId, newBlockState);
-                newBlocksToBlockId.put(newBlockState, newBlockId);
-            }
-            else if (!paletteFull)
-            {
-                palette.set(newBlockId, newBlockState);
-                newBlocksToBlockId.put(newBlockState, newBlockId);
-                paletteFull = true;
-            }
-            blocks[e.getValue().getY()][e.getValue().getZ()][e.getValue().getX()] = newBlockId;
-        }
-    }
-
-    public static void fixCross1343(
-      final List<BlockState> palette,
-      final short[][][] blocks,
-      final CompoundTag[] tileEntities,
-      final CompoundTag[] entities)
-    {
-        // 26.2: both maps moved into the private nested ChunkPalettedStorageFix$MappingConstants; three
-        // AccessWidener lines (see src/main/resources/structurize.accesswidener) bring them back.
-        // The NBT getters around them are the ones that changed: getString/getInt/getBoolean now return
-        // Optional, so the "...Or(key, default)" forms are used instead.
-        final int oldSize = palette.size();
-        for (short i = 0; i < oldSize; i++)
-        {
-            final BlockState bs = palette.get(i);
-            if (bs.getBlock() == Blocks.POTTED_CACTUS) // flower pot fix
-            {
-                teToBlockStateFix(palette, blocks, tileEntities, i, teCompound -> {
-                    final String type = teCompound.getStringOr("Item", "") + teCompound.getIntOr("Data", 0);
-                    return (CompoundTag) ChunkPalettedStorageFix.MappingConstants.FLOWER_POT_MAP
-                                           .getOrDefault(type, ChunkPalettedStorageFix.MappingConstants.FLOWER_POT_MAP.get("minecraft:air0"))
-                                           .getValue();
-                });
-            }
-            else if (bs.getBlock() == Blocks.NOTE_BLOCK) // note block fix
-            {
-                teToBlockStateFix(palette, blocks, tileEntities, i, teCompound -> {
-                    final String type = Boolean.toString(teCompound.getBooleanOr("powered", false))
-                                          + (byte) Math.min(Math.max(teCompound.getIntOr("note", 0), 0), 24);
-                    return (CompoundTag) ChunkPalettedStorageFix.MappingConstants.NOTE_BLOCK_MAP
-                                           .getOrDefault(type, ChunkPalettedStorageFix.MappingConstants.NOTE_BLOCK_MAP.get("false0"))
-                                           .getValue();
-                });
-            }
-        }
-    }
-
     /**
      * Deserializes a Blueprint form the Given CompoundNBT
      *
@@ -600,10 +458,58 @@ public class BlueprintUtil
      */
     public static Blueprint readBlueprintFromNBT(final CompoundTag nbtTag, final HolderLookup.Provider provider)
     {
+        return readBlueprintFromNBT(nbtTag, provider, UNNAMED_BLUEPRINT);
+    }
+
+    /**
+     * The data version a blueprint was saved at, or {@link #DEFAULT_FIXER_IF_NOT_FOUND} when it carries no tag.
+     *
+     * @param nbtTag the raw blueprint tag.
+     * @return the stored data version.
+     */
+    public static int getDataVersion(final CompoundTag nbtTag)
+    {
+        return nbtTag.getIntOr("mcversion", DEFAULT_FIXER_IF_NOT_FOUND);
+    }
+
+    /**
+     * Whether this blueprint was saved by a Minecraft older than {@link #MIN_SUPPORTED_DATA_VERSION} and therefore
+     * cannot be loaded at all. Callers that have a player in scope use this to tell them why the load failed; the
+     * refusal itself happens in {@link #readBlueprintFromNBT(CompoundTag, HolderLookup.Provider, String)}.
+     *
+     * @param nbtTag the raw blueprint tag.
+     * @return true if the blueprint is too old to load.
+     */
+    public static boolean isTooOldToLoad(final CompoundTag nbtTag)
+    {
+        return getDataVersion(nbtTag) < MIN_SUPPORTED_DATA_VERSION;
+    }
+
+    /**
+     * Deserializes a Blueprint from the given CompoundNBT.
+     *
+     * @param nbtTag     the CompoundNBT containing the Blueprint data.
+     * @param provider   registry lookup.
+     * @param sourceName the file this came from, used only for the error message.
+     * @return the deserialized Blueprint, or null if it could not be read. Never throws.
+     */
+    public static Blueprint readBlueprintFromNBT(final CompoundTag nbtTag, final HolderLookup.Provider provider, final String sourceName)
+    {
         final CompoundTag tag = nbtTag;
         byte version = tag.getByteOr("version", (byte) 0);
         if (version == 1)
         {
+            // One line per refused file, before anything is parsed: nothing half-built is handed back, and there is
+            // no per-block or per-palette-entry noise.
+            if (isTooOldToLoad(tag))
+            {
+                Log.getLogger()
+                    .error("Blueprint '" + sourceName + "' was saved in a Minecraft version that is too old to load (data version "
+                             + getDataVersion(tag) + ", the oldest supported is " + MIN_SUPPORTED_DATA_VERSION
+                             + " / Minecraft 1.13). Re-save it in a newer Minecraft to use it.");
+                return null;
+            }
+
             short sizeX = tag.getShortOr("size_x", (short) 0), sizeY = tag.getShortOr("size_y", (short) 0), sizeZ = tag.getShortOr("size_z", (short) 0);
 
             // Reading required Mods
@@ -635,11 +541,6 @@ public class BlueprintUtil
 
             // Reading Entities
             CompoundTag[] entities = fixEntities(oldDataVersion, (ListTag) tag.get("entities"));
-
-            if (oldDataVersion == DEFAULT_FIXER_IF_NOT_FOUND)
-            {
-                fixCross1343(palette, blocks, tileEntities, entities);
-            }
 
             final Blueprint schem = new Blueprint(sizeX, sizeY, sizeZ, (short) palette.size(), palette, blocks, tileEntities, requiredMods, provider)
                                       .setMissingMods(missingMods.toArray(new String[0]));
@@ -704,7 +605,7 @@ public class BlueprintUtil
      * @param sizeZ        Sturcture size on the Z-Axis
      * @return An 1 Dimensional int array
      */
-    private static int[] convertBlocksToSaveData(short[][][] multDimArray, int sizeX, int sizeY, int sizeZ)
+    public static int[] convertBlocksToSaveData(short[][][] multDimArray, int sizeX, int sizeY, int sizeZ)
     {
         // Converting 3 Dimensional Array to One DImensional
         short[] oneDimArray = new short[sizeX * sizeY * sizeZ];

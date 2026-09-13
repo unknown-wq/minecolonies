@@ -52,6 +52,26 @@ public interface IBuilderWorkOrder extends IServerWorkOrder
     void setCleared(boolean cleared);
 
     /**
+     * Whether the builder has to tear the site down before it builds, even though a building already stands there.
+     * <p>
+     * The ordinary rule is the other way round: {@code AbstractEntityAIStructure#loadStructure} gives the
+     * {@code CLEAR} stage only to a site with nothing on it, so an upgrade and a repair patch the existing blocks in
+     * place. A work order that answers true here gets the {@code CLEAR} stage regardless, which is what the free mode
+     * "rebuild from scratch" button asks for: everything inside the blueprint's footprint comes down first, the
+     * player's own furniture included, and the level is then built on bare ground.
+     *
+     * @return true if the site is to be cleared first.
+     */
+    boolean isClearBeforeBuild();
+
+    /**
+     * Set whether the builder has to tear the site down before it builds.
+     *
+     * @param clearBeforeBuild the new state, see {@link #isClearBeforeBuild()}.
+     */
+    void setClearBeforeBuild(boolean clearBeforeBuild);
+
+    /**
      * Set whether the building has been cleared.
      *
      * @param requested true if the building has been cleared.

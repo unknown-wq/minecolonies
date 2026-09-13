@@ -239,6 +239,30 @@ and is still the way to pick a specific raid type or drop one at a position.
 The success message now says what was actually spawned — `24 raiders at strength
 1.80` — rather than only that a raid started.
 
+**`<aircraft>`**, how many transports an air raid arrives in, appended to the
+position form:
+
+```
+/mc colony raid 1 now minecolonies:pirate_air_raid true 500 ~ ~ ~     one aircraft, as before
+/mc colony raid 1 now minecolonies:pirate_air_raid true 500 ~ ~ ~ 4   the same wave in four
+```
+
+Between 1 and 8, and Brigadier refuses anything outside that as it is typed. It
+goes after the position rather than after the raider count because a position is
+three tokens in one argument, so `... 500 3` would otherwise be readable both as
+an aircraft count and as the start of an unfinished position. Leaving it off is
+the old command exactly: one transport, which is all this raid has ever launched.
+
+The raiders are unchanged — the count is still `<amount>`, and the whole wave is
+still shared out over whatever flies. More aircraft means the drop empties faster
+(each transport releases one raider every four ticks), the wave lands spread out
+rather than in one stick, and the colony's anti-air has more than one thing to
+shoot at: a transport brought down now costs the attacker only its own share.
+
+Only `minecolonies:pirate_air_raid` reads the number. If the raid turns out not to
+be an air raid — no aircraft mod, the feature switched off, a different type
+chosen — the command says so instead of silently ignoring it.
+
 **A raid asked for by name no longer fails for want of a spawn point.** Spawn
 points are searched for by walking outward over *loaded* chunks and giving up at
 the first unloaded one, so a colony whose surroundings are not loaded far enough

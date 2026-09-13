@@ -123,6 +123,7 @@
   "item.structurize.sceptertag": "Tag Tool",
   "item.structurize.shapetool": "Shape Tool",
   "itemGroup.structurize": "Structurize",
+  "structurize.blueprint.too_old": "The blueprint \"%s\" was saved in a Minecraft version that is too old to load. Re-save it in a newer Minecraft to use it.",
   "structurize.config.allowPlayerSchematics": "Allow Player Schematics",
   "structurize.config.allowPlayerSchematics.comment": "Should player-made schematics be allowed?",
   "structurize.config.blueprint": "Blueprint",

@@ -398,14 +398,14 @@ public class RaidManager implements IRaiderManager
                 spawnState.isAir()
                 && belowState.isAir())
             {
-                raidSettings = raidSettings.withExplicitType(PirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID.getPath());
+                raidSettings = raidSettings.withExplicitType(PirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID);
             }
-            else if ((raidSettings.raidType() == null || Objects.equals(raidSettings.raidType(), DrownedPirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID.getPath()))
+            else if ((raidSettings.raidType() == null || Objects.equals(raidSettings.raidType(), DrownedPirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID))
                 && (PathfindingUtils.isWater(colony.getWorld(), targetSpawnPoint.above(), aboveState, null) || ColonyConstants.rand.nextInt(100) <= 20)
                 && PathfindingUtils.isWater(colony.getWorld(), targetSpawnPoint, spawnState, null)
                 && PathfindingUtils.isWater(colony.getWorld(), targetSpawnPoint.below(), belowState, null))
             {
-                raidSettings = raidSettings.withExplicitType(DrownedPirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID.getPath());
+                raidSettings = raidSettings.withExplicitType(DrownedPirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID);
                 for (int i = 0; i < DrownedPirateRaidEvent.DEPTH_REQ; i++)
                 {
                     if (!PathfindingUtils.isLiquid(colony.getWorld().getBlockState(targetSpawnPoint.above())))
@@ -421,7 +421,7 @@ public class RaidManager implements IRaiderManager
             final Holder<Biome> biome = colony.getWorld().getBiome(colony.getCenter());
             final int rand = colony.getWorld().getRandom().nextInt(100);
             if (raidSettings.allowShips() && (raidSettings.raidType() == null && (biome.is(BiomeTags.IS_TAIGA) || rand < IGNORE_BIOME_CHANCE)
-                || Objects.equals(raidSettings.raidType(), NorsemenRaidEvent.NORSEMEN_RAID_EVENT_TYPE_ID.getPath()))
+                || Objects.equals(raidSettings.raidType(), NorsemenRaidEvent.NORSEMEN_RAID_EVENT_TYPE_ID))
                 && ShipBasedRaiderUtils.canSpawnShipAt(colony, targetSpawnPoint, amount, shipRotMir, NorsemenShipRaidEvent.SHIP_NAME))
             {
                 final NorsemenShipRaidEvent event = new NorsemenShipRaidEvent(colony);
@@ -434,7 +434,7 @@ public class RaidManager implements IRaiderManager
                 colony.getEventManager().addEvent(event);
             }
             else if (raidSettings.allowShips() && (raidSettings.raidType() == null && (biome.is(BiomeTags.IS_OCEAN))
-                || Objects.equals(raidSettings.raidType(), DrownedPirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID.getPath()))
+                || Objects.equals(raidSettings.raidType(), DrownedPirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID))
                 && ShipBasedRaiderUtils.canSpawnShipAt(colony, targetSpawnPoint, amount, shipRotMir, DrownedPirateRaidEvent.SHIP_NAME, DrownedPirateRaidEvent.DEPTH_REQ))
             {
                 final DrownedPirateRaidEvent event = new DrownedPirateRaidEvent(colony);
@@ -447,7 +447,7 @@ public class RaidManager implements IRaiderManager
                 colony.getEventManager().addEvent(event);
             }
             else if (raidSettings.allowShips() && ShipBasedRaiderUtils.canSpawnShipAt(colony, targetSpawnPoint, amount, shipRotMir, PirateRaidEvent.SHIP_NAME)
-                && (raidSettings.raidType() == null || raidSettings.raidType().equals(PirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID.getPath())))
+                && (raidSettings.raidType() == null || raidSettings.raidType().equals(PirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID)))
             {
                 final PirateRaidEvent event = new PirateRaidEvent(colony);
                 event.setSpawnPoint(targetSpawnPoint);
@@ -467,28 +467,35 @@ public class RaidManager implements IRaiderManager
                 // event itself falls back to an ordinary ground raid if the transport cannot be launched
                 // when the time comes, so choosing it here is never a dead end.
                 if (PirateAirRaidEvent.isAvailable()
-                    && (Objects.equals(raidSettings.raidType(), PirateAirRaidEvent.PIRATE_AIR_RAID_EVENT_TYPE_ID.getPath())
+                    && (Objects.equals(raidSettings.raidType(), PirateAirRaidEvent.PIRATE_AIR_RAID_EVENT_TYPE_ID)
                         || (raidSettings.raidType() == null
                             && ColonyConstants.rand.nextInt(100) < MineColonies.getConfig().getServer().airRaidChance.get())))
                 {
-                    event = new PirateAirRaidEvent(colony);
+                    final PirateAirRaidEvent airEvent = new PirateAirRaidEvent(colony);
+                    if (raidSettings.aircraft() != null)
+                    {
+                        // Only when it was actually asked for. Left alone the event keeps its own default, so a
+                        // raid that says nothing about aircraft flies exactly the run it always did.
+                        airEvent.setAircraft(raidSettings.aircraft());
+                    }
+                    event = airEvent;
                 }
                 else if (((biome.is(BiomeTags.HAS_DESERT_PYRAMID) || (rand > IGNORE_BIOME_CHANCE && rand < IGNORE_BIOME_CHANCE * 2))
-                    && raidSettings.raidType() == null) || Objects.equals(raidSettings.raidType(), EgyptianRaidEvent.EGYPTIAN_RAID_EVENT_TYPE_ID.getPath()))
+                    && raidSettings.raidType() == null) || Objects.equals(raidSettings.raidType(), EgyptianRaidEvent.EGYPTIAN_RAID_EVENT_TYPE_ID))
                 {
                     event = new EgyptianRaidEvent(colony);
                 }
                 else if (((biome.is(BiomeTags.IS_JUNGLE) || (rand > IGNORE_BIOME_CHANCE * 2 && rand < IGNORE_BIOME_CHANCE * 3))
-                    && raidSettings.raidType() == null) || (Objects.equals(raidSettings.raidType(), AmazonRaidEvent.AMAZON_RAID_EVENT_TYPE_ID.getPath())))
+                    && raidSettings.raidType() == null) || (Objects.equals(raidSettings.raidType(), AmazonRaidEvent.AMAZON_RAID_EVENT_TYPE_ID)))
                 {
                     event = new AmazonRaidEvent(colony);
                 }
                 else if (((biome.is(BiomeTags.IS_TAIGA) || (rand > IGNORE_BIOME_CHANCE * 3 && rand < IGNORE_BIOME_CHANCE * 4))
-                    && raidSettings.raidType() == null) || Objects.equals(raidSettings.raidType(), NorsemenRaidEvent.NORSEMEN_RAID_EVENT_TYPE_ID.getPath()))
+                    && raidSettings.raidType() == null) || Objects.equals(raidSettings.raidType(), NorsemenRaidEvent.NORSEMEN_RAID_EVENT_TYPE_ID))
                 {
                     event = new NorsemenRaidEvent(colony);
                 }
-                else if (Objects.equals(raidSettings.raidType(), PirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID.getPath()))
+                else if (Objects.equals(raidSettings.raidType(), PirateRaidEvent.PIRATE_RAID_EVENT_TYPE_ID))
                 {
                     event = new PirateGroundRaidEvent(colony);
                 }
@@ -504,7 +511,7 @@ public class RaidManager implements IRaiderManager
                         event = new NorsemenRaidEvent(colony);
                     }
                 }
-                else if (raidSettings.raidType().equals(BarbarianRaidEvent.BARBARIAN_RAID_EVENT_TYPE_ID.getPath()))
+                else if (raidSettings.raidType().equals(BarbarianRaidEvent.BARBARIAN_RAID_EVENT_TYPE_ID))
                 {
                     event = new BarbarianRaidEvent(colony);
                 }

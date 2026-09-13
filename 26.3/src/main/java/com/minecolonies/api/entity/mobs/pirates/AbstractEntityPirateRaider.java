@@ -5,9 +5,7 @@ import com.minecolonies.api.entity.mobs.RaiderType;
 import com.minecolonies.core.entity.pathfinding.navigation.AbstractAdvancedPathNavigate;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
@@ -56,12 +54,6 @@ public abstract class AbstractEntityPirateRaider extends AbstractEntityMinecolon
         {
             this.playSound(soundevent, this.getSoundVolume(), this.getVoicePitch());
         }
-    }
-
-    @Override
-    public boolean checkSpawnRules(final LevelAccessor worldIn, final EntitySpawnReason spawnReasonIn)
-    {
-        return true;
     }
 
     /**

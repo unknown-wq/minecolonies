@@ -5,7 +5,6 @@ import com.ldtteam.structurize.api.constants.Constants;
 import com.ldtteam.structurize.blockentities.ModBlockEntities;
 import com.ldtteam.structurize.blocks.ModBlocks;
 import com.ldtteam.structurize.blueprints.v1.DataFixerUtils;
-import com.ldtteam.structurize.blueprints.v1.DataVersion;
 import com.ldtteam.common.config.AbstractConfiguration;
 import com.ldtteam.common.config.Configurations;
 import com.ldtteam.common.language.LanguageHandler;
@@ -20,7 +19,6 @@ import com.ldtteam.structurize.storage.ServerFutureProcessor;
 import com.ldtteam.structurize.storage.ServerStructurePackLoader;
 import com.ldtteam.structurize.storage.rendering.ServerPreviewDistributor;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.datafix.DataFixers;
 
 /**
@@ -69,24 +67,11 @@ public class Structurize implements ModInitializer
     }
 
     /**
-     * Sanity check that the vanilla data fixer is new enough for the blueprint format.
+     * Warn if something replaced the vanilla data fixer, which is the only thing blueprint loading fixes against.
      */
     private static void checkDataFixer()
     {
-        if (DataFixerUtils.isVanillaDF)
-        {
-            if ((DataFixers.getDataFixer().getSchema(Integer.MAX_VALUE - 1).getVersionKey()) >= DataVersion.UPCOMING.getDataVersion() * 10)
-            {
-                throw new RuntimeException(
-                    "You are trying to run old mod on much newer vanilla. Missing some newest data versions. Please update com/ldtteam/structures/blueprints/v1/DataVersion");
-            }
-            else if (FabricLoader.getInstance().isDevelopmentEnvironment() && DataVersion.CURRENT == DataVersion.UPCOMING)
-            {
-                throw new RuntimeException(
-                    "Missing some newest data versions. Please update src/main/java/com/ldtteam/structurize/blueprints/v1/DataVersion.java");
-            }
-        }
-        else
+        if (!DataFixerUtils.isVanillaDF)
         {
             Log.getLogger().error("----------------------------------------------------------------- \n "
                                     + "Invalid DataFixer detected, schematics might not paste correctly! \n"

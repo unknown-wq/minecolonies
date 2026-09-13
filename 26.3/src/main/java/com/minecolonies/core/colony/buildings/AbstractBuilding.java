@@ -487,6 +487,31 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
      */
     protected WorkOrderRequestResult requestWorkOrder(WorkOrderType type, final BlockPos builder, final int targetLevel, final boolean announce)
     {
+        return requestWorkOrder(type, builder, targetLevel, announce, false);
+    }
+
+    /**
+     * Adds work orders to the {@link Colony#getWorkManager()}.
+     *
+     * @param type             what to do with the work order
+     * @param builder          the assigned builder.
+     * @param targetLevel      the level to build to, or 0 to take the one the type implies (build to 1, upgrade by 1).
+     *                         Anything else only ever comes from free mode, see {@link #requestUpgradeTo}.
+     * @param announce         whether to tell the colony's players about it. The one caller that passes false is the
+     *                         command that asks a whole colony at once - the answer goes to the sender as counts
+     *                         instead, rather than as one chat line per building.
+     * @param clearBeforeBuild whether the site is to be torn down before it is built, see
+     *                         {@link com.minecolonies.api.colony.workorders.IBuilderWorkOrder#isClearBeforeBuild()}.
+     *                         Free mode only, and only ever true out of {@link #requestRebuild}.
+     * @return what came of it.
+     */
+    protected WorkOrderRequestResult requestWorkOrder(
+      WorkOrderType type,
+      final BlockPos builder,
+      final int targetLevel,
+      final boolean announce,
+      final boolean clearBeforeBuild)
+    {
         for (@NotNull final WorkOrderBuilding o : colony.getWorkManager().getWorkOrdersOfType(WorkOrderBuilding.class))
         {
             if (o.getLocation().equals(getID()))
@@ -514,6 +539,7 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
         }
 
         WorkOrderBuilding workOrder = targetLevel <= 0 ? WorkOrderBuilding.create(type, this) : WorkOrderBuilding.create(type, this, targetLevel);
+        workOrder.setClearBeforeBuild(clearBeforeBuild);
         if (type == WorkOrderType.REMOVE && !canDeconstruct())
         {
             if (announce)
@@ -964,6 +990,78 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
         }
 
         requestWorkOrder(getBuildingLevel() == 0 ? WorkOrderType.BUILD : WorkOrderType.UPGRADE, builder, targetLevel);
+    }
+
+    /**
+     * Requests a build that tears the site down first and then raises the wanted level on the bare ground.
+     * <p>
+     * Free mode only, and refused outright without it, for the same reason {@link #requestUpgradeTo} is: it hands out
+     * a result the game otherwise charges for. It is also the one build request in the mod that destroys instead of
+     * adding - the {@code CLEAR} stage takes down everything inside the blueprint's footprint that
+     * {@code AbstractEntityAIStructure#skipClearing} does not spare, which is everything except the hut block itself,
+     * bedrock, air and fluids. Chests, racks, item frames and whatever the player put inside the building go with it,
+     * and their contents are not saved anywhere first. The GUI asks the player to confirm before it sends this.
+     * <p>
+     * One work order does the whole job. The {@code CLEAR} stage is the first stage of the same order that then
+     * builds, so there is no window in which the building is down with nothing queued to put it back: an interrupted
+     * rebuild is an unfinished work order, which the builder picks up again exactly as it picks up an unfinished
+     * build.
+     * <p>
+     * The level may not go down. A lower level's blueprint has a smaller footprint, so its {@code CLEAR} stage would
+     * leave the taller building's outlying blocks standing and the result would be a smaller hut inside the wreck of
+     * the bigger one. {@link #requestRemoval} followed by a build is the honest way to shrink a building.
+     *
+     * @param player      the requesting player.
+     * @param builder     the assigned builder, {@link BlockPos#ZERO} for whoever is free.
+     * @param targetLevel the level to end up at.
+     */
+    @Override
+    public void requestRebuild(final Player player, final BlockPos builder, final int targetLevel)
+    {
+        if (!FreeMode.isOn(this))
+        {
+            // Either a forged packet or a window that was open when the switch went off. Nothing is torn down on a
+            // maybe.
+            MessageUtils.format(WARNING_NO_REBUILD).sendTo(player);
+            return;
+        }
+
+        if (targetLevel < Math.max(1, getBuildingLevel()) || targetLevel > getMaxBuildingLevel())
+        {
+            MessageUtils.format(WARNING_NO_REBUILD).sendTo(player);
+            return;
+        }
+
+        // The parent building rule holds here as it does in requestUpgradeTo: a hut that sits inside another one's
+        // blueprint still may not outgrow its parent, because that is a question of where the blocks go rather than
+        // of how much the player has earned.
+        final IBuilding parentBuilding = colony.getServerBuildingManager().getBuilding(getParent());
+        if (parentBuilding != null
+              && targetLevel > parentBuilding.getBuildingLevel()
+              && parentBuilding.getBuildingLevel() < parentBuilding.getMaxBuildingLevel())
+        {
+            MessageUtils.format(WARNING_NO_REBUILD).sendTo(player);
+            return;
+        }
+
+        // REPAIR is the type that means "this level again": WorkOrderBuilding#create points it at the level the
+        // building already has and nothing sets a new level when it finishes. UPGRADE is the type that means "that
+        // level instead". Neither of them clears on its own - the flag below is what does that.
+        final WorkOrderType type;
+        if (getBuildingLevel() == 0)
+        {
+            type = WorkOrderType.BUILD;
+        }
+        else if (targetLevel == getBuildingLevel())
+        {
+            type = WorkOrderType.REPAIR;
+        }
+        else
+        {
+            type = WorkOrderType.UPGRADE;
+        }
+
+        requestWorkOrder(type, builder, type == WorkOrderType.REPAIR ? 0 : targetLevel, true, true);
     }
 
     @Override

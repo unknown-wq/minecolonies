@@ -31,7 +31,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.portal.TeleportTransition;
 import org.jetbrains.annotations.NotNull;
 
 import org.jetbrains.annotations.Nullable;
@@ -199,11 +198,12 @@ public abstract class AbstractEntityMinecoloniesRaider extends AbstractEntityMin
         return newNavigator;
     }
 
-    @Override
-    public boolean removeWhenFarAway(final double distanceToClosestPlayer)
-    {
-        return shouldDespawn() || (level() != null && level().hasChunksAt(this.blockPosition(), this.blockPosition()) && getColony() == null);
-    }
+    // removeWhenFarAway is deliberately not overridden. Mob#checkDespawn only consults it when the mob is neither
+    // persistent nor custom-persistent, and setPersistenceRequired() is called in this constructor and in the
+    // monster one above it, so the override that used to sit here could never run. What actually despawns a raider
+    // is the TICKS_TO_DESPAWN timer in aiStep, which is tied to the lifetime of the raid rather than to how far
+    // away a player is standing. The other vanilla caller, NaturalSpawner#isValidPositionForMob, is unreachable
+    // too: no raider type appears in any biome's spawn settings, they are only ever placed by RaiderMobUtils.
 
     /**
      * Get the specific raider type of this raider.
@@ -230,16 +230,6 @@ public abstract class AbstractEntityMinecoloniesRaider extends AbstractEntityMin
         output.putInt(TAG_COLONY_ID, this.colony == null ? 0 : colony.getID());
         output.putInt(TAG_EVENT_ID, eventID);
         super.addAdditionalSaveData(output);
-    }
-
-    /**
-     * Prevent raiders from travelling to other dimensions through portals.
-     */
-    @Nullable
-    @Override
-    public Entity teleport(final TeleportTransition transition)
-    {
-        return null;
     }
 
     @Override

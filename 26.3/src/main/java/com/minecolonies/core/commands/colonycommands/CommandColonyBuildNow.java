@@ -164,6 +164,11 @@ public class CommandColonyBuildNow implements IMCOPCommand
     private static final int REMOVAL_PHASES = 2;
 
     /**
+     * Phases a clearing walks: block removal, once.
+     */
+    private static final int CLEAR_PHASES = 1;
+
+    /**
      * Ceiling on how many placement calls one work order may take, whatever its size says. A placement handler that
      * answers DENY makes {@code executeStructureStep} return without advancing, and a loop driven to completion has
      * to be able to give up rather than take the server thread with it.
@@ -475,9 +480,15 @@ public class CommandColonyBuildNow implements IMCOPCommand
         }
 
         final boolean removal = order.getWorkOrderType() == WorkOrderType.REMOVE;
-        final boolean complete = removal
+        // A work order filed by the free mode "rebuild from scratch" button carries the builder's CLEAR stage in
+        // front of its build, so this has to run it too - otherwise the one command that finishes a work order
+        // without a builder would quietly turn a rebuild back into the repair it was asked not to be.
+        final boolean cleared = removal
+                                  || !(order instanceof final IBuilderWorkOrder builderOrder && builderOrder.isClearBeforeBuild())
+                                  || clear(level, placer, budget(blueprint, handler.getStepsPerCall(), CLEAR_PHASES));
+        final boolean complete = cleared && (removal
                                    ? deconstruct(level, placer, budget(blueprint, handler.getStepsPerCall(), REMOVAL_PHASES))
-                                   : place(level, placer, budget(blueprint, handler.getStepsPerCall(), PLACEMENT_PHASES));
+                                   : place(level, placer, budget(blueprint, handler.getStepsPerCall(), PLACEMENT_PHASES)));
         if (!complete)
         {
             // The order is deliberately left standing: half a structure with its order closed is worse than half a
@@ -541,6 +552,30 @@ public class CommandColonyBuildNow implements IMCOPCommand
             }
         }
         return false;
+    }
+
+    /**
+     * Clear the site: the one stage {@code AbstractEntityAIStructure} runs in front of a build that was asked to
+     * start from bare ground, driven to the end instead of one block per tick.
+     * <p>
+     * Unlike a deconstruction this takes down whatever stands inside the blueprint's footprint rather than only what
+     * the blueprint itself names - the player's own blocks with it - which is exactly what the button that files such
+     * an order warns about.
+     *
+     * @param level  the world.
+     * @param placer the placer.
+     * @param budget how many calls it may take.
+     * @return true if the stage finished.
+     */
+    private static boolean clear(@NotNull final ServerLevel level, @NotNull final StructurePlacer placer, final int budget)
+    {
+        final boolean done = stage(level, placer, StructurePlacer.Operation.BLOCK_REMOVAL, false, budget,
+          AbstractEntityAIStructure::skipClearingBase);
+        // StructurePlacer#executeStructureStep resets the iterator itself once a stage reaches its end, which clears
+        // the removing flag the stage set. Said again here rather than relied upon, because the placement that
+        // follows walks the blueprint forwards and would go backwards over it if the flag were still up.
+        placer.getIterator().reset();
+        return done;
     }
 
     /**

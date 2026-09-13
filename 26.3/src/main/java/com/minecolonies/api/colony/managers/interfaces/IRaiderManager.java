@@ -5,6 +5,7 @@ import com.minecolonies.api.colony.colonyEvents.IColonyRaidEvent;
 import com.minecolonies.api.entity.mobs.AbstractEntityMinecoloniesRaider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -222,38 +223,72 @@ public interface IRaiderManager
      * @param raidType the event type whose latest entry should be corrected.
      * @param pos      where the raid really arrives.
      */
-    default void updateLastSpawnPoint(final net.minecraft.resources.Identifier raidType, final BlockPos pos)
+    default void updateLastSpawnPoint(final Identifier raidType, final BlockPos pos)
     {
         // Nothing to correct in an implementation that keeps no history.
     }
 
+    /**
+     * Everything a caller can say about a raid it is asking for. Every field but {@code forcedSpawn},
+     * {@code allowShips} and {@code immediate} is nullable and null means "decide it the way you always would" --
+     * that is what keeps a raid asked for with no options at all identical to a natural one.
+     *
+     * <p>{@code raidType} is the full registry name of a colony event type, not just its path: compared by path
+     * alone, a third party {@code othermod:pirate_raid} was indistinguishable from {@code minecolonies:pirate_raid}.
+     *
+     * @param aircraft how many transports an air raid should arrive in, or null to leave it to the event. Only
+     *                 {@code PirateAirRaidEvent} reads it; every other raid type ignores it, because nothing else
+     *                 flies. The bound belongs to the command that collects it, not here.
+     */
     record RaidSettings(
         boolean forcedSpawn,
-        @Nullable String raidType,
+        @Nullable Identifier raidType,
         boolean allowShips,
         @Nullable Integer raiderAmount,
         @Nullable BlockPos location,
         @Nullable Double strength,
-        boolean immediate)
+        boolean immediate,
+        @Nullable Integer aircraft)
     {
         public RaidSettings(
           final boolean forcedSpawn,
-          final @Nullable String raidType,
+          final @Nullable Identifier raidType,
           final boolean allowShips,
           final @Nullable Integer raiderAmount,
           final @Nullable BlockPos location)
         {
-            this(forcedSpawn, raidType, allowShips, raiderAmount, location, null, false);
+            this(forcedSpawn, raidType, allowShips, raiderAmount, location, null, false, null);
         }
 
-        public RaidSettings withExplicitType(final @Nullable String raidType)
+        /**
+         * The shape this record had before an aircraft count existed, kept so that every caller that does not care
+         * about one compiles and behaves exactly as it did.
+         */
+        public RaidSettings(
+          final boolean forcedSpawn,
+          final @Nullable Identifier raidType,
+          final boolean allowShips,
+          final @Nullable Integer raiderAmount,
+          final @Nullable BlockPos location,
+          final @Nullable Double strength,
+          final boolean immediate)
         {
-            return new RaidSettings(forcedSpawn, raidType, allowShips, raiderAmount, location, strength, immediate);
+            this(forcedSpawn, raidType, allowShips, raiderAmount, location, strength, immediate, null);
+        }
+
+        public RaidSettings withExplicitType(final @Nullable Identifier raidType)
+        {
+            return new RaidSettings(forcedSpawn, raidType, allowShips, raiderAmount, location, strength, immediate, aircraft);
         }
 
         public RaidSettings withImmediateStart()
         {
-            return new RaidSettings(forcedSpawn, raidType, allowShips, raiderAmount, location, strength, true);
+            return new RaidSettings(forcedSpawn, raidType, allowShips, raiderAmount, location, strength, true, aircraft);
+        }
+
+        public RaidSettings withAircraft(final @Nullable Integer aircraft)
+        {
+            return new RaidSettings(forcedSpawn, raidType, allowShips, raiderAmount, location, strength, immediate, aircraft);
         }
 
         public static RaidSettings defaultRaidSettings()

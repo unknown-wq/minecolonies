@@ -26,7 +26,6 @@ import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-import static com.ldtteam.structurize.blueprints.v1.BlueprintUtil.DEFAULT_FIXER_IF_NOT_FOUND;
 
 /**
  * Command for updating schematic files to the current minecraft version(datafixer)
@@ -78,11 +77,11 @@ public class UpdateSchematicPackCommand extends AbstractCommand
                         inputStream.close();
 
                         int currentDataVersion = SharedConstants.getCurrentVersion().dataVersion().version();
-                        final int oldDataVersion = nbt.getIntOr("mcversion", DEFAULT_FIXER_IF_NOT_FOUND);
+                        final int oldDataVersion = BlueprintUtil.getDataVersion(nbt);
 
                         if (oldDataVersion != currentDataVersion)
                         {
-                            final Blueprint blueprint = BlueprintUtil.readBlueprintFromNBT(nbt, source.registryAccess());
+                            final Blueprint blueprint = BlueprintUtil.readBlueprintFromNBT(nbt, source.registryAccess(), file.getFileName().toString());
                             if (blueprint == null)
                             {
                                 return;

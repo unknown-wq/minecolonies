@@ -70,6 +70,7 @@ public abstract class AbstractWorkOrder implements IBuilderWorkOrder
     private static final String TAG_AMOUNT_OF_RESOURCES = "amountOfResources";
     private static final String TAG_ITERATOR            = "iterator";
     private static final String TAG_IS_CLEARED          = "cleared";
+    private static final String TAG_CLEAR_BEFORE_BUILD  = "clearBeforeBuild";
     private static final String TAG_IS_REQUESTED        = "requested";
     private static final String TAG_BB = "bb";
 
@@ -163,6 +164,11 @@ public abstract class AbstractWorkOrder implements IBuilderWorkOrder
      * Whether the work order area is cleared.
      */
     private boolean cleared;
+
+    /**
+     * Whether the site has to be torn down before it is built, see {@link #isClearBeforeBuild()}.
+     */
+    private boolean clearBeforeBuild;
 
     /**
      * Whether the resources for the work order have been requested.
@@ -526,6 +532,19 @@ public abstract class AbstractWorkOrder implements IBuilderWorkOrder
     }
 
     @Override
+    public final boolean isClearBeforeBuild()
+    {
+        return clearBeforeBuild;
+    }
+
+    @Override
+    public final void setClearBeforeBuild(final boolean clearBeforeBuild)
+    {
+        changed = true;
+        this.clearBeforeBuild = clearBeforeBuild;
+    }
+
+    @Override
     public final boolean isRequested()
     {
         return requested;
@@ -679,6 +698,7 @@ public abstract class AbstractWorkOrder implements IBuilderWorkOrder
         amountOfResources = compound.getIntOr(TAG_AMOUNT_OF_RESOURCES, 0);
         iteratorType = compound.getStringOr(TAG_ITERATOR, "");
         cleared = compound.getBooleanOr(TAG_IS_CLEARED, false);
+        clearBeforeBuild = compound.getBooleanOr(TAG_CLEAR_BEFORE_BUILD, false);
         requested = compound.getBooleanOr(TAG_IS_REQUESTED, false);
 
         if (compound.contains(TAG_STAGE))
@@ -716,6 +736,7 @@ public abstract class AbstractWorkOrder implements IBuilderWorkOrder
         compound.putInt(TAG_AMOUNT_OF_RESOURCES, amountOfResources);
         compound.putString(TAG_ITERATOR, iteratorType);
         compound.putBoolean(TAG_IS_CLEARED, cleared);
+        compound.putBoolean(TAG_CLEAR_BEFORE_BUILD, clearBeforeBuild);
         compound.putBoolean(TAG_IS_REQUESTED, requested);
         compound.putInt(TAG_STAGE, stage == null ? 0 : stage.ordinal());
 

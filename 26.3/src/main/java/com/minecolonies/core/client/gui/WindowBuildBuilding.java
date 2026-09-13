@@ -53,8 +53,12 @@ import java.util.stream.Collectors;
 import static com.ldtteam.structurize.placement.AbstractBlueprintIterator.NULL_POS;
 import static com.minecolonies.api.util.constant.TranslationConstants.ACTION_BUILD;
 import static com.minecolonies.api.util.constant.TranslationConstants.ACTION_BUILD_TO_LEVEL;
+import static com.minecolonies.api.util.constant.TranslationConstants.ACTION_REBUILD;
 import static com.minecolonies.api.util.constant.TranslationConstants.ACTION_UPGRADE;
 import static com.minecolonies.api.util.constant.TranslationConstants.BUILD_LEVEL_TOOLTIP;
+import static com.minecolonies.api.util.constant.TranslationConstants.REBUILD_CONFIRM_TEXT;
+import static com.minecolonies.api.util.constant.TranslationConstants.REBUILD_CONFIRM_TITLE;
+import static com.minecolonies.api.util.constant.TranslationConstants.REBUILD_TOOLTIP;
 import static com.minecolonies.api.util.constant.WindowConstants.*;
 
 /**
@@ -149,6 +153,9 @@ public class WindowBuildBuilding extends AbstractWindowSkeleton
         registerButton(BUTTON_REPAIR, this::repairClicked);
         registerButton(BUTTON_DECONSTRUCT_BUILDING, this::deconstructBuildingClicked);
         registerButton(BUTTON_PICKUP_BUILDING, this::pickUpBuilding);
+        registerButton(BUTTON_REBUILD_BUILDING, this::rebuildClicked);
+
+        initRebuildButton();
 
         final Button buttonBuild = findPaneOfTypeByID(BUTTON_BUILD, Button.class);
 
@@ -181,8 +188,9 @@ public class WindowBuildBuilding extends AbstractWindowSkeleton
      * Initialise the level picker.
      * <p>
      * Outside free mode the list holds the one level the server would have built anyway and the drop down stays
-     * hidden, so nothing about this window changes for an ordinary colony. With free mode on every level from the next
-     * one up to the building's maximum is offered, and the one that is picked is what the build button sends.
+     * hidden, so nothing about this window changes for an ordinary colony. With free mode on every level from the one
+     * the building already has up to its maximum is offered, and the one that is picked is what the build and rebuild
+     * buttons send. The next level is what starts selected, so the build button still means what it always meant.
      */
     private void initLevelNavigation()
     {
@@ -192,7 +200,11 @@ public class WindowBuildBuilding extends AbstractWindowSkeleton
         levels = new ArrayList<>();
         if (isFreeMode() && canBeUpgraded())
         {
-            for (int level = nextLevel; level <= building.getBuildingMaxLevel(); level++)
+            // From the level the building already has, not from the next one: the rebuild button below needs to be
+            // able to ask for this same level again, which is its commonest use. The build button's own default is
+            // still the next level - the selected index is set to it below - and asking it for the current level
+            // means a repair, which is what triggerConfirmAction sends.
+            for (int level = Math.max(1, building.getBuildingLevel()); level <= building.getBuildingMaxLevel(); level++)
             {
                 levels.add(level);
             }
@@ -220,12 +232,13 @@ public class WindowBuildBuilding extends AbstractWindowSkeleton
                 return Component.empty();
             }
         });
-        levelsDropDownList.setSelectedIndex(0);
+        levelsDropDownList.setSelectedIndex(Math.max(0, levels.indexOf(nextLevel)));
 
         if (isFreeMode() && canBeUpgraded())
         {
             levelsDropDownList.setHandler(list -> {
                 updateBuildButtonLabel();
+                updateRebuildButtonLabel();
                 updateResources();
             });
             PaneBuilders.singleLineTooltip(Component.translatableEscape(BUILD_LEVEL_TOOLTIP), levelsDropDownList);
@@ -275,6 +288,104 @@ public class WindowBuildBuilding extends AbstractWindowSkeleton
         {
             buttonBuild.setText(Component.translatableEscape(ACTION_BUILD_TO_LEVEL, selectedLevel()));
         }
+    }
+
+    /**
+     * Set the rebuild button up, and leave it hidden unless this colony is a free mode colony with something standing
+     * here to tear down.
+     * <p>
+     * Level zero and a deconstructed building are left out on purpose rather than as an oversight: with nothing on
+     * the site the ordinary build already goes through the {@code CLEAR} stage, so the build button beside this one
+     * is already the from scratch build and a second button offering the same thing would only be a second way to
+     * destroy something.
+     * <p>
+     * A building with a work order pending is left out too. Every button in this window doubles as a cancel while an
+     * order is queued ({@code BuildRequestMessage#onExecute} removes the order and does nothing else), and a
+     * confirmation that says the building is about to be flattened must not be the thing that cancels an order.
+     */
+    private void initRebuildButton()
+    {
+        final Button rebuild = findPaneOfTypeByID(BUTTON_REBUILD_BUILDING, Button.class);
+        if (rebuild == null)
+        {
+            // The pane comes from the install time asset patch; a pack that predates it simply has no button.
+            return;
+        }
+
+        if (!isFreeMode() || building.getBuildingLevel() <= 0 || building.isDeconstructed() || building.hasWorkOrder())
+        {
+            rebuild.hide();
+            return;
+        }
+
+        rebuild.show();
+        updateRebuildButtonLabel();
+        PaneBuilders.singleLineTooltip(Component.translatableEscape(REBUILD_TOOLTIP), rebuild);
+
+        // The window is 240 pixels tall and the resource list runs to 212 of them, so the row this button sits on has
+        // to be taken out of the list rather than added under it.
+        final ScrollingList resourceList = findPaneOfTypeByID(LIST_RESOURCES, ScrollingList.class);
+        if (resourceList != null)
+        {
+            resourceList.setSize(resourceList.getWidth(), Math.max(0, rebuild.getY() - resourceList.getY() - 2));
+        }
+    }
+
+    /**
+     * Say on the rebuild button which level it would build, the way the build button beside it does.
+     */
+    private void updateRebuildButtonLabel()
+    {
+        final Button rebuild = findPaneOfTypeByID(BUTTON_REBUILD_BUILDING, Button.class);
+        if (rebuild != null && rebuild.isVisible())
+        {
+            rebuild.setText(Component.translatableEscape(ACTION_REBUILD, rebuildLevel()));
+        }
+    }
+
+    /**
+     * The level the rebuild button would ask for.
+     * <p>
+     * The picked level, but never below the one the building already has: a lower level's blueprint has a smaller
+     * footprint, so its clearing stage would leave the taller building's outlying blocks standing. The server refuses
+     * such a request as well ({@code AbstractBuilding#requestRebuild}); this keeps the button from ever sending one.
+     * <p>
+     * With no picker on screen - at the maximum level, or under a parent that has not caught up - there is nothing to
+     * pick and the answer is the level the building has. {@link #selectedLevel} would say the next one there, which is
+     * the level the build button is not being offered for either.
+     *
+     * @return the level.
+     */
+    private int rebuildLevel()
+    {
+        if (!isFreeMode() || !canBeUpgraded())
+        {
+            return building.getBuildingLevel();
+        }
+        return Math.max(selectedLevel(), building.getBuildingLevel());
+    }
+
+    /**
+     * When the rebuild button was clicked. Asks first: this is the one button in the window that destroys what the
+     * player put inside the building.
+     */
+    private void rebuildClicked()
+    {
+        new WindowConfirm(this,
+          this::triggerRebuildAction,
+          REBUILD_CONFIRM_TITLE,
+          REBUILD_CONFIRM_TEXT).open();
+    }
+
+    /**
+     * Send the rebuild request, once it has been confirmed.
+     */
+    private void triggerRebuildAction()
+    {
+        final BlockPos builder = buildersDropDownList.getSelectedIndex() <= 0 ? BlockPos.ZERO : builders.get(buildersDropDownList.getSelectedIndex()).getB();
+        new BuildingSetStyleMessage(building, styles.get(stylesDropDownList.getSelectedIndex())).sendToServer();
+        new BuildRequestMessage(building, BuildRequestMessage.Mode.REBUILD, builder, rebuildLevel()).sendToServer();
+        cancelClicked();
     }
 
     /**
@@ -336,7 +447,10 @@ public class WindowBuildBuilding extends AbstractWindowSkeleton
     private void triggerConfirmAction(final BlockPos builder)
     {
         new BuildingSetStyleMessage(building, styles.get(stylesDropDownList.getSelectedIndex())).sendToServer();
-        if (building.getBuildingLevel() == building.getBuildingMaxLevel())
+        // A build that ends at the level the building already has is a repair, and the server refuses it as anything
+        // else. That was only reachable at the maximum level before free mode let the level be picked; now the picker
+        // offers the current level too, so the same branch answers both.
+        if (building.getBuildingLevel() == building.getBuildingMaxLevel() || selectedLevel() <= building.getBuildingLevel())
         {
             new BuildRequestMessage(building, BuildRequestMessage.Mode.REPAIR, builder).sendToServer();
         }

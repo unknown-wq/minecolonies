@@ -8,7 +8,6 @@ import com.google.common.collect.ImmutableList;
 import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.entity.block.IMateriallyTexturedBlockEntity;
 import com.ldtteam.structurize.blueprints.v1.DataFixerUtils;
-import com.ldtteam.structurize.blueprints.v1.DataVersion;
 import com.minecolonies.api.blocks.AbstractBlockMinecoloniesRack;
 import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.blocks.types.RackType;
@@ -74,6 +73,12 @@ public class TileEntityRack extends AbstractTileEntityRack implements IMateriall
      * All Racks current version id
      */
     private static final byte VERSION = 2;
+
+    /**
+     * Data version of Minecraft 1.20.1, the last version whose item stacks used the flat "Count"/"tag" shape. A slot
+     * compound that still has a "Count" key was written no later than that, so it is fixed up from here.
+     */
+    private static final int PRE_1_20_2_STACK_DATA_VERSION = 3465;
 
     /**
      * The racks version
@@ -486,7 +491,7 @@ public class TileEntityRack extends AbstractTileEntityRack implements IMateriall
             }
 
             final CompoundTag stackTag = slotTag.contains("Count")
-                                           ? DataFixerUtils.runDataFixer(slotTag, References.ITEM_STACK, DataVersion.v1_20_1)
+                                           ? DataFixerUtils.runDataFixer(slotTag, References.ITEM_STACK, PRE_1_20_2_STACK_DATA_VERSION)
                                            : slotTag;
             inventory.setStackInSlot(i, parseStack(lookup, stackTag));
         }

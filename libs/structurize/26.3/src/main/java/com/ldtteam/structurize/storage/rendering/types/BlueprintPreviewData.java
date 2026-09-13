@@ -9,6 +9,7 @@ import com.ldtteam.structurize.storage.StructurePacks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Rotation;
@@ -19,6 +20,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
+import static com.ldtteam.structurize.api.constants.TranslationConstants.BLUEPRINT_TOO_OLD;
 
 /**
  * Necessary data for blueprint preview.
@@ -193,6 +196,17 @@ public class BlueprintPreviewData
                 {
                     setBlueprint(blueprintFuture.get());
                     this.blueprintFuture = null;
+                }
+                else
+                {
+                    // The load failed. Clear the future either way, otherwise this is retried every single frame;
+                    // the file read below therefore happens at most once per failed preview.
+                    this.blueprintFuture = null;
+                    if (!blueprintPath.isEmpty() && StructurePacks.isTooOldToLoad(packName, blueprintPath)
+                          && Minecraft.getInstance().player != null)
+                    {
+                        Minecraft.getInstance().player.sendSystemMessage(Component.translatable(BLUEPRINT_TOO_OLD, blueprintPath));
+                    }
                 }
             }
             catch (InterruptedException | ExecutionException e)

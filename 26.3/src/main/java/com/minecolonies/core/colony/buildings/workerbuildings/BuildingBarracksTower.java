@@ -128,6 +128,28 @@ public class BuildingBarracksTower extends AbstractBuildingGuards
         super.requestUpgradeTo(player, builder, targetLevel);
     }
 
+    /**
+     * The same barracks rule again, for the free mode button that tears a building down and builds it back up: a
+     * tower may be rebuilt, but not at a level its barracks has not reached.
+     *
+     * @param player      the requesting player.
+     * @param builder     the assigned builder.
+     * @param targetLevel the level to end up at.
+     */
+    @Override
+    public void requestRebuild(final Player player, final BlockPos builder, final int targetLevel)
+    {
+        final IBuilding building = getColony().getServerBuildingManager().getBuilding(barracks);
+
+        if (building == null || targetLevel > getMaxBuildingLevel() || targetLevel > building.getBuildingLevel())
+        {
+            MessageUtils.format(WARNING_UPGRADE_BARRACKS).sendTo(player);
+            return;
+        }
+
+        super.requestRebuild(player, builder, targetLevel);
+    }
+
     @Override
     public boolean canDeconstruct()
     {

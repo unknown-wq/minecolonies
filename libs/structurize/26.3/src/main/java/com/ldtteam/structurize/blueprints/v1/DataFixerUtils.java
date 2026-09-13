@@ -6,10 +6,15 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.SharedConstants;
 import net.minecraft.util.datafix.DataFixers;
-import net.minecraft.util.datafix.fixes.References;
 
 /**
- * Utils for data fixer mechanism
+ * Utils for data fixer mechanism.
+ * <p>
+ * This is a thin wrapper over {@link DataFixers#getDataFixer()} and nothing more: one hop from the stored data
+ * version straight to the running one, which is what vanilla does internally anyway. The wrapper earns its keep
+ * because blueprints store block states, block entities and entities as three separate lists, and
+ * {@code DataFixTypes} has no members for those - only {@link net.minecraft.util.datafix.fixes.References} does -
+ * so every call site would otherwise have to spell out the {@code Dynamic}/{@code NbtOps} dance itself.
  */
 public class DataFixerUtils
 {
@@ -26,11 +31,6 @@ public class DataFixerUtils
         // Intentionally left empty.
     }
 
-    public static CompoundTag runDataFixer(final CompoundTag dataIn, final TypeReference dataType, final DataVersion startVersion)
-    {
-        return runDataFixer(dataIn, dataType, startVersion.getDataVersion(), SharedConstants.getCurrentVersion().dataVersion().version());
-    }
-
     public static CompoundTag runDataFixer(final CompoundTag dataIn, final TypeReference dataType, final int startVersion)
     {
         return runDataFixer(dataIn, dataType, startVersion, SharedConstants.getCurrentVersion().dataVersion().version());
@@ -38,51 +38,10 @@ public class DataFixerUtils
 
     public static CompoundTag runDataFixer(final CompoundTag dataIn, final TypeReference dataType, final int startVersion, final int endVersion)
     {
-        return runDataFixer(
-            dataIn,
-            dataType,
-            startVersion,
-            endVersion,
-            startVersion <= DataVersion.pre1466.getDataVersion() && DataVersion.post1466.getDataVersion() <= endVersion && dataType == References.BLOCK_ENTITY);
-    }
-
-    public static CompoundTag runDataFixer(
-        final CompoundTag dataIn,
-        final TypeReference dataType,
-        final int startVersion,
-        final int endVersion,
-        final boolean debugNonBlockstate)
-    {
         return startVersion == endVersion
             ? dataIn
-            : debugNonBlockstate && dataType != References.BLOCK_STATE
-                ? runDataFixerCascade(dataIn, dataType, startVersion, endVersion)
-                : (CompoundTag) DataFixers.getDataFixer()
-                    .update(dataType, new Dynamic<>(NbtOps.INSTANCE, dataIn), startVersion, endVersion)
-                    .getValue();
-    }
-
-    public static CompoundTag runDataFixerCascade(final CompoundTag dataIn, final TypeReference dataType, final int startVersion, final int endVersion)
-    {
-        CompoundTag fixedNbt = dataIn;
-        DataVersion currentVersion = DataVersion.findFromDataVersion(startVersion);
-
-        while (currentVersion.getDataVersion() < endVersion)
-        {
-            fixedNbt = (CompoundTag) DataFixers.getDataFixer()
-                .update(
-                    dataType,
-                    new Dynamic<>(NbtOps.INSTANCE, fixedNbt),
-                    currentVersion.getDataVersion(),
-                    currentVersion.getSuccessor().getDataVersion())
+            : (CompoundTag) DataFixers.getDataFixer()
+                .update(dataType, new Dynamic<>(NbtOps.INSTANCE, dataIn), startVersion, endVersion)
                 .getValue();
-            currentVersion = currentVersion.getSuccessor();
-            if (currentVersion == DataVersion.pre1466 && dataType == References.BLOCK_ENTITY)
-            {
-                currentVersion = DataVersion.post1466;
-            }
-        }
-
-        return fixedNbt;
     }
 }

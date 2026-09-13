@@ -531,6 +531,21 @@ public final class TranslationConstants
     public static final String ACTION_BUILD_TO_LEVEL                              = "com.minecolonies.coremod.gui.workerhuts.buildtolevel";
     @NonNls
     public static final String BUILD_LEVEL_TOOLTIP                                = "com.minecolonies.coremod.gui.workerhuts.buildlevel.tooltip";
+    /** Label of the free mode "tear it down and build it again" button, takes the level as %1$s. */
+    @NonNls
+    public static final String ACTION_REBUILD                                     = "com.minecolonies.coremod.gui.workerhuts.rebuild";
+    /** Tooltip of that button, spelling out that the footprint is flattened first. */
+    @NonNls
+    public static final String REBUILD_TOOLTIP                                    = "com.minecolonies.coremod.gui.workerhuts.rebuild.tooltip";
+    /** Title of the confirmation the rebuild button opens. */
+    @NonNls
+    public static final String REBUILD_CONFIRM_TITLE                              = "com.minecolonies.coremod.gui.workerhuts.rebuild.confirm.title";
+    /** Body of that confirmation, takes the level as %1$s. */
+    @NonNls
+    public static final String REBUILD_CONFIRM_TEXT                               = "com.minecolonies.coremod.gui.workerhuts.rebuild.confirm.text";
+    /** Sent when a rebuild is asked for outside free mode, or for a level the building cannot be rebuilt at. */
+    @NonNls
+    public static final String WARNING_NO_REBUILD                                 = "com.minecolonies.coremod.gui.workerhuts.rebuild.refused";
     @NonNls
     public static final String TEXT_PICKUP_PRIORITY                               = "com.minecolonies.coremod.gui.workerhuts.buildprio";
     @NonNls

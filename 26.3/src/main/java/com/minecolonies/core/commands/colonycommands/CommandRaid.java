@@ -19,6 +19,7 @@ import com.minecolonies.core.commands.arguments.MultipleOptionsArgument;
 import com.minecolonies.core.commands.commandTypes.IMCCommand;
 import com.minecolonies.core.commands.commandTypes.IMCOPCommand;
 import com.minecolonies.core.colony.events.raid.RaidManager;
+import com.minecolonies.core.colony.events.raid.pirateEvent.PirateAirRaidEvent;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -65,6 +66,27 @@ public class CommandRaid implements IMCOPCommand
     private static final double MAX_STRENGTH = 10.0;
 
     /**
+     * Bounds on the number of transports an air raid may be told to bring.
+     *
+     * <p>The ceiling is a third of the aircraft mod's own hard cap on simultaneously active autopilot aircraft
+     * ({@code AutopilotConfig.MAX_ACTIVE_AUTOPILOTS}, 24 at the time of writing), and a third rather than all of
+     * it for a reason: that cap is a whole-server budget shared with every other flight -- players' own aircraft,
+     * airfield traffic, another colony's raid -- and nothing on this side enforces it. {@code DropRunTracker#launch}
+     * does not ask {@code AutopilotRegistry#canActivateAnother()} before it spawns, so a raid allowed to name 24
+     * could take the entire budget and leave everything else on the server unable to fly.
+     *
+     * <p>Eight is expensive on its own terms and that is the other half of the number. Each transport is kept
+     * airborne by a chunk ticket of radius 4 around it plus a second one 40 ticks ahead, renewed every 5 ticks for
+     * the length of a 600-block run, so eight of them hold something like a thousand chunks resident for the
+     * minute or so the raid is inbound. The bound is on the argument itself so that a mistyped number is refused
+     * by Brigadier as it is typed rather than three hundred blocks into a spawn loop.
+     *
+     * <p>The floor is one because one is what an air raid has always brought.
+     */
+    private static final int MIN_AIRCRAFT = 1;
+    private static final int MAX_AIRCRAFT = 8;
+
+    /**
      * How far from the colony centre "stop" looks for raiders that are no longer attached to any event.
      */
     private static final int STRAGGLER_SWEEP_RANGE = 500;
@@ -94,7 +116,7 @@ public class CommandRaid implements IMCOPCommand
     private int onExecuteWithType(final CommandContext<CommandSourceStack> ctx)
     {
         return checkPreConditionAndExecute(ctx, (context) -> {
-            final String raidType = getRaidType(context);
+            final Identifier raidType = getRaidType(context);
             final boolean allowShips = BoolArgumentType.getBool(context, SHIP_ARG);
             return raidExecute(context, new IRaiderManager.RaidSettings(true, raidType, allowShips, null, null));
         });
@@ -109,7 +131,7 @@ public class CommandRaid implements IMCOPCommand
     private int onExecuteWithAmount(final CommandContext<CommandSourceStack> ctx)
     {
         return checkPreConditionAndExecute(ctx, (context) -> {
-            final String raidType = getRaidType(context);
+            final Identifier raidType = getRaidType(context);
             final boolean allowShips = BoolArgumentType.getBool(context, SHIP_ARG);
             final int raidAmount = IntegerArgumentType.getInteger(context, RAID_AMOUNT_ARG);
             return raidExecute(context, new IRaiderManager.RaidSettings(true, raidType, allowShips, raidAmount, null));
@@ -125,11 +147,34 @@ public class CommandRaid implements IMCOPCommand
     private int onExecuteWithLocation(final CommandContext<CommandSourceStack> ctx)
     {
         return checkPreConditionAndExecute(ctx, (context) -> {
-            final String raidType = getRaidType(context);
+            final Identifier raidType = getRaidType(context);
             final boolean allowShips = BoolArgumentType.getBool(context, SHIP_ARG);
             final int raidAmount = IntegerArgumentType.getInteger(context, RAID_AMOUNT_ARG);
             final BlockPos raidLocation = BlockPosArgument.getBlockPos(context, RAID_LOCATION_ARG);
             return raidExecute(context, new IRaiderManager.RaidSettings(true, raidType, allowShips, raidAmount, raidLocation));
+        });
+    }
+
+    /**
+     * Run the command with everything the location form takes, plus the number of aircraft an air raid should
+     * arrive in.
+     *
+     * <p>This is the location form with one more token on the end, and it is only reachable from there. See
+     * {@link #build()} for why it hangs off the position rather than off the raider count.
+     *
+     * @param ctx the command context.
+     * @return the command status.
+     */
+    private int onExecuteWithAircraft(final CommandContext<CommandSourceStack> ctx)
+    {
+        return checkPreConditionAndExecute(ctx, (context) -> {
+            final Identifier raidType = getRaidType(context);
+            final boolean allowShips = BoolArgumentType.getBool(context, SHIP_ARG);
+            final int raidAmount = IntegerArgumentType.getInteger(context, RAID_AMOUNT_ARG);
+            final BlockPos raidLocation = BlockPosArgument.getBlockPos(context, RAID_LOCATION_ARG);
+            final int aircraft = IntegerArgumentType.getInteger(context, RAID_AIRCRAFT_ARG);
+            return raidExecute(context,
+              new IRaiderManager.RaidSettings(true, raidType, allowShips, raidAmount, raidLocation).withAircraft(aircraft));
         });
     }
 
@@ -347,14 +392,16 @@ public class CommandRaid implements IMCOPCommand
      * @return the raid type.
      * @throws CommandSyntaxException if something goes wrong with the command processing.
      */
-    private String getRaidType(final CommandContext<CommandSourceStack> context) throws CommandSyntaxException
+    private Identifier getRaidType(final CommandContext<CommandSourceStack> context) throws CommandSyntaxException
     {
         final Identifier raidType =
             ResourceKeyArgument.resolveKey(context, RAID_TYPE_ARG, CommonMinecoloniesAPIImpl.COLONY_EVENT_TYPES, ERROR_INVALID_COLONY_EVENT_TYPE).key().identifier();
         final ColonyEventTypeRegistryEntry colonyEventTypeRegistryEntry = IMinecoloniesAPI.getInstance().getColonyEventRegistry().getValue(raidType);
         if (colonyEventTypeRegistryEntry != null && colonyEventTypeRegistryEntry.isRaidEvent())
         {
-            return raidType.getPath();
+            // The whole registry name. Handing on only the path made a third party event type with a familiar path
+            // answer to a minecolonies one.
+            return raidType;
         }
         throw ERROR_INVALID_COLONY_EVENT_TYPE.create(raidType);
     }
@@ -372,8 +419,21 @@ public class CommandRaid implements IMCOPCommand
             }
         }
 
+        // "<aircraft>", the number of transports an air raid arrives in, appended to the position form.
+        //
+        // It hangs off the position and not off the raider count, which would have been the friendlier place, for
+        // a parsing reason. A BlockPos argument consumes three whitespace-separated tokens in one node, so
+        // "<amount> <aircraft>" and "<amount> <x> <y> <z>" would be two children of the same node whose first
+        // token is a bare number in both cases: `... 500 3` is a complete aircraft form and the beginning of an
+        // incomplete position, and which one Brigadier lands on would depend on the order the children were added
+        // and on the position argument failing rather than succeeding. Hanging it off the position instead leaves
+        // exactly one reading of every input: after three coordinates, one more number is the aircraft count and
+        // nothing else can be. The old form is untouched -- the position node keeps its own executes() and is
+        // still a complete command on its own.
+        final RequiredArgumentBuilder<CommandSourceStack, Integer> raidAircraftArg =
+            IMCCommand.newArgument(RAID_AIRCRAFT_ARG, IntegerArgumentType.integer(MIN_AIRCRAFT, MAX_AIRCRAFT)).executes(this::onExecuteWithAircraft);
         final RequiredArgumentBuilder<CommandSourceStack, Coordinates> raidLocationArg =
-            IMCCommand.newArgument(RAID_LOCATION_ARG, BlockPosArgument.blockPos()).executes(this::onExecuteWithLocation);
+            IMCCommand.newArgument(RAID_LOCATION_ARG, BlockPosArgument.blockPos()).executes(this::onExecuteWithLocation).then(raidAircraftArg);
         final RequiredArgumentBuilder<CommandSourceStack, Integer> raidAmountArg =
             IMCCommand.newArgument(RAID_AMOUNT_ARG, IntegerArgumentType.integer(1)).executes(this::onExecuteWithAmount).then(raidLocationArg);
         final RequiredArgumentBuilder<CommandSourceStack, Boolean> raidShipArg =
@@ -463,11 +523,37 @@ public class CommandRaid implements IMCOPCommand
                 final RaidManager.RaidHistory raid = ((RaidManager) colony.getRaiderManager()).getLastRaid();
                 final int raiders = raid == null ? 0 : raid.raiderAmount;
                 final double strength = raid == null ? 1.0 : raid.difficulty;
-                context.getSource()
-                    .sendSuccess(() -> Component.translatableEscape(CommandTranslationConstants.COMMAND_RAID_NOW_SUCCESS_DETAIL,
-                      colony.getName(),
-                      raiders,
-                      String.format(Locale.ROOT, "%.2f", strength)), true);
+                final String strengthText = String.format(Locale.ROOT, "%.2f", strength);
+
+                if (raidSettings.aircraft() == null)
+                {
+                    // The message this command has always sent, unchanged, for every invocation that did not ask
+                    // for aircraft.
+                    context.getSource()
+                        .sendSuccess(() -> Component.translatableEscape(CommandTranslationConstants.COMMAND_RAID_NOW_SUCCESS_DETAIL,
+                          colony.getName(),
+                          raiders,
+                          strengthText), true);
+                }
+                else if (isAirRaid(raid))
+                {
+                    context.getSource()
+                        .sendSuccess(() -> Component.translatableEscape(CommandTranslationConstants.COMMAND_RAID_NOW_SUCCESS_AIR,
+                          colony.getName(),
+                          raiders,
+                          strengthText,
+                          raidSettings.aircraft()), true);
+                }
+                else
+                {
+                    // Asked for aircraft and did not get an air raid. Saying so is the point of the argument:
+                    // otherwise the only sign is that no aircraft ever turns up, which looks like a bug.
+                    context.getSource()
+                        .sendSuccess(() -> Component.translatableEscape(CommandTranslationConstants.COMMAND_RAID_NOW_AIR_IGNORED,
+                          colony.getName(),
+                          raiders,
+                          strengthText), true);
+                }
             }
             else
             {
@@ -490,9 +576,50 @@ public class CommandRaid implements IMCOPCommand
         for (final IColony colony : colonies)
         {
             colony.getRaiderManager().setRaidNextNight(raidSettings);
-            context.getSource().sendSuccess(() -> Component.translatableEscape(CommandTranslationConstants.COMMAND_RAID_TONIGHT_SUCCESS, colony.getName()), true);
+            if (raidSettings.aircraft() == null)
+            {
+                context.getSource().sendSuccess(() -> Component.translatableEscape(CommandTranslationConstants.COMMAND_RAID_TONIGHT_SUCCESS, colony.getName()), true);
+            }
+            else
+            {
+                // Nothing has been decided yet -- the raid type is picked at nightfall -- so this reports what was
+                // recorded rather than what will fly.
+                context.getSource()
+                    .sendSuccess(() -> Component.translatableEscape(CommandTranslationConstants.COMMAND_RAID_TONIGHT_SUCCESS_AIR,
+                      colony.getName(),
+                      raidSettings.aircraft()), true);
+            }
         }
         return 1;
+    }
+
+    /**
+     * Whether the raid that was just created is one that will actually fly.
+     *
+     * <p>Read off the manager's own history rather than off the colony's event list, because the history entry is
+     * written synchronously inside {@code RaidManager#raiderEvent} -- one {@code RaidSpawnInfo} per spawn point,
+     * each carrying the event type that was chosen for it. That is the only thing decided by the time this command
+     * returns: an immediate raid is queued in {@code immediateStarts} and its {@code onStart} does not run until a
+     * later colony tick, so how many transports actually got airborne cannot be known here and is deliberately not
+     * claimed.
+     *
+     * @param raid the history entry for the raid just started, may be null.
+     * @return true if any part of it is an air raid.
+     */
+    private static boolean isAirRaid(final @Nullable RaidManager.RaidHistory raid)
+    {
+        if (raid == null)
+        {
+            return false;
+        }
+        for (final RaidManager.RaidSpawnInfo spawn : raid.spawnData)
+        {
+            if (PirateAirRaidEvent.PIRATE_AIR_RAID_EVENT_TYPE_ID.equals(spawn.raidType))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

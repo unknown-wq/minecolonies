@@ -149,6 +149,43 @@ public class StructurePacks
     }
 
     /**
+     * Whether the blueprint at this path exists but was saved by a Minecraft older than
+     * {@link BlueprintUtil#MIN_SUPPORTED_DATA_VERSION}, i.e. the reason a load returned null.
+     * <p>
+     * Re-reads the file, so it is only meant for the failure path, where a player is waiting for an explanation.
+     *
+     * @param structurePackId the structure pack the blueprint is in.
+     * @param subPath         the path of the specific blueprint in the pack.
+     * @return true if the file is there and is too old to load.
+     */
+    public static boolean isTooOldToLoad(final String structurePackId, final String subPath)
+    {
+        final StructurePackMeta packMeta = getStructurePack(structurePackId);
+        return packMeta != null && isTooOldToLoad(packMeta.getPath().resolve(packMeta.getNormalizedSubPath(subPath)));
+    }
+
+    /**
+     * Whether the blueprint file at this path exists but was saved by a Minecraft older than
+     * {@link BlueprintUtil#MIN_SUPPORTED_DATA_VERSION}.
+     *
+     * @param path the blueprint file.
+     * @return true if the file is there and is too old to load.
+     */
+    public static boolean isTooOldToLoad(final Path path)
+    {
+        try
+        {
+            return BlueprintUtil.isTooOldToLoad(
+                NbtIo.readCompressed(new ByteArrayInputStream(Files.readAllBytes(path)), NbtAccounter.unlimitedHeap()));
+        }
+        catch (final Exception e)
+        {
+            // Unreadable for some other reason; that is not this method's business to report.
+            return false;
+        }
+    }
+
+    /**
      * Get a blueprint data future.
      * @param structurePackId the structure pack the blueprint is in.
      * @param subPath the path of the specific blueprint in the pack.
@@ -425,7 +462,7 @@ public class StructurePacks
         try
         {
             final CompoundTag nbt = NbtIo.readCompressed(new ByteArrayInputStream(Files.readAllBytes(path)), NbtAccounter.unlimitedHeap());
-            final Blueprint blueprint = BlueprintUtil.readBlueprintFromNBT(nbt, provider);
+            final Blueprint blueprint = BlueprintUtil.readBlueprintFromNBT(nbt, provider, path.getFileName().toString());
             if (blueprint == null) return null;
 
             blueprint.setFileName(path.getFileName().toString().replace(".blueprint", ""));
@@ -508,7 +545,7 @@ public class StructurePacks
                         try
                         {
                             final CompoundTag nbt = NbtIo.readCompressed(new ByteArrayInputStream(Files.readAllBytes(file)), NbtAccounter.unlimitedHeap());
-                            final Blueprint blueprint = BlueprintUtil.readBlueprintFromNBT(nbt, provider);
+                            final Blueprint blueprint = BlueprintUtil.readBlueprintFromNBT(nbt, provider, file.getFileName().toString());
                             if (blueprint != null)
                             {
                                 blueprint.setFileName(file.getFileName().toString().replace(".blueprint", ""));

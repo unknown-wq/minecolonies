@@ -200,6 +200,20 @@ public interface IBuilding extends IBuildingContainer, IBuildingModuleContainer,
     void requestUpgradeTo(Player player, BlockPos builder, int targetLevel);
 
     /**
+     * Requests a build that tears the site down first and then raises the wanted level on the bare ground.
+     * <p>
+     * Free mode only; refused outright without it rather than falling back to anything, because every fallback would
+     * either destroy more than was asked for or less. Destructive: everything inside the blueprint's footprint that
+     * the builder is allowed to break comes down, the player's own blocks and the contents of their chests included.
+     * The level may not go down - see the implementation for why.
+     *
+     * @param player      the requesting player.
+     * @param builder     the assigned builder.
+     * @param targetLevel the level to end up at.
+     */
+    void requestRebuild(Player player, BlockPos builder, int targetLevel);
+
+    /**
      * Requests a removal for the current building.
      *
      * @param player  the requesting player.

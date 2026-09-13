@@ -43,3 +43,8 @@ logs/
 # a checkout rather than the stand's own directory.
 *.pid
 .cache/
+
+# Python bytecode. tools/mc-colonydiff.py is run directly, but importing it or
+# syntax-checking it with py_compile leaves a cache directory next to it.
+__pycache__/
+*.pyc

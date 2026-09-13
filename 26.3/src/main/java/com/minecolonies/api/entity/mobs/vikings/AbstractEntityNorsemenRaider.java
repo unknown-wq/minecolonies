@@ -5,9 +5,7 @@ import com.minecolonies.api.entity.mobs.RaiderType;
 import com.minecolonies.core.entity.pathfinding.navigation.AbstractAdvancedPathNavigate;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import org.jetbrains.annotations.NotNull;
 
 import static com.minecolonies.core.colony.events.raid.RaiderConstants.ONE;
@@ -54,12 +52,6 @@ public abstract class AbstractEntityNorsemenRaider extends AbstractEntityMinecol
     public float getVoicePitch()
     {
         return (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.1F + 1.0F;
-    }
-
-    @Override
-    public boolean checkSpawnRules(final LevelAccessor worldIn, final EntitySpawnReason spawnReasonIn)
-    {
-        return true;
     }
 
     @NotNull

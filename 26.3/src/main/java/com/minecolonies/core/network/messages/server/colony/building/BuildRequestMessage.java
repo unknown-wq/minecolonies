@@ -29,7 +29,16 @@ public class BuildRequestMessage extends AbstractBuildingServerMessage<IBuilding
     {
         BUILD,
         REPAIR,
-        REMOVE
+        /**
+         * Take the building down and leave it down.
+         */
+        REMOVE,
+        /**
+         * Take the building down and build it again at {@link #targetLevel}. Free mode only, and checked as such on
+         * the server - see {@code AbstractBuilding#requestRebuild}. Appended last on purpose: the mode travels as its
+         * ordinal, so a new constant may only go on the end.
+         */
+        REBUILD
     }
 
     /**
@@ -116,6 +125,9 @@ public class BuildRequestMessage extends AbstractBuildingServerMessage<IBuilding
                     break;
                 case REPAIR:
                     building.requestRepair(builder);
+                    break;
+                case REBUILD:
+                    building.requestRebuild(player, builder, targetLevel);
                     break;
                 case REMOVE:
                     building.requestRemoval(player, builder);

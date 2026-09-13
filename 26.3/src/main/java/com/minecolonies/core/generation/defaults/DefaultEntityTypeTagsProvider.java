@@ -9,6 +9,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
@@ -52,6 +53,17 @@ public class DefaultEntityTypeTagsProvider extends FabricTagsProvider<EntityType
 
         final ModTagAppender<EntityType<?>> raiderTagAppender = tagOf(ModTags.raiders);
         ModEntities.getRaiders().forEach(raiderType -> raiderTagAppender.addEntry(TagEntry.element(EntityType.getKey(raiderType))));
+
+        // Drowned pirates live on the sea floor. This is the vanilla switch for that: LivingEntity#canBreatheUnderwater
+        // reads this tag and it is what gates the air supply being decreased at all -- replacing an override of
+        // decreaseAirSupply that returned its argument and answered nothing else.
+        tagOf(EntityTypeTags.CAN_BREATHE_UNDER_WATER)
+                .add(ModEntities.DROWNED_PIRATE)
+                .add(ModEntities.DROWNED_ARCHERPIRATE)
+                .add(ModEntities.DROWNED_CHIEFPIRATE)
+                .add(ModEntities.CAMP_DROWNED_PIRATE)
+                .add(ModEntities.CAMP_DROWNED_ARCHERPIRATE)
+                .add(ModEntities.CAMP_DROWNED_CHIEFPIRATE);
 
         tagOf(TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath("dynamictrees", "falling_tree_damage_immune")))
                 .add(ModEntities.CITIZEN)

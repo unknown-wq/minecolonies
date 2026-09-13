@@ -8,8 +8,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Guards {@link BlueprintUtil#fixTileEntities} against block entity ids the vanilla data fixer cannot carry all the
@@ -19,12 +20,13 @@ import static org.junit.Assert.assertNull;
  * {@code References.BLOCK_ENTITY} update has no rule for them - the vanilla fixes that deal with them hang off
  * {@code CHUNK}/{@code ITEM_STACK}/{@code ENTITY}/{@code STRUCTURE} instead - so the data fixer either throws
  * ({@code flower_pot}, {@code noteblock}) or logs {@code Unsupported key: ...} at ERROR and hands the tag back
- * unfixed ({@code bed}). Blueprints are read on a background IO worker, so both failure modes are quiet.
+ * unfixed ({@code bed}). Blueprints are read on a background IO worker, so both failure modes are quiet. All three
+ * are dropped here instead.
  */
 public class BlueprintUtilTileEntityFixTest
 {
-    /** 1.12.2, the oldest data version blueprints in the wild carry. */
-    private static final int V1_12_2 = 1343;
+    /** 1.16.5, the oldest data version any blueprint shipped with this repository carries. */
+    private static final int V1_16_5 = 2586;
 
     /** 1.21.1, i.e. long after beds got a block entity and well before 4885 took it away again. */
     private static final int V1_21_1 = 3955;
@@ -58,22 +60,50 @@ public class BlueprintUtilTileEntityFixTest
     @Test
     public void bedBlockEntityIsDropped()
     {
-        assertNull(BlueprintUtil.fixTileEntities(V1_12_2, listOf("minecraft:bed"))[0]);
+        assertNull(BlueprintUtil.fixTileEntities(V1_16_5, listOf("minecraft:bed"))[0]);
         assertNull(BlueprintUtil.fixTileEntities(V1_21_1, listOf("minecraft:bed"))[0]);
     }
 
     /**
-     * The two ids that lost their block entity back at 1.13 are kept, not dropped - {@link BlueprintUtil#fixCross1343}
-     * turns them into block states later and needs the tag to do it.
+     * Flower pots and note blocks stopped being block entities at the flattening, which is the floor
+     * {@link BlueprintUtil#MIN_SUPPORTED_DATA_VERSION} now draws, and the 1.12-era cross-fixer that used to turn them
+     * back into block states is gone. Nothing can be salvaged from either tag and handing it to the data fixer throws,
+     * so they are dropped like the bed above.
      */
     @Test
-    public void flowerPotAndNoteBlockAreKeptForTheCrossFixer()
+    public void flowerPotAndNoteBlockAreDropped()
     {
-        final CompoundTag[] fixed = BlueprintUtil.fixTileEntities(V1_12_2, listOf("minecraft:flower_pot", "minecraft:noteblock"));
-        assertNotNull(fixed[0]);
-        assertNotNull(fixed[1]);
-        assertEquals("minecraft:flower_pot", fixed[0].getStringOr("id", ""));
-        assertEquals("minecraft:noteblock", fixed[1].getStringOr("id", ""));
+        final CompoundTag[] fixed = BlueprintUtil.fixTileEntities(V1_16_5, listOf("minecraft:flower_pot", "minecraft:noteblock"));
+        assertNull(fixed[0]);
+        assertNull(fixed[1]);
+    }
+
+    /**
+     * Blueprints below {@link BlueprintUtil#MIN_SUPPORTED_DATA_VERSION} are refused outright rather than migrated, and
+     * refusal means a null return, not an exception escaping into whatever thread is reading the file.
+     */
+    @Test
+    public void blueprintsOlderThanTheFloorAreRefused()
+    {
+        assertTrue(BlueprintUtil.isTooOldToLoad(blueprintTaggedWith(1343)));
+        assertTrue(BlueprintUtil.isTooOldToLoad(blueprintTaggedWith(1465)));
+        assertTrue(BlueprintUtil.isTooOldToLoad(blueprintTaggedWith(BlueprintUtil.MIN_SUPPORTED_DATA_VERSION - 1)));
+        assertFalse(BlueprintUtil.isTooOldToLoad(blueprintTaggedWith(BlueprintUtil.MIN_SUPPORTED_DATA_VERSION)));
+        assertFalse(BlueprintUtil.isTooOldToLoad(blueprintTaggedWith(V1_16_5)));
+        assertFalse(BlueprintUtil.isTooOldToLoad(blueprintTaggedWith(V1_21_1)));
+
+        // No "mcversion" tag at all means the file predates the tag, i.e. 1.12-era.
+        assertTrue(BlueprintUtil.isTooOldToLoad(new CompoundTag()));
+
+        assertNull(BlueprintUtil.readBlueprintFromNBT(blueprintTaggedWith(1343), null, "too_old.blueprint"));
+    }
+
+    private static CompoundTag blueprintTaggedWith(final int dataVersion)
+    {
+        final CompoundTag tag = new CompoundTag();
+        tag.putByte("version", (byte) 1);
+        tag.putInt("mcversion", dataVersion);
+        return tag;
     }
 
     /**
@@ -83,7 +113,7 @@ public class BlueprintUtilTileEntityFixTest
     @Test
     public void ordinaryBlockEntitiesStillSurvive()
     {
-        final CompoundTag[] fixed = BlueprintUtil.fixTileEntities(V1_12_2, listOf("minecraft:chest", "minecraft:sign", "minecraft:furnace"));
+        final CompoundTag[] fixed = BlueprintUtil.fixTileEntities(V1_16_5, listOf("minecraft:chest", "minecraft:sign", "minecraft:furnace"));
         assertEquals("minecraft:chest", fixed[0].getStringOr("id", ""));
         assertEquals("minecraft:sign", fixed[1].getStringOr("id", ""));
         assertEquals("minecraft:furnace", fixed[2].getStringOr("id", ""));

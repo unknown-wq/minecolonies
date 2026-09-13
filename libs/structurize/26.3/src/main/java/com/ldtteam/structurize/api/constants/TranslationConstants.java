@@ -18,6 +18,13 @@ public final class TranslationConstants
     @NonNls
     public static final String GUI_SWITCH_PACK_DISABLED_TEXT = "com.ldtteam.structurize.gui.switchpack.pack_disabled.hover_text";
 
+    /**
+     * Shown to a player whose blueprint predates {@link com.ldtteam.structurize.blueprints.v1.BlueprintUtil#MIN_SUPPORTED_DATA_VERSION}.
+     * Takes the blueprint path as its single argument.
+     */
+    @NonNls
+    public static final String BLUEPRINT_TOO_OLD = "structurize.blueprint.too_old";
+
     private TranslationConstants()
     {
         //empty default

@@ -5,7 +5,12 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.NotNull;
 
 public class DamageSourceKeys
 {
@@ -66,4 +71,42 @@ public class DamageSourceKeys
     public static ResourceKey<DamageType> CAMP_CHIEFPIRATE = ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "campchiefpirate"));
     public static ResourceKey<DamageType> CAMP_ARCHERPIRATE = ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "camparcherpirate"));
 
+    public static ResourceKey<DamageType> CAMP_DROWNED_PIRATE = ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "campdrownedpirate"));
+    public static ResourceKey<DamageType> CAMP_DROWNED_CHIEFPIRATE = ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "campdrownedchiefpirate"));
+    public static ResourceKey<DamageType> CAMP_DROWNED_ARCHERPIRATE = ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "campdrownedarcherpirate"));
+
+    /**
+     * The damage type a mob of the given entity type deals with its own attacks.
+     * <p>
+     * Every raider and camp mob damage type above is registered under the entity type's own registry name, so the
+     * key is that name in the {@code damage_type} registry -- read off the entity type registry rather than
+     * rebuilt from the entity's <em>localization</em> key, which is what the melee AI used to do.
+     *
+     * @param type the attacking entity's type.
+     * @return the damage type key with the same namespace and path as the entity type.
+     */
+    public static ResourceKey<DamageType> forEntityType(@NotNull final EntityType<?> type)
+    {
+        return ResourceKey.create(Registries.DAMAGE_TYPE, BuiltInRegistries.ENTITY_TYPE.getKey(type));
+    }
+
+    /**
+     * The damage source for a mob hitting something with its own damage type.
+     * <p>
+     * {@code DamageSources#source} resolves the key with {@code getOrThrow}, which throws out of the entity tick --
+     * a server crash report -- for any entity type that has no {@code damage_type} json. Registered entity types
+     * without one are reachable in play (a creative spawn egg is enough), so the lookup falls back to the vanilla
+     * mob attack source instead of throwing. The fallback is a safety net, not the normal path: the types that
+     * used to hit it now have their own damage type generated in {@code DefaultDamageTypeProvider}.
+     *
+     * @param user the attacking mob.
+     * @return the mob's own damage source, or vanilla's generic mob attack when it has no damage type registered.
+     */
+    public static DamageSource mobAttack(@NotNull final LivingEntity user)
+    {
+        return user.level().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE)
+                 .get(forEntityType(user.getType()))
+                 .<DamageSource>map(damageType -> new DamageSource(damageType, user))
+                 .orElseGet(() -> user.level().damageSources().mobAttack(user));
+    }
 }

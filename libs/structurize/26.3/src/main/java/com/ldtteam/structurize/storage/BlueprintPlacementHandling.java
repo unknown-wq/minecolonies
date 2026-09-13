@@ -16,6 +16,7 @@ import com.ldtteam.structurize.placement.StructurePlacer;
 import com.ldtteam.structurize.placement.structure.CreativeStructureHandler;
 import com.ldtteam.structurize.placement.structure.IStructureHandler;
 import com.ldtteam.structurize.util.IOPool;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.fabricmc.loader.api.FabricLoader;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.ldtteam.structurize.api.constants.Constants.*;
+import static com.ldtteam.structurize.api.constants.TranslationConstants.BLUEPRINT_TOO_OLD;
 
 /**
  * Class where blueprint placement is handled.
@@ -62,7 +64,14 @@ public class BlueprintPlacementHandling
     {
         if (blueprint == null)
         {
-            Log.getLogger().warn("Couldn't retrieve blueprint: " + message.blueprintPath);
+            if (StructurePacks.isTooOldToLoad(message.structurePackId, message.blueprintPath))
+            {
+                message.player.sendSystemMessage(Component.translatable(BLUEPRINT_TOO_OLD, message.blueprintPath));
+            }
+            else
+            {
+                Log.getLogger().warn("Couldn't retrieve blueprint: " + message.blueprintPath);
+            }
             return;
         }
         if (message.type == BuildToolPlacementMessage.HandlerType.Survival)
