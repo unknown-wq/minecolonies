@@ -559,10 +559,10 @@ public abstract class AbstractBuildingGuards extends AbstractBuilding implements
     /**
      * The next point of a border patrol, for a guard building that walks one.
      * <p>
-     * Returning null -- which is what every guard building but the barracks tower does, and what the tower does unless
-     * its barracks has actually been set to patrol a border -- leaves {@link #getNextPatrolTarget} byte for byte the
-     * behaviour it has always had. This is the entire cost a colony with no border patrol pays: one virtual call that
-     * returns null, on the patrol timer rather than per tick.
+     * Returning null -- which is what every guard building but the barracks tower does, and what the tower does
+     * unless it has actually been set to the border patrol task -- leaves {@link #getNextPatrolTarget} byte for byte
+     * the behaviour it has always had. This is the entire cost a colony with no border patrol pays: one virtual call
+     * that returns null, on the patrol timer rather than per tick.
      *
      * @param from where the building's patrol currently stands, null before the first point has been picked.
      * @return the next point on the assigned stretch, or null to fall back to the ordinary automatic patrol.

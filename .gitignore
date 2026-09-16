@@ -7,6 +7,21 @@
 /*/out
 /classes
 
+# The anchored rules above only reach one level deep, so a per-version module
+# such as worldmap/26.3/ kept its build and run directories in the status
+# listing -- classes, saved worlds and region files, hundreds of megabytes of
+# them. These reach any depth.
+**/build/
+**/run/
+**/.gradle/
+**/.staged-libs/
+
+# Fabric API jars the build downloads next to the checkout. Anchored to the
+# root on purpose: the datagen caches under 26.x/src/main/generated/.cache/ are
+# deliberately tracked and have to stay visible in status, or a re-stamp of the
+# cache would go unnoticed.
+/.cache/
+
 # gradle/loom run dirs
 /run
 /*/run

@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.LevelReader;
@@ -41,7 +43,7 @@ public class BarrelBlock extends AbstractBlock<BarrelBlock> implements SimpleWat
 
     public BarrelBlock()
     {
-        super(AbstractBlock.Properties.ofLegacyCopy(Blocks.OAK_PLANKS).strength(3f, 1f));
+        super(DOProps.ofLegacyCopy(Blocks.OAK_PLANKS).strength(3f, 1f));
         this.registerDefaultState(this.getStateDefinition().any().setValue(WATERLOGGED, false));
     }
 

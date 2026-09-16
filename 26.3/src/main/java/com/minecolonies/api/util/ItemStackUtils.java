@@ -29,6 +29,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
@@ -748,15 +749,48 @@ public final class ItemStackUtils
     }
 
     /**
+     * Read a stack that was written through {@link ItemStack#OPTIONAL_CODEC}.
+     * <p>
+     * An absent or empty compound is a genuinely empty stack and decodes without complaint: that is what the writing
+     * side produces for an empty slot. Anything else that fails to decode is a stack that <em>was</em> saved and
+     * cannot be restored -- an item from a mod that is no longer installed, or data the codec no longer accepts.
+     * Returning {@link ItemStack#EMPTY} for that is the only answer that keeps the colony loading, but it must not
+     * happen in silence: the stack is gone from the player's world and the log is the only place that can say so.
+     *
+     * @param provider the registry lookup, needed for components that reference dynamic registries.
+     * @param tag      the tag to decode.
+     * @param context  what was being loaded, named in the log line if the read fails.
+     * @return the stack, or {@link ItemStack#EMPTY} if it could not be restored.
+     */
+    @NotNull
+    public static ItemStack readOptionalStack(
+      @NotNull final HolderLookup.Provider provider,
+      @NotNull final CompoundTag tag,
+      @NotNull final String context)
+    {
+        return ItemStack.OPTIONAL_CODEC
+                 .parse(provider.createSerializationContext(NbtOps.INSTANCE), tag)
+                 .resultOrPartial(error -> Log.getLogger()
+                                             .warn("Lost a saved item stack while loading {}: {}. Stored as: {}", context, error, tag))
+                 .orElse(ItemStack.EMPTY);
+    }
+
+    /**
      * Update method to allow for easy reading the ItemStack data from NBT.
+     * <p>
+     * The writing side of every caller uses {@link ItemStack#OPTIONAL_CODEC} with registry-aware ops
+     * ({@code Utils#serializeCodecMess}), so the reading side has to as well. Plain {@code NbtOps} cannot resolve a
+     * component that points into a data-driven registry -- enchantments above all -- so an enchanted tool read that
+     * way fails to decode and comes back empty.
      *
      * @param compound The compound to read from.
+     * @param provider the registry lookup.
      * @return The ItemStack stored in the NBT Data.
      */
     @NotNull
     public static ItemStack deserializeFromNBT(@NotNull final CompoundTag compound, @NotNull final HolderLookup.Provider provider)
     {
-        return compound.read(ItemStack.MAP_CODEC).orElse(ItemStack.EMPTY);
+        return readOptionalStack(provider, compound, "an item stack");
     }
 
     /**

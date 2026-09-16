@@ -5,6 +5,7 @@ import com.minecolonies.api.colony.buildings.modules.AbstractBuildingModule;
 import com.minecolonies.api.colony.buildings.modules.IItemListModule;
 import com.minecolonies.api.colony.buildings.modules.IPersistentModule;
 import com.minecolonies.api.crafting.ItemStorage;
+import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.Utils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.Tag;
@@ -78,7 +79,14 @@ public class ItemListModule extends AbstractBuildingModule implements IItemListM
         final ListTag filterableList = compound.getListOrEmpty(TAG_ITEMLIST);
         for (int i = 0; i < filterableList.size(); ++i)
         {
-            allowedItems.add(new ItemStorage(ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), filterableList.getCompoundOrEmpty(i)).result().orElse(ItemStack.EMPTY)));
+            // Only real items are ever written here, so a stack that will not read back is a filter entry the player
+            // set and is about to lose. Keeping it as air would be worse than dropping it -- the list is matched
+            // against stacks, and an air entry matches nothing while still occupying a row in the GUI.
+            final ItemStack stack = ItemStackUtils.readOptionalStack(provider, filterableList.getCompoundOrEmpty(i), "entry " + i + " of item list '" + id + "'");
+            if (!stack.isEmpty())
+            {
+                allowedItems.add(new ItemStorage(stack));
+            }
         }
 
         this.itemsAllowed = ImmutableList.copyOf(allowedItems);

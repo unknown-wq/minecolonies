@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.block.AbstractBlockPane;
@@ -60,7 +62,7 @@ public class PaperWallBlock extends AbstractBlockPane<PaperWallBlock> implements
 
     public PaperWallBlock()
     {
-        super(Properties.of().mapColor(MapColor.NONE).isRedstoneConductor((state, getter, pos) -> false).strength(BLOCK_HARDNESS, RESISTANCE));
+        super(DOProps.of().mapColor(MapColor.NONE).isRedstoneConductor((state, getter, pos) -> false).strength(BLOCK_HARDNESS, RESISTANCE));
     }
 
     @Override

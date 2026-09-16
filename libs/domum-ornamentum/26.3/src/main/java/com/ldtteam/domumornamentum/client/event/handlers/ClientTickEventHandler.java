@@ -25,7 +25,6 @@ public class ClientTickEventHandler
         return INSTANCE;
     }
 
-    private long clientTicks = 0;
     private long nonePausedTicks = 0;
 
     private ClientTickEventHandler()
@@ -42,16 +41,10 @@ public class ClientTickEventHandler
 
     private void onClientTick(final Minecraft minecraft)
     {
-        clientTicks++;
         if (!minecraft.isPaused())
         {
             nonePausedTicks++;
         }
-    }
-
-    public long getClientTicks()
-    {
-        return clientTicks;
     }
 
     public long getNonePausedTicks()

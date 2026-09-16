@@ -31,10 +31,6 @@
       "com.ldtteam.domumornamentum.datagen.DomumOrnamentumDataGenerator"
     ]
   },
-  "mixins": [
-    "domum_ornamentum.mixins.json"
-  ],
-
   "depends": {
     "fabricloader": ">=0.19.3",
     "fabric-api": "*",

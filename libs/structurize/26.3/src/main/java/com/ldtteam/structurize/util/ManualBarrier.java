@@ -45,4 +45,15 @@ public final class ManualBarrier
         }
     }
 
+    /**
+     * Closes the barrier again, so that the next {@link #waitOne()} blocks until it is reopened.
+     * Threads already past the barrier are unaffected.
+     */
+    public void close()
+    {
+        synchronized (monitor)
+        {
+            open = false;
+        }
+    }
 }

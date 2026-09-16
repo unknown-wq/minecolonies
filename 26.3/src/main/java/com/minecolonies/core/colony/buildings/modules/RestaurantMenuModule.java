@@ -185,8 +185,8 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
           new ArrayList<>(building.getOpenRequestsByRequestableType().getOrDefault(TypeToken.of(MinimumStack.class), new ArrayList<>()));
         cancelOrderFor(itemStack, list);
 
-        // onColonyTick asks for the dish or for the raw input of its smelting recipe, whichever it happened to draw
-        // that tick, so both have to go.
+        // onColonyTick can have an order standing for the dish and another for the raw input of its smelting
+        // recipe, so both have to go.
         if (canCook && MinecoloniesAPIProxy.getInstance().getFurnaceRecipes().getFirstSmeltingRecipeByResult(removed) instanceof RecipeStorage recipeStorage
               && !recipeStorage.getInput().isEmpty())
         {
@@ -224,12 +224,11 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
                 {
                     continue;
                 }
-                ItemStack requestStack = originalStack;
                 ItemStack rawStack = ItemStack.EMPTY;
                 if (canCook && MinecoloniesAPIProxy.getInstance().getFurnaceRecipes().getFirstSmeltingRecipeByResult(menuItem) instanceof RecipeStorage recipeStorage
                       && !recipeStorage.getInput().isEmpty())
                 {
-                    // Smelting Recipes only got 1 input. Request sometimes the input if this is a smeltable.
+                    // Smelting Recipes only got 1 input, which is what the cook here would smelt into the dish.
                     rawStack = recipeStorage.getInput().get(0).getItemStack().copy();
                 }
 
@@ -237,34 +236,50 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
                 final int count = InventoryUtils.hasBuildingEnoughElseCount(this.building, new ItemStorage(originalStack, true), target);
                 final int rawCount = rawStack.isEmpty() ? 0 : InventoryUtils.hasBuildingEnoughElseCount(this.building, new ItemStorage(rawStack, true), target);
                 final int delta = target - count - rawCount;
-                if (MathUtils.RANDOM.nextBoolean() && !rawStack.isEmpty())
-                {
-                    requestStack = rawStack.copy();
-                }
-                // Look for a standing order under both names rather than under the one this tick happened to draw.
-                // The test below is what stops a second order going out while one is still outstanding, and it could
-                // not do that while the name it searched under changed from tick to tick: on the tick that picked
-                // the other of the two, nothing matched and a parallel order was raised for the same food.
-                IToken<?> request = getMatchingRequest(originalStack, list);
-                if (request == null && !rawStack.isEmpty())
-                {
-                    request = getMatchingRequest(rawStack, list);
-                }
+
+                // The dish and its raw input are two separate orders, each looked up under its own name. Picking one
+                // of the two at random every tick meant the check below searched under a name that changed from tick
+                // to tick, so a standing order went unseen and a second one was raised for the same food.
+                final IToken<?> request = getMatchingRequest(originalStack, list);
+                final IToken<?> rawRequest = rawStack.isEmpty() ? null : getMatchingRequest(rawStack, list);
 
                 if (delta > (building.getColony().getResearchManager().getResearchEffects().getEffectStrength(MIN_ORDER) > 0 ? target / 4 : 0))
                 {
+                    final int qty = Math.min(STACKSIZE, Math.min(originalStack.getMaxStackSize(), delta));
                     if (request == null)
                     {
-                        final int qty = Math.min(STACKSIZE, Math.min(requestStack.getMaxStackSize(), delta));
-                        final MinimumStack stack = new MinimumStack(requestStack, false, true, ItemStackUtils.EMPTY, qty, 1);
+                        final MinimumStack stack = new MinimumStack(originalStack, false, true, ItemStackUtils.EMPTY, qty, 1);
 
                         stack.setCanBeResolvedByBuilding(false);
                         building.createRequest(stack, true);
                     }
+                    else
+                    {
+                        // The cooked dish is on order already. Ask for the raw input as well only while nobody has
+                        // started on that order yet, so the cook here can make the meal if it goes unanswered.
+                        final IRequest<?> standing = building.getColony().getRequestManager().getRequestForToken(request);
+                        if (!rawStack.isEmpty()
+                              && rawRequest == null
+                              && standing != null
+                              && standing.getState().ordinal() < RequestState.IN_PROGRESS.ordinal())
+                        {
+                            final MinimumStack stack = new MinimumStack(rawStack, false, true, ItemStackUtils.EMPTY, qty, 1);
+
+                            stack.setCanBeResolvedByBuilding(false);
+                            building.createRequest(stack, true);
+                        }
+                    }
                 }
-                else if (request != null && delta <= 0)
+                else if (delta <= 0)
                 {
-                    building.getColony().getRequestManager().updateRequestState(request, RequestState.CANCELLED);
+                    if (request != null)
+                    {
+                        building.getColony().getRequestManager().updateRequestState(request, RequestState.CANCELLED);
+                    }
+                    if (rawRequest != null)
+                    {
+                        building.getColony().getRequestManager().updateRequestState(rawRequest, RequestState.CANCELLED);
+                    }
                 }
             }
         }
@@ -321,7 +336,11 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
         final ListTag minimumStockTagList = compound.getListOrEmpty(TAG_MENU);
         for (int i = 0; i < minimumStockTagList.size(); i++)
         {
-            final ItemStack itemStack = ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), minimumStockTagList.getCompoundOrEmpty(i)).result().orElse(ItemStack.EMPTY);
+            // A menu entry that will not read back drops off the menu and the restaurant simply stops serving it;
+            // the EDIBLE test below already refuses an empty stack, so all that is missing is saying which one went.
+            final ItemStack itemStack = ItemStackUtils.readOptionalStack(provider,
+              minimumStockTagList.getCompoundOrEmpty(i),
+              "entry " + i + " of the restaurant menu");
             if (FoodUtils.EDIBLE.test(itemStack))
             {
                 menu.add(new ItemStorage(itemStack));
@@ -336,7 +355,10 @@ public class RestaurantMenuModule extends AbstractBuildingModule implements IPer
         final ListTag refusedTagList = compound.getListOrEmpty(TAG_REFUSED);
         for (int i = 0; i < refusedTagList.size(); i++)
         {
-            final ItemStack itemStack = ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), refusedTagList.getCompoundOrEmpty(i)).result().orElse(ItemStack.EMPTY);
+            // Losing a refusal re-offers the food the player already turned down once, so it is worth a line too.
+            final ItemStack itemStack = ItemStackUtils.readOptionalStack(provider,
+              refusedTagList.getCompoundOrEmpty(i),
+              "entry " + i + " of the restaurant's refused list");
             if (!itemStack.isEmpty())
             {
                 refused.add(new ItemStorage(itemStack));

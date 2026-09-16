@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.block.AbstractBlock;
@@ -71,7 +73,7 @@ public class FramedLightBlock extends AbstractBlock<FramedLightBlock> implements
      */
     public FramedLightBlock(final FramedLightType framedLightType)
     {
-        super(Properties.of().mapColor(MapColor.WOOD).pushReaction(PushReaction.PUSH_ONLY).strength(BLOCK_HARDNESS, RESISTANCE).noOcclusion().lightLevel(state -> 15));
+        super(DOProps.of().mapColor(MapColor.WOOD).pushReaction(PushReaction.PUSH_ONLY).strength(BLOCK_HARDNESS, RESISTANCE).noOcclusion().lightLevel(state -> 15));
         this.framedLightType = framedLightType;
     }
 

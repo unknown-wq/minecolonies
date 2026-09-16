@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.vanilla;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.block.ICachedItemGroupBlock;
@@ -47,7 +49,7 @@ public class StairBlock extends net.minecraft.world.level.block.StairBlock imple
 
     public StairBlock()
     {
-        super(OAK_PLANKS.defaultBlockState(), Properties.of().mapColor(MapColor.WOOD).noOcclusion().strength(2.0F, 3.0F));
+        super(OAK_PLANKS.defaultBlockState(), DOProps.of().mapColor(MapColor.WOOD).noOcclusion().strength(2.0F, 3.0F));
     }
 
     @Override

@@ -293,6 +293,22 @@ public class InteractionValidatorInitializer
               return false;
           });
 
+        InteractionValidatorRegistry.registerStandardPredicate(Component.translatableEscape(MINER_NO_OPEN_NODES),
+          citizen -> {
+
+              final IBuilding buildingMiner = citizen.getWorkBuilding();
+              if (buildingMiner instanceof BuildingMiner && citizen.getColony() != null && citizen.getColony().getWorld() != null && citizen.getJob() instanceof JobMiner)
+              {
+                  // Holds while the shaft is at its depth limit and no level has an open node left, which is the
+                  // pair of conditions that used to bounce the miner between MINER_CHECK_MINESHAFT and
+                  // MINER_MINING_NODE without end. Digging a level out by hand or repairing one clears it.
+                  return getLastLadder(((BuildingMiner) buildingMiner).getLadderLocation(), citizen.getColony().getWorld())
+                           < ((BuildingMiner) buildingMiner).getDepthLimit(citizen.getColony().getWorld())
+                           && !((BuildingMiner) buildingMiner).getModule(BuildingModules.MINER_LEVELS).hasOpenNodes();
+              }
+              return false;
+          });
+
         InteractionValidatorRegistry.registerStandardPredicate(Component.translatableEscape(WORKER_AI_EXCEPTION),
           citizen -> citizen.getJob() != null && ((AbstractEntityAIBasic<?, ?>) citizen.getJob().getWorkerAI()).getExceptionTimer() > 1);
 

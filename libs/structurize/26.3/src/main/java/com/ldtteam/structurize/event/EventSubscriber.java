@@ -41,7 +41,10 @@ public class EventSubscriber
 
         ServerTickEvents.START_LEVEL_TICK.register(EventSubscriber::onWorldTick);
 
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> IOPool.shutdown());
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            IOPool.shutdown();
+            Manager.clear();
+        });
 
         // Two caches in the placement path are derived from block tags and were never rebuilt when a
         // datapack reload changed them: PlacementHandlers' block-to-handler map (BlackListedBlockPlacementHandler

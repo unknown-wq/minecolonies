@@ -865,12 +865,19 @@ public class Blueprint implements IFakeLevelBlockGetter
                 }
                 catch (final Exception ex)
                 {
-                    Log.getLogger().error("Entity: " + type.get().getDescriptionId() + " failed to load. ", ex);
-                    return null;
+                    Log.getLogger().error("Entity: " + type.get().getDescriptionId() + " failed to load, keeping its stored data untransformed.", ex);
+                    return entityInfo;
                 }
             }
         }
-        return null;
+
+        // No registered entity type (a mod that is not installed), or the type refused to create an instance.
+        // Such an entity cannot be rotated or spawned, but dropping it would silently delete it from the
+        // blueprint the moment it is rotated and saved again, so the stored tag is carried over untouched.
+        Log.getLogger()
+            .warn("Blueprint: entity '" + entityInfo.getStringOr("id", "<no id>")
+                    + "' has no usable entity type here; keeping its stored data untransformed.");
+        return entityInfo;
     }
 
     private int getVolume()

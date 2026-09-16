@@ -4,6 +4,7 @@ import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.buildingextensions.registry.BuildingExtensionRegistries;
 import com.minecolonies.api.colony.buildingextensions.registry.BuildingExtensionRegistries.BuildingExtensionEntry;
+import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.Utils;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.MineColonies;
@@ -172,17 +173,17 @@ public class FarmField extends AbstractBuildingExtension
             final List<ItemStack> read = new ArrayList<>();
             for (int i = 0; i < seedList.size(); i++)
             {
-                read.add(ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), seedList.getCompoundOrEmpty(i))
-                           .result()
-                           .orElse(ItemStack.EMPTY));
+                read.add(ItemStackUtils.readOptionalStack(provider,
+                  seedList.getCompoundOrEmpty(i),
+                  "seed " + i + " of the field at " + getPosition().toShortString()));
             }
             setSeeds(read);
         }
         else
         {
-            setSeed(ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), compound.getCompoundOrEmpty(TAG_SEED))
-                      .result()
-                      .orElse(ItemStack.EMPTY));
+            setSeed(ItemStackUtils.readOptionalStack(provider,
+              compound.getCompoundOrEmpty(TAG_SEED),
+              "the seed of the field at " + getPosition().toShortString()));
         }
         radii = sanitiseRadii(compound.getIntArray(TAG_RADIUS).orElse(null));
         // valueOf has no answer for the empty string the getter falls back to, and threw for it, which

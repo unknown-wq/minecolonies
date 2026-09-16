@@ -14,6 +14,7 @@ import com.minecolonies.api.items.ModTags;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.BlockStateUtils;
 import com.minecolonies.api.util.ItemStackUtils;
+import com.minecolonies.api.util.Log;
 import com.minecolonies.core.MineColonies;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -21,6 +22,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
@@ -566,8 +568,17 @@ public class Tree
         if (compound.contains(TAG_SAPLING))
         {
             // 26.2: ItemStack#parseOptional/#saveOptional are gone; decode/encode through ItemStack.CODEC
-            // with registry-aware ops instead (same NBT shape).
-            tree.sapling = compound.read(TAG_SAPLING, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+            // with registry-aware ops instead (same NBT shape). The ops matter on both sides: the shorter
+            // read/storeNullable overloads default to plain NbtOps, which cannot resolve a component that points
+            // into a data-driven registry.
+            // The tag is present, so a sapling was saved here. Coming back empty means the lumberjack quietly stops
+            // replanting this tree and nothing anywhere says why, so name it.
+            tree.sapling = compound.read(TAG_SAPLING, ItemStack.CODEC, provider.createSerializationContext(NbtOps.INSTANCE))
+                             .orElse(ItemStack.EMPTY);
+            if (tree.sapling.isEmpty())
+            {
+                Log.getLogger().warn("Lost the saved sapling of the tree at {}. Stored as: {}", tree.location, compound.get(TAG_SAPLING));
+            }
         }
         else
         {
@@ -1053,7 +1064,7 @@ public class Tree
         compound.putBoolean(TAG_IS_SLIME_TREE, slimeTree);
         compound.putBoolean(TAG_DYNAMIC_TREE, dynamicTree);
 
-        compound.storeNullable(TAG_SAPLING, ItemStack.CODEC, sapling.isEmpty() ? null : sapling);
+        compound.storeNullable(TAG_SAPLING, ItemStack.CODEC, provider.createSerializationContext(NbtOps.INSTANCE), sapling.isEmpty() ? null : sapling);
         compound.putBoolean(TAG_NETHER_TREE, netherTree);
 
         @NotNull final ListTag leavesBin = new ListTag();

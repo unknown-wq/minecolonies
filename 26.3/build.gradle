@@ -92,6 +92,41 @@ fabricApi {
 	}
 }
 
+// Resolve the optional Simple Planes jar once, for both the compileOnly entry below and the source-set
+// exclusion further down.
+//
+// The property may name a literal path or use a single `*` in the file name, and a `*` is what
+// gradle.properties actually carries. That is not laziness: the aircraft mod is versioned
+// independently of this one, so a literal path goes stale every time it is rebuilt -- twice in one
+// afternoon, once mid-build, where the build had already read the path and javac then died on
+// NoSuchFileException instead of saying the jar was missing. The integration is compileOnly and the
+// jar is never bundled, so "the newest 26.3 build of it on this machine" is exactly the right
+// answer, and naming a version here would only be a lie waiting to happen.
+def resolveSimplePlanesJar = {
+	if (!rootProject.hasProperty('simpleplanes_jar')) {
+		return null
+	}
+	final String spec = rootProject.simpleplanes_jar
+	if (!spec.contains('*')) {
+		final File literal = file(spec)
+		return literal.exists() ? literal : null
+	}
+	final File dir = file(spec).parentFile
+	if (dir == null || !dir.isDirectory()) {
+		return null
+	}
+	final String pattern = new File(spec).name
+	final List<File> matches = (dir.listFiles() ?: new File[0])
+		.findAll { it.isFile() && it.name.endsWith('.jar') && !it.name.contains('-sources') }
+		.findAll { it.name ==~ /\Q${pattern.replace('*', '\\E.*\\Q')}\E/ }
+		.sort { a, b -> b.lastModified() <=> a.lastModified() }
+	return matches.isEmpty() ? null : matches[0]
+}
+ext.simplePlanesJar = resolveSimplePlanesJar()
+if (ext.simplePlanesJar != null) {
+	logger.lifecycle("Simple Planes: compiling the aircraft integration against ${ext.simplePlanesJar.name}")
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	// Minecraft 26.1+ is unobfuscated and Yarn is discontinued: no mappings line is needed.
@@ -140,8 +175,8 @@ dependencies {
 	//    fine in that direction; bundling a copy of it inside this jar is a redistribution with its
 	//    own obligations and there is no reason to take them on -- it is a separate mod the player
 	//    installs.
-	if (rootProject.hasProperty('simpleplanes_jar') && file(simpleplanes_jar).exists()) {
-		compileOnly files(simpleplanes_jar)
+	if (project.ext.simplePlanesJar != null) {
+		compileOnly files(project.ext.simplePlanesJar)
 	}
 }
 
@@ -177,7 +212,7 @@ if (parkedIntegrations.exists()) {
 // Fixing it means routing those seven through Compatibility.aircraftCompat, which already has a complete
 // no-aircraft default -- nothing else stands in the way, and at runtime the mod already works with Simple
 // Planes absent. Until that is done, the jar named in gradle.properties is required to BUILD.
-if (!rootProject.hasProperty('simpleplanes_jar') || !file(simpleplanes_jar).exists()) {
+if (project.ext.simplePlanesJar == null) {
 	logger.lifecycle("Simple Planes jar not found -- building without the aircraft integration.")
 	sourceSets.main.java {
 		exclude 'com/minecolonies/core/compatibility/simpleplanes/**'

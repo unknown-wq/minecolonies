@@ -425,6 +425,31 @@ public final class ModBlocks implements IModBlocks {
         }
     }
 
+    /**
+     * Drops every cached creative-tab / Architect's Cutter variant list.
+     * <p>
+     * The lists are computed from block tags ({@link IMateriallyTexturedBlockComponent#getValidSkins()}),
+     * which a datapack reload or a move to a different server can change, so they have to be thrown away
+     * whenever tags are (re)loaded — otherwise the first world's variants are shown forever. Called from
+     * {@code CommonLifecycleEvents.TAGS_LOADED}; on NeoForge this was a {@code TagsUpdatedEvent} handler
+     * that was lost in the port.
+     */
+    public static void resetItemGroupCaches()
+    {
+        synchronized (ITEM_GROUP_LOCK)
+        {
+            INSTANCE.itemGroups = Map.of();
+        }
+
+        for (final Block block : BLOCKS)
+        {
+            if (block instanceof final ICachedItemGroupBlock cachedItemGroupBlock)
+            {
+                cachedItemGroupBlock.resetCache();
+            }
+        }
+    }
+
     private ItemStack process(final ItemStack stack, final IMateriallyTexturedBlock block)
     {
         final @NotNull List<IMateriallyTexturedBlockComponent> components = new ArrayList<>(block.getComponents());
@@ -438,19 +463,5 @@ public final class ModBlocks implements IModBlocks {
         textureData.writeToItemStack(stack);
 
         return stack;
-    }
-
-    public static Block[] getMateriallyTexturableBlocks() {
-        return BLOCKS.stream()
-                .filter(IMateriallyTexturedBlock.class::isInstance)
-                .toArray(Block[]::new);
-    }
-
-    public static Item[] getMateriallyTexturableItems() {
-        return Arrays.stream(getMateriallyTexturableBlocks())
-                .map(BuiltInRegistries.BLOCK::getKey)
-                .map(BuiltInRegistries.ITEM::getValue)
-                .filter(Objects::nonNull)
-                .toArray(Item[]::new);
     }
 }

@@ -2,7 +2,6 @@ package com.ldtteam.structurize.placement.structure;
 
 import com.ldtteam.structurize.api.ItemStackUtils;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
-import com.ldtteam.structurize.api.Log;
 import com.ldtteam.structurize.placement.IPlacementContext;
 import com.ldtteam.structurize.util.InventoryUtils;
 import net.minecraft.world.level.block.state.BlockState;
@@ -24,34 +23,6 @@ public interface IStructureHandler extends IPlacementContext
      * @param blueprint the blueprint to set.
      */
     void setBlueprint(Blueprint blueprint);
-
-    /**
-     * Set the md5 value.
-     * @param calculatedMD5 the calculated md5.
-     */
-    void setMd5(String calculatedMD5);
-
-    /**
-     * Get the md5 value.
-     * @return the md5.
-     */
-    String getMd5();
-
-    /**
-     * Compare the md5 from the structure with an other md5 hash.
-     *
-     * @param otherMD5 to compare with
-     * @return whether the otherMD5 match, return false if md5 is null
-     */
-    default boolean isCorrectMD5(final String otherMD5)
-    {
-        Log.getLogger().info("isCorrectMD5: md5:" + this.getMd5() + " other:" + otherMD5);
-        if (this.getMd5() == null || otherMD5 == null)
-        {
-            return false;
-        }
-        return this.getMd5().compareTo(otherMD5) == 0;
-    }
 
     /**
      * Get the world from the handler.

@@ -174,14 +174,85 @@ public class MinerLevel
             ladderZ = compound.getIntOr(TAG_LADDERZ, 0);
         }
 
-        this.ladderNode = this.nodes.get(new Vec2i(ladderX, ladderZ));
+        final Vec2i ladderPos = new Vec2i(ladderX, ladderZ);
+        MineNode storedLadderNode = this.nodes.get(ladderPos);
+        if (storedLadderNode == null)
+        {
+            // The ladder node is dereferenced without a check by write() and by getRandomCompletedNode(), so a
+            // level whose node map lost it would take the save down with it. Rebuild it instead.
+            Log.getLogger().warn("Minecolonies mine level at depth " + this.depth + " is missing its ladder node, recreating it");
+            storedLadderNode = new MineNode(ladderX, ladderZ, null);
+            storedLadderNode.setStyle(SHAFT);
+            storedLadderNode.setStatus(MineNode.NodeStatus.COMPLETED);
+            this.nodes.put(ladderPos, storedLadderNode);
+        }
+        this.ladderNode = storedLadderNode;
 
-
+        // The open queue and the node map are two views of the same nodes, and they have to hold the same objects.
+        // Reading both lists into fresh objects gave every open node a twin: the AI set IN_PROGRESS, COMPLETED and
+        // the build rotation on whichever copy it happened to be handed, while the copy that got written back out
+        // under "Nodes" still said AVAILABLE. One reload later a finished node was offered for digging again.
         final ListTag openNodeTagList = compound.getListOrEmpty(TAG_OPEN_NODES);
         for (int i = 0; i < openNodeTagList.size(); i++)
         {
             @NotNull final MineNode node = MineNode.createFromNBT(openNodeTagList.getCompoundOrEmpty(i));
-            this.openNodes.add(node);
+            final Vec2i pos = new Vec2i(node.getX(), node.getZ());
+            final MineNode stored = this.nodes.get(pos);
+            if (stored == null)
+            {
+                this.nodes.put(pos, node);
+                this.openNodes.add(node);
+            }
+            else
+            {
+                this.openNodes.add(stored);
+            }
+        }
+
+        repairLostNodeStates();
+    }
+
+    /**
+     * Repair node states that an older save lost to the duplicate-object bug described in the constructor.
+     * <p>
+     * Children are only ever created by {@link #closeNextNode}, in the same breath as the parent being marked
+     * COMPLETED, so a node that has children in the map cannot honestly be unfinished. Where the two disagree the
+     * children win: the node is marked COMPLETED and dropped from the open queue. Nothing is ever demoted, so a
+     * level that was written by a version that keeps the two views in step passes through untouched.
+     */
+    private void repairLostNodeStates()
+    {
+        final Set<Vec2i> parents = new HashSet<>();
+        for (final MineNode node : nodes.values())
+        {
+            if (node.getParent() != null)
+            {
+                parents.add(node.getParent());
+            }
+        }
+
+        int repaired = 0;
+        for (final Map.Entry<Vec2i, MineNode> entry : nodes.entrySet())
+        {
+            final MineNode node = entry.getValue();
+            if (node.getStatus() != MineNode.NodeStatus.COMPLETED && parents.contains(entry.getKey()))
+            {
+                node.setStatus(MineNode.NodeStatus.COMPLETED);
+                repaired++;
+            }
+        }
+
+        // Always, not only when something was repaired: the open queue and the node map now share their
+        // objects, so a save in which the map said COMPLETED and the queue said AVAILABLE ends up with a finished
+        // node sitting at the head of the queue. The AI would hand that node to itself for ever, since the state
+        // it is waiting for -- "not COMPLETED" -- can no longer arrive.
+        final int purged = openNodes.size();
+        openNodes.removeIf(node -> node.getStatus() == MineNode.NodeStatus.COMPLETED);
+
+        if (repaired > 0 || purged != openNodes.size())
+        {
+            Log.getLogger().warn("Minecolonies mine level at depth " + depth + ": recovered the state of " + repaired
+                                   + " node(s) that had already been dug, and dropped " + (purged - openNodes.size()) + " finished node(s) from the open queue");
         }
     }
 
@@ -210,7 +281,10 @@ public class MinerLevel
     {
         Object[] nodeSet = nodes.keySet().toArray();
         MineNode nextNode = nodes.get(nodeSet[rand.nextInt(nodeSet.length)]);
-        while (nextNode.getStatus() != MineNode.NodeStatus.COMPLETED || nextNode.getStyle() == LADDER_BACK)
+        // Walking up the parent chain ends at the shaft in a healthy level, but a node whose parent is missing from
+        // the map hands back null here, and the loop condition dereferenced it on the next turn. The caller is a
+        // guard picking a patrol target; falling back to the shaft is better than throwing at him.
+        while (nextNode != null && (nextNode.getStatus() != MineNode.NodeStatus.COMPLETED || nextNode.getStyle() == LADDER_BACK))
         {
             nextNode = getNode(nextNode.getParent());
         }
@@ -234,12 +308,30 @@ public class MinerLevel
      */
     public void closeNextNode(final RotationMirror rotation, final MineNode node, final Level world)
     {
-        final MineNode tempNode = node == null ? openNodes.peek() : node;
+        MineNode tempNode = node == null ? openNodes.peek() : node;
         final List<Vec2i> nodeCenterList = new ArrayList<>(3);
 
         if (tempNode == null)
         {
             return;
+        }
+
+        // Whatever the caller handed us, the status has to land on the object the node map holds -- that is the one
+        // that gets written to the save. MineNode#equals only compares x and z, so the old check below could not
+        // tell a stale copy from the real thing and the mismatch went unnoticed.
+        final Vec2i tempNodePos = new Vec2i(tempNode.getX(), tempNode.getZ());
+        final MineNode storedNode = nodes.get(tempNodePos);
+        if (storedNode == null)
+        {
+            Log.getLogger().warn("Minecolonies node: " + tempNode.getX() + ":" + tempNode.getZ() + " is not part of this level, adding it before closing");
+            nodes.put(tempNodePos, tempNode);
+        }
+        else if (storedNode != tempNode)
+        {
+            Log.getLogger().warn("Minecolonies node: " + tempNode.getX() + ":" + tempNode.getZ() + " was a stale copy on close, closing the stored node instead");
+            storedNode.setStyle(tempNode.getStyle());
+            tempNode.getRotationMirror().ifPresent(storedNode::setRotationMirror);
+            tempNode = storedNode;
         }
 
         switch (tempNode.getStyle())
@@ -293,11 +385,6 @@ public class MinerLevel
             tempNodeToAdd.setStyle(MineNode.NodeType.SIDE_NODES.get(rand.nextInt(MineNode.NodeType.SIDE_NODES.size())));
             nodes.put(pos, tempNodeToAdd);
             openNodes.add(tempNodeToAdd);
-        }
-        MineNode I = nodes.get(new Vec2i(tempNode.getX(), tempNode.getZ()));
-        if (!tempNode.equals(I))
-        {
-            Log.getLogger().warn("Minecolonies node: " + node.getX() + ":" + node.getZ() + " not equal to storage during close, Please tell the mod authors about this");
         }
         tempNode.setStatus(MineNode.NodeStatus.COMPLETED);
         openNodes.removeIf(tempNode::equals);
@@ -427,6 +514,30 @@ public class MinerLevel
     public MineNode getOpenNode(final Vec2i key)
     {
         return nodes.get(key);
+    }
+
+    /**
+     * Whether this exact node object belongs to this level.
+     * <p>
+     * Identity and not {@link MineNode#equals}: nodes of different levels sit on the same x/z grid, so comparing
+     * coordinates would happily claim a node of the level below.
+     *
+     * @param node the node to look for.
+     * @return true if the level's node map holds this very object.
+     */
+    public boolean holds(@Nullable final MineNode node)
+    {
+        return node != null && nodes.get(new Vec2i(node.getX(), node.getZ())) == node;
+    }
+
+    /**
+     * Whether there is anything left to dig on this level.
+     *
+     * @return true if the open queue still holds a node.
+     */
+    public boolean hasOpenNodes()
+    {
+        return !openNodes.isEmpty();
     }
 
     /**

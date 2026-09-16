@@ -17,7 +17,6 @@ import com.minecolonies.core.colony.buildings.AbstractBuildingGuards;
 import com.minecolonies.core.colony.buildings.modules.settings.*;
 import com.minecolonies.core.colony.buildings.moduleviews.*;
 import com.minecolonies.core.colony.buildings.workerbuildings.*;
-import com.minecolonies.core.colony.territory.BorderPatrol;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
@@ -625,20 +624,18 @@ public class BuildingModules
       new BuildingEntry.ModuleProducer<>("tool_scepterguard_view", null, () -> () -> new ToolModuleView(
         ModItems.scepterGuard));
     public static final BuildingEntry.ModuleProducer<SettingsModule,SettingsModuleView> GUARD_SETTINGS = new BuildingEntry.ModuleProducer<>("guard_settings", () -> new SettingsModule()
-      .with(AbstractBuildingGuards.GUARD_TASK, new GuardTaskSetting(GuardTaskSetting.PATROL, GuardTaskSetting.GUARD, GuardTaskSetting.FOLLOW, GuardTaskSetting.PATROL_MINE))
+      // PATROL_BORDER is appended, never inserted: a saved StringSetting keeps its index and has the registered
+      // option list written over it on load, so an option anywhere but the end retasks every guard building in
+      // every existing colony to whatever slid into its slot.
+      .with(AbstractBuildingGuards.GUARD_TASK, new GuardTaskSetting(GuardTaskSetting.PATROL,
+        GuardTaskSetting.GUARD,
+        GuardTaskSetting.FOLLOW,
+        GuardTaskSetting.PATROL_MINE,
+        GuardTaskSetting.PATROL_BORDER))
       .with(AbstractBuildingGuards.RETREAT, new BoolSetting(true))
       .with(AbstractBuildingGuards.HIRE_TRAINEE, new BoolSetting(true))
       .with(AbstractBuildingGuards.PATROL_MODE, new GuardPatrolModeSetting())
       .with(AbstractBuildingGuards.FOLLOW_MODE, new GuardFollowModeSetting()), () -> SettingsModuleView::new);
-
-    /**
-     * The barracks' own settings page. One setting: which border, if any, the towers' guards walk. It is here rather
-     * than on each tower because the player wanted to say it once for the whole garrison.
-     */
-    public static final BuildingEntry.ModuleProducer<SettingsModule,SettingsModuleView> BARRACKS_SETTINGS = new BuildingEntry.ModuleProducer<>("barracks_settings",
-      () -> new SettingsModule().with(BuildingBarracks.BORDER_PATROL,
-        new StringSettingWithDesc(BorderPatrol.Mode.OFF.settingKey(), BorderPatrol.Mode.ENEMY.settingKey(), BorderPatrol.Mode.COLONY.settingKey())),
-      () -> SettingsModuleView::new);
 
     public static final BuildingEntry.ModuleProducer<SettingsModule,SettingsModuleView> GATE_GUARD_SETTINGS = new BuildingEntry.ModuleProducer<>("gate_guard_settings", () -> new SettingsModule()
         .with(AbstractBuildingGuards.GUARD_TASK, new GuardTaskSetting(GuardTaskSetting.GUARD))

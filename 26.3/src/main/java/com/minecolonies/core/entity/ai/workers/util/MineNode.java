@@ -129,7 +129,20 @@ public class MineNode
             style = NodeType.BEND_RIGHT;
         }
 
-        final NodeStatus status = NodeStatus.valueOf(compound.getStringOr(TAG_STATUS, ""));
+        NodeStatus status;
+        try
+        {
+            status = NodeStatus.valueOf(compound.getStringOr(TAG_STATUS, ""));
+        }
+        catch (final IllegalArgumentException ex)
+        {
+            // The style right above is already guarded this way, and the status has to be too: it is read straight
+            // out of the save and an unknown or missing value threw out of the building deserialization, which
+            // means the whole colony failed to load over one bad node. AVAILABLE is the recoverable default -- the
+            // node gets dug again, which costs the miner a little work and nothing else.
+            Log.getLogger().error("Minecolonies node " + x + "," + z + " has an unreadable status, treating it as available");
+            status = NodeStatus.AVAILABLE;
+        }
 
         Vec2i parent = null;
         if (compound.contains(TAG_PARENTX))
@@ -323,7 +336,9 @@ public class MineNode
         }
 
         final MineNode nextNode;
-        switch (random.nextInt(3))
+        // Four branches, so four values: with nextInt(3) the default branch was dead and the node west of this one
+        // was never offered as the next place to dig.
+        switch (random.nextInt(4))
         {
             case 0:
                 nextNode = level.getOpenNode(getNorthNodeCenter());

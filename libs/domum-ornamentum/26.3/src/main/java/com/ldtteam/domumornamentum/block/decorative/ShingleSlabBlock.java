@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ScheduledTickAccess;
 import com.google.common.collect.ImmutableList;
@@ -108,7 +110,7 @@ public class ShingleSlabBlock extends AbstractBlockDirectional<ShingleSlabBlock>
      */
     public ShingleSlabBlock()
     {
-        this(Properties.of().mapColor(MapColor.WOOD).strength(BLOCK_HARDNESS, RESISTANCE));
+        this(DOProps.of().mapColor(MapColor.WOOD).strength(BLOCK_HARDNESS, RESISTANCE));
     }
 
     public ShingleSlabBlock(final Properties props)

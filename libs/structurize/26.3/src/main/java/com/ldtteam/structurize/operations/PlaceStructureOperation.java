@@ -1,5 +1,7 @@
 package com.ldtteam.structurize.operations;
 
+import com.ldtteam.structurize.api.Log;
+import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.ldtteam.structurize.placement.BlockPlacementResult.Result;
 import com.ldtteam.structurize.placement.StructurePhasePlacementResult;
 import com.ldtteam.structurize.placement.StructurePlacer;
@@ -47,17 +49,41 @@ public class PlaceStructureOperation extends BaseOperation
      */
     public PlaceStructureOperation(@NotNull final StructurePlacer placer, @Nullable final Player player)
     {
-        super(new ChangeStorage(Component.translatable("com.ldtteam.structurize.place_structure", Objects.requireNonNullElse(placer.getHandler().getBluePrint().getName(), "[NULL]")),
+        super(new ChangeStorage(Component.translatable("com.ldtteam.structurize.place_structure", describe(placer)),
           player != null ? player.getUUID() : UUID.randomUUID()));
         this.placer = placer;
         this.currentPos = NULL_POS;
     }
 
+    /**
+     * Name for the change storage. The blueprint is only there when the placer was built around a loaded one;
+     * when it was built around a future, it is still loading (or failed), and neither may be dereferenced here.
+     *
+     * @param placer the placer this operation runs.
+     * @return the blueprint name, or a placeholder.
+     */
+    private static String describe(@NotNull final StructurePlacer placer)
+    {
+        final Blueprint blueprint = placer.getHandler().getBluePrint();
+        return blueprint == null ? "[NULL]" : Objects.requireNonNullElse(blueprint.getName(), "[NULL]");
+    }
+
     @Override
     public boolean apply(final ServerLevel world)
     {
-        if (placer.isReady() && placer.getHandler().getWorld().dimension().identifier().equals(world.dimension().identifier()))
+        if (placer.isReady() && placer.getHandler().getWorld() == world)
         {
+            if (placer.getHandler().getBluePrint() == null)
+            {
+                // The blueprint resolved to nothing: missing file, unreadable, or refused for its data version.
+                // Returning true takes the operation off the queue; leaving it on would retry the same failure
+                // every tick, and dereferencing the result would throw out of the level tick instead.
+                Log.getLogger()
+                    .error("Cancelling structure placement at " + placer.getHandler().getCenterPos()
+                             + ": its blueprint could not be loaded.");
+                return true;
+            }
+
             StructurePhasePlacementResult result;
             switch (structurePhase)
             {

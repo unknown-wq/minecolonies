@@ -1,10 +1,11 @@
 package com.ldtteam.domumornamentum.block;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.ldtteam.domumornamentum.container.ArchitectsCutterContainer;
 import com.ldtteam.domumornamentum.util.Constants;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.*;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.MenuProvider;
@@ -40,7 +41,7 @@ public final class ArchitectsCutterBlock extends AbstractBlock<ArchitectsCutterB
 
     public ArchitectsCutterBlock()
     {
-        super(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).sound(SoundType.STONE).requiresCorrectToolForDrops().strength(3.5F));
+        super(DOProps.of().mapColor(MapColor.STONE).sound(SoundType.STONE).requiresCorrectToolForDrops().strength(3.5F));
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 

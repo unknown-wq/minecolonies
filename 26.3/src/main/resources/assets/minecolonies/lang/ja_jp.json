@@ -43,6 +43,5 @@
   "com.minecolonies.coremod.assetfetch.cancelled.title": "ダウンロードを中止しました",
   "com.minecolonies.coremod.assetfetch.cancelled.body": "何もインストールされず、何も変更されていません。",
   "com.minecolonies.coremod.assetfetch.gate.title": "MineColonies のアセットがインストールされていません",
-  "com.minecolonies.coremod.assetfetch.gate.body": "この画面には MineColonies 本来のレイアウトとテクスチャのファイルが必要ですが、この jar にはまだ含まれていません。一度ダウンロードすれば、MineColonies のすべての画面が使えるようになります。",
-  "com.minecolonies.coremod.assetfetch.command.alreadyinstalled": "MineColonies のアセットはすでにインストールされています。"
+  "com.minecolonies.coremod.assetfetch.gate.body": "この画面には MineColonies 本来のレイアウトとテクスチャのファイルが必要ですが、この jar にはまだ含まれていません。一度ダウンロードすれば、MineColonies のすべての画面が使えるようになります。"
 }

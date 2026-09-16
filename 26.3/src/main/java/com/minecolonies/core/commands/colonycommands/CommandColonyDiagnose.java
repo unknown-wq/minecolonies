@@ -423,7 +423,9 @@ public class CommandColonyDiagnose implements IMCOPCommand
         patrols.add(String.format("barracks at %s mode=%s border=%s",
           barracks.getPosition().toShortString(),
           mode.name().toLowerCase(java.util.Locale.ROOT),
-          plan == null ? "not computed yet" : plan.isUsable() ? plan.waypoints().size() + " waypoints" : plan.failure().toString()));
+          plan == null ? "not computed yet"
+            : plan.isUsable() ? plan.waypoints().size() + " waypoints of " + plan.targetLength() + " blocks asked for"
+              : plan.failure().toString()));
 
         for (int i = 0; i < towers.size(); i++)
         {
@@ -479,7 +481,9 @@ public class CommandColonyDiagnose implements IMCOPCommand
         patrols.add(String.format("stable at %s mode=%s border=%s",
           stable.getPosition().toShortString(),
           stable.getBorderPatrolMode().name().toLowerCase(java.util.Locale.ROOT),
-          plan == null ? "not computed yet" : plan.isUsable() ? plan.waypoints().size() + " waypoints" : plan.failure().toString()));
+          plan == null ? "not computed yet"
+            : plan.isUsable() ? plan.waypoints().size() + " waypoints of " + plan.targetLength() + " blocks asked for"
+              : plan.failure().toString()));
 
         for (final ICitizenData rider : stable.getAllAssignedCitizen())
         {

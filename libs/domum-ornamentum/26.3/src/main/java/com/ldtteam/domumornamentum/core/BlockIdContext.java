@@ -15,15 +15,13 @@ import net.minecraft.world.level.block.Block;
  * builds its own {@code Properties} inside its own no-arg constructor (57 classes, 13 abstract roots), so there
  * is no call site that could pass a pre-stamped {@code Properties} in without rewriting all of them.</p>
  *
- * <p>Instead {@code ModBlocks} publishes the pending key here around the block factory call and
- * {@code com.ldtteam.domumornamentum.mixin.BlockBehaviourPropertiesMixin} stamps every {@code Properties}
- * instance created inside that window. Vanilla is unaffected: {@code Blocks.register} calls
- * {@code properties.setId(key)} itself afterwards
- * ({@code /opt/mc-src/net/minecraft/world/level/block/Blocks.java:5693}), and the window is only ever open on
- * the mod-initialisation thread, long after bootstrap.</p>
+ * <p>Instead {@code ModBlocks} publishes the pending key here around the block factory call and every DO block
+ * constructor builds its properties through {@link DOProps}, which reads the key back and stamps it. Vanilla is
+ * unaffected: {@code Blocks.register} calls {@code properties.setId(key)} itself afterwards, and the window is
+ * only ever open on the mod-initialisation thread, long after bootstrap.</p>
  *
- * <p>This class must stay free of static initialisers with side effects: the mixin touches it very early, and
- * anything that would drag {@code ModBlocks} in would register blocks before the registries are ready.</p>
+ * <p>This class must stay free of static initialisers with side effects: anything that would drag
+ * {@code ModBlocks} in would register blocks before the registries are ready.</p>
  */
 public final class BlockIdContext
 {

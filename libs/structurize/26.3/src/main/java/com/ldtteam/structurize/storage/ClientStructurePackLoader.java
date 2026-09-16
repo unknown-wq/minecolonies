@@ -6,6 +6,7 @@ import com.ldtteam.structurize.Structurize;
 import com.ldtteam.structurize.api.Log;
 import com.ldtteam.structurize.api.Utils;
 import com.ldtteam.structurize.api.constants.Constants;
+import com.ldtteam.structurize.client.BlueprintHandler;
 import com.ldtteam.structurize.network.messages.NotifyServerAboutStructurePacksMessage;
 import com.ldtteam.structurize.network.messages.SyncSettingsToServer;
 import com.ldtteam.structurize.storage.rendering.RenderingCache;
@@ -77,6 +78,10 @@ public class ClientStructurePackLoader
 
         IOPool.execute(() ->
         {
+            // Closed here rather than next to clearPacks(): this task is already running on an IO thread, so
+            // it cannot end up queued behind blueprint loads that are themselves waiting on the barrier.
+            StructurePacks.setLoading();
+
             // This loads from the jar
             for (final Path modPath : modPaths)
             {
@@ -170,6 +175,10 @@ public class ClientStructurePackLoader
             loadingState = ClientLoadingState.LOADING;
             StructurePacks.clearPacks();
             RenderingCache.clear();
+            // Every cached renderer owns a BlueprintBlockAccess, and that captured the ClientLevel of the world
+            // being left. The cache expires on access only, and its cleanup tick is itself gated on a level
+            // being loaded, so without this the old level and all its blueprints stay reachable for good.
+            BlueprintHandler.getInstance().clearCache();
             onClientLoading();
         }
     }

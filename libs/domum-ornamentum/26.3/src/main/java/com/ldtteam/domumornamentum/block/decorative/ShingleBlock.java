@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.block.AbstractBlockStairs;
@@ -60,7 +62,7 @@ public class ShingleBlock extends AbstractBlockStairs<ShingleBlock> implements I
 
     public ShingleBlock()
     {
-        super(Blocks.OAK_PLANKS::defaultBlockState, Properties.of().mapColor(MapColor.WOOD).strength(BLOCK_HARDNESS, RESISTANCE).noOcclusion());
+        super(DOProps.of().mapColor(MapColor.WOOD).strength(BLOCK_HARDNESS, RESISTANCE).noOcclusion());
     }
 
     /**

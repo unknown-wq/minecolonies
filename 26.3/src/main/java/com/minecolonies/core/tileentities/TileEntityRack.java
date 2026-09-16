@@ -31,7 +31,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import com.minecolonies.core.util.ValueIoUtils;
@@ -493,7 +492,7 @@ public class TileEntityRack extends AbstractTileEntityRack implements IMateriall
             final CompoundTag stackTag = slotTag.contains("Count")
                                            ? DataFixerUtils.runDataFixer(slotTag, References.ITEM_STACK, PRE_1_20_2_STACK_DATA_VERSION)
                                            : slotTag;
-            inventory.setStackInSlot(i, parseStack(lookup, stackTag));
+            inventory.setStackInSlot(i, parseStack(lookup, stackTag, "slot " + i + " of the rack at " + worldPosition.toShortString()));
         }
 
         updateContent();
@@ -547,16 +546,19 @@ public class TileEntityRack extends AbstractTileEntityRack implements IMateriall
     /**
      * 26.2 replacement for {@code ItemStack#parseOptional(HolderLookup.Provider, CompoundTag)}, which is gone:
      * decode through {@link ItemStack#OPTIONAL_CODEC} with registry-aware ops. An empty compound is an empty
-     * stack, and so is anything that fails to decode -- one unreadable slot must not cost the whole rack.
+     * stack, and so is anything that fails to decode -- one unreadable slot must not cost the whole rack. The
+     * difference between the two is the difference between an empty slot and a chest the player will find short,
+     * so the second case is named in the log rather than passed off as the first.
      *
-     * @param lookup the registry lookup.
-     * @param tag    the tag to decode.
+     * @param lookup  the registry lookup.
+     * @param tag     the tag to decode.
+     * @param context which slot of which rack, named in the log line if the read fails.
      * @return the stack.
      */
     @NotNull
-    private static ItemStack parseStack(@NotNull final HolderLookup.Provider lookup, @NotNull final CompoundTag tag)
+    private static ItemStack parseStack(@NotNull final HolderLookup.Provider lookup, @NotNull final CompoundTag tag, @NotNull final String context)
     {
-        return ItemStack.OPTIONAL_CODEC.parse(lookup.createSerializationContext(NbtOps.INSTANCE), tag).result().orElse(ItemStack.EMPTY);
+        return ItemStackUtils.readOptionalStack(lookup, tag, context);
     }
 
     @Override

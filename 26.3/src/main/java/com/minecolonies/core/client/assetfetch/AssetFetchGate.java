@@ -2,6 +2,7 @@ package com.minecolonies.core.client.assetfetch;
 
 import com.ldtteam.blockui.views.BOWindow;
 import com.minecolonies.core.client.assetfetch.gui.AssetConsentScreen;
+import com.minecolonies.core.client.assetfetch.gui.AssetInstallScreen;
 import com.minecolonies.core.client.assetfetch.gui.AssetsMissingScreen;
 import net.minecraft.client.Minecraft;
 
@@ -107,5 +108,25 @@ public final class AssetFetchGate
     {
         final Minecraft mc = Minecraft.getInstance();
         mc.execute(() -> mc.gui.setScreen(new AssetConsentScreen(parent)));
+    }
+
+    /**
+     * Starts the download straight away, with the progress screen and no question asked.
+     *
+     * <p>The one caller is the repair path of {@code /minecolonies-client fetchassets}: the player has an
+     * install, so they consented to this download once already and the files being fetched are the same ones
+     * they agreed to. Asking again would be a second consent flow for a decision that has been made. The
+     * command has told them what is missing and how large the archive is before getting here, which is the
+     * part of the consent screen that is still owed to them.</p>
+     *
+     * <p>Everywhere else still goes through {@link #openConsent}. This is not a way around the prompt for a
+     * player who has never been asked.</p>
+     *
+     * @param parent the screen to return to when the install is done, or null to return to the game.
+     */
+    public static void openInstall(final net.minecraft.client.gui.screens.Screen parent)
+    {
+        final Minecraft mc = Minecraft.getInstance();
+        mc.execute(() -> mc.gui.setScreen(AssetInstallScreen.startAutomatic(parent)));
     }
 }

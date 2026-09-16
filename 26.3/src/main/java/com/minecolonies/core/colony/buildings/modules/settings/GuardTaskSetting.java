@@ -47,12 +47,22 @@ public class GuardTaskSetting extends StringSettingWithDesc
     /**
      * A patrol whose route is the colony's own border rather than a wander between its buildings.
      * <p>
-     * Offered by the Stable, where a mounted unit is fast enough for a frontier to be a route rather than a
-     * destination. It answers <em>where</em> the route comes from and nothing else: whether the unit ever stands down
-     * is still the Stable's rest interval, so a border screen that never comes in is this task with the interval at
-     * zero. {@link #PATROL_PERMANENT} stays what it always was - the same "never stand down" with the ordinary route -
-     * and is listed before this one because a stored setting is an index into this list and a value that moves
-     * retasks every Stable in every existing save.
+     * It answers <em>where</em> the route comes from and nothing else: whether the unit ever stands down is still the
+     * building's own business, so on a Stable a border screen that never comes in is this task with the rest interval
+     * at zero. {@link #PATROL_PERMANENT} stays what it always was - the same "never stand down" with the ordinary
+     * route - and is listed before this one because a stored setting is an index into this list and a value that
+     * moves retasks every building in every existing save.
+     * <p>
+     * This is the only way a border patrol is turned on. It used to be a second thing as well -- a setting on the
+     * Barracks that put all of its towers on the border while their own task still read "Patrol" -- and one mechanic
+     * with two switches in two windows is one switch too many. A Barracks tower set to this takes its slice of the
+     * line from its Barracks, which cuts one line between however many of its towers are on the task, so four of them
+     * spread along the frontier instead of walking on top of each other.
+     * <p>
+     * A guard building that has no line to offer -- an ordinary Guard Tower, which belongs to no Barracks -- falls
+     * through to the ordinary automatic patrol, which is the same thing a Barracks tower does when no border can be
+     * found within reach. The task is honest about being unavailable there only in the sense that the guard visibly
+     * keeps wandering; giving a lone tower a border of its own is a separate piece of work.
      */
     public static final String PATROL_BORDER = "com.minecolonies.core.guard.setting.patrol_border";
 

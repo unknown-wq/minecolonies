@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -50,7 +51,7 @@ public class ServerStructurePackLoader
     /**
      * Map of the client sync requests that have to be handled yet.
      */
-    private static Map<UUID, Map<String, Double>> clientSyncRequests = new HashMap<>();
+    private static Map<UUID, Map<String, Double>> clientSyncRequests = new ConcurrentHashMap<>();
 
     /**
      * Set after the client finished loading the schematics.
@@ -179,30 +180,36 @@ public class ServerStructurePackLoader
             return;
         }
 
-        if (loadingState == ServerLoadingState.FINISHED_LOADING)
+        if (loadingState == ServerLoadingState.FINISHED_LOADING || loadingState == ServerLoadingState.FINISHED_SYNCING)
         {
             handleClientUpdate(clientStructurePacks, player);
         }
         else
         {
+            // Still loading from disk; the tick below picks this up as soon as loading concludes.
             clientSyncRequests.put(player.getUUID(), clientStructurePacks);
         }
     }
 
     public static void onWorldTick(final MinecraftServer server)
     {
-        if (server.getTickCount() % 20 == 0 && loadingState == ServerLoadingState.FINISHED_LOADING && !clientSyncRequests.isEmpty())
+        if (server.getTickCount() % 20 == 0
+              && (loadingState == ServerLoadingState.FINISHED_LOADING || loadingState == ServerLoadingState.FINISHED_SYNCING)
+              && !clientSyncRequests.isEmpty())
         {
             loadingState = ServerLoadingState.FINISHED_SYNCING;
-            for (final Map.Entry<UUID, Map<String, Double>> entry : clientSyncRequests.entrySet())
+            // Removed as they are taken, not cleared afterwards: a join landing between the loop and a bulk
+            // clear would have its request dropped and would never be told about the packs.
+            for (final Iterator<Map.Entry<UUID, Map<String, Double>>> it = clientSyncRequests.entrySet().iterator(); it.hasNext(); )
             {
+                final Map.Entry<UUID, Map<String, Double>> entry = it.next();
+                it.remove();
                 final ServerPlayer player = server.getPlayerList().getPlayer(entry.getKey());
                 if (player != null)
                 {
                     handleClientUpdate(entry.getValue(), player);
                 }
             }
-            clientSyncRequests.clear();
         }
 
         if (!messageSendTasks.isEmpty())

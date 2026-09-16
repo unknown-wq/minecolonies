@@ -94,6 +94,16 @@ public class StructurePacks
     }
 
     /**
+     * Start loading again. Everything that goes through {@link #waitUntilFinishedLoading()} blocks until the
+     * next {@link #setFinishedLoading()}; without this, a second world would read the packs while they are
+     * still being re-discovered and get nulls and empty lists back.
+     */
+    public static void setLoading()
+    {
+        finishedLoading.close();
+    }
+
+    /**
      * Get the list of pack meta.
      * @return the pack meta set.
      */
@@ -197,17 +207,6 @@ public class StructurePacks
     }
 
     /**
-     * Find a blueprint future.
-     * @param structurePackId the structure pack the blueprint is in.
-     * @param name the filename.
-     * @return the blueprint future (might contain null).
-     */
-    public static CompletableFuture<Path> findBlueprintFuture(final String structurePackId, final String name)
-    {
-        return CompletableFuture.supplyAsync(() -> findBlueprint(structurePackId, name), IOPool.getExecutor());
-    }
-
-    /**
      * Get a list blueprint future.
      * @param structurePackId the structure pack the blueprint is in.
      * @param subPath the path of the set of blueprints (usually a folder).
@@ -303,63 +302,6 @@ public class StructurePacks
     /**
      * Find a blueprint by name.
      * @param structurePackId the pack to search in.
-     * @param name the name we're searching for.
-     * @return the path or null.
-     */
-    public static Path findBlueprint(final String structurePackId, final String name)
-    {
-        if (!waitUntilFinishedLoading())
-        {
-            return null;
-        }
-
-        final StructurePackMeta packMeta = getStructurePack(structurePackId);
-        if (packMeta == null)
-        {
-            return null;
-        }
-
-        return findBlueprint(packMeta.getPath(), name).orElse(null);
-    }
-
-    /**
-     * Find blueprint at path.
-     * Recursively goes through folder structure.
-     * @param subPath the sub path to check.
-     * @param name the name of the file we're looking for.
-     * @return the path of the file or null.
-     */
-    public static Optional<Path> findBlueprint(final Path subPath, final String name)
-    {
-        if (!waitUntilFinishedLoading())
-        {
-            return Optional.empty();
-        }
-
-        try
-        {
-            try (final Stream<Path> paths = Files.walk(subPath))
-            {
-                return paths.filter(file ->
-                {
-                    if (!Files.isDirectory(file) && file.toString().endsWith("blueprint"))
-                    {
-                        return file.getFileName().toString().replace(".blueprint", "").equals(name);
-                    }
-                    return false;
-                }).findFirst();
-            }
-        }
-        catch (final IOException e)
-        {
-            Log.getLogger().error("Error loading blueprint: " + subPath + ":" + name, e);
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * Find a blueprint by name.
-     * @param structurePackId the pack to search in.
      * @param blueprintPredicate matches the blueprint.
      * @return the blueprint or null.
      */
@@ -402,7 +344,7 @@ public class StructurePacks
                     if (!Files.isDirectory(file) && file.toString().endsWith("blueprint"))
                     {
                         final Blueprint blueprint = getBlueprint(pack, file, provider);
-                        if (blueprintPredicate.test(blueprint))
+                        if (blueprint != null && blueprintPredicate.test(blueprint))
                         {
                             blueprint.setFileName(file.getFileName().toString().replace(".blueprint", ""));
                             blueprint.setFilePath(file.getParent()).setPackName(pack);
@@ -470,8 +412,13 @@ public class StructurePacks
 
             return blueprint;
         }
-        catch (final IOException e)
+        catch (final Exception e)
         {
+            // Not just IOException: the reader casts "palette", "tile_entities", "entities" and "required_mods"
+            // without checking, and indexes the block array against the stored size, so a truncated or
+            // hand-edited file throws ClassCastException / NPE / ArrayIndexOutOfBoundsException from in there.
+            // Callers of this method are all written for a null return; an exception would take out whatever
+            // thread is reading, which includes the IO pool and the server tick.
             if (!suppressError)
             {
                 Log.getLogger().error("Error loading blueprint: "  + pack + ":" + path, e);
@@ -553,8 +500,10 @@ public class StructurePacks
                                 blueprints.add(blueprint);
                             }
                         }
-                        catch (final IOException e)
+                        catch (final Exception e)
                         {
+                            // See getBlueprint: a broken blueprint file throws unchecked out of the reader, and
+                            // one bad file in a folder must not take the whole listing with it.
                             Log.getLogger().error("Error loading individual blueprint: " + file, e);
                         }
                     }

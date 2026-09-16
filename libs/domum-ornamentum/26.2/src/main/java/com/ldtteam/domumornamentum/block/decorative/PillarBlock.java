@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.block.AbstractBlock;
@@ -80,7 +82,7 @@ public class PillarBlock extends AbstractBlock<PillarBlock> implements IMaterial
      */
     public PillarBlock()
     {
-        super(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(BLOCK_HARDNESS, RESISTANCE));
+        super(DOProps.of().mapColor(MapColor.STONE).strength(BLOCK_HARDNESS, RESISTANCE));
         this.registerDefaultState(this.stateDefinition.any().setValue(COLUMN,PillarShapeType.FULL_PILLAR));
     }
 

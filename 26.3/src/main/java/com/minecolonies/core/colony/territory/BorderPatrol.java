@@ -22,9 +22,11 @@ import java.util.List;
  * Works out one stretch of border for guards to walk, as an ordered line of waypoints.
  *
  * <h2>What a "stretch" is</h2>
- * A border is a line, not an area, and a colony's guards cannot walk all of it. A stretch is the piece of that line
- * <em>nearest the barracks that ordered the patrol</em>, grown outwards from that nearest point in both directions
- * until it is roughly {@link Plan#targetLength()} blocks long. Everything the patrol ever does happens on that line;
+ * A border is a line, not an area, and a colony's guards cannot walk all of it, nor should they try: a colony with a
+ * huge perimeter would otherwise send every guard on a hike. A stretch is the piece of that line <em>nearest the
+ * building that ordered the patrol</em>, grown outwards from that nearest point in both directions until it is
+ * roughly {@link Plan#targetLength()} blocks long, which is {@link Mode#lengthPerPatroller()} for each guard sharing
+ * it. Everything the patrol ever does happens on that line;
  * see {@link #SEARCH_RADIUS_CHUNKS} for the box it is allowed to live in, which is what stops a guard walking to the
  * other side of the world to find a nicer bit of frontier.
  *
@@ -44,14 +46,16 @@ import java.util.List;
  * <h2>Cost</h2>
  * One call scans a fixed {@code (2*(R+1)+1)²} box of chunks, which is 1225 probes at the radius below, and then walks
  * at most a few dozen of them. In {@link Mode#ENEMY} a probe is one {@code long} hash lookup into the immutable
- * territory index; in {@link Mode#COLONY} it is one lookup into the colony manager's claim map, which is
- * {@code getOrDefault} and therefore does not create anything. Nothing here loads a chunk or touches the world.
+ * territory index; in {@link Mode#COLONY} it is one {@link ChunkPos} and one lookup into the colony manager's claim
+ * map, which is {@code getOrDefault} and so leaves no claim record behind for a chunk nobody has touched. Nothing
+ * here loads a chunk or touches the world.
  * <p>
  * {@link Mode#COLONY} adds one flood fill over the same box before the border is marked — two more arrays of
  * 1225 entries and at most that many pushes, with no allocation per cell.
  * <p>
- * This is <b>not</b> per tick work. {@code BuildingBarracks} caches the result and only asks again when the territory
- * index has actually been rebuilt or several minutes have passed — see {@code BuildingBarracks#borderPlan}.
+ * This is <b>not</b> per tick work. The asking building caches the result and only asks again when the territory
+ * index has actually been rebuilt, the set of guards sharing the line has changed, or the cache has aged out — see
+ * {@code BuildingBarracks#borderPlan} and {@code BuildingStable#borderPlan}.
  *
  * <h2>Threading</h2>
  * Server thread only, because {@link Mode#COLONY} reads {@code IColonyManager#getClaimData}, which is a plain
@@ -66,8 +70,8 @@ public final class BorderPatrol
      * <p>
      * This is the whole of the "a patrolling guard must not wander off" guarantee, and it is deliberately a hard box
      * rather than a soft preference: no waypoint outside it is ever built, so none can ever be handed to a guard. 16
-     * chunks is 256 blocks, which comfortably holds a 500-block line that snakes, and is well inside the 2000-block
-     * ceiling at which the navigator refuses a walk order outright.
+     * chunks is 256 blocks, which comfortably holds the longest line any real garrison asks for, and is well inside
+     * the 2000-block ceiling at which the navigator refuses a walk order outright.
      */
     public static final int SEARCH_RADIUS_CHUNKS = 16;
 
@@ -82,9 +86,14 @@ public final class BorderPatrol
     private static final int DIAGONAL_STEP = 23;
 
     /**
-     * Hard ceiling on the length of a stretch, whatever the mode asked for.
+     * Hard ceiling on the length of a stretch, whatever the mode and the patroller count asked for.
+     * <p>
+     * 1024 blocks is 64 chunks of line. A stretch is now budgeted per patroller (see
+     * {@link Mode#lengthPerPatroller()}), so this is the guard against a building that somehow reports an absurd
+     * number of them rather than a limit any real garrison meets: four barracks towers ask for 512 and a five man
+     * stable for 640.
      */
-    private static final int MAX_STRETCH_BLOCKS = 600;
+    private static final int MAX_STRETCH_BLOCKS = 1024;
 
     /**
      * The eight neighbour offsets, edge-sharing first so a straight line is preferred to a corner cut.
@@ -112,66 +121,47 @@ public final class BorderPatrol
         /**
          * Do not patrol a border at all; guards keep whatever patrol they had.
          */
-        OFF("com.minecolonies.core.barracks.setting.borderpatrol.off", 0),
+        OFF(0),
 
         /**
          * Walk your own side of the nearest hostile territory's edge.
+         * <p>
+         * Nothing selects this at the moment. It was reachable through a barracks-level setting that has been
+         * replaced by the {@code PATROL_BORDER} guard task, and a guard task names one border rather than a choice
+         * of them, so the enemy line has no way in until something offers one. The geometry that finds it is kept
+         * and still tested by {@link #findStretch}; only the switch is gone.
          */
-        ENEMY("com.minecolonies.core.barracks.setting.borderpatrol.enemy", 500),
+        ENEMY(128),
 
         /**
          * Walk the edge of your own claim.
          */
-        COLONY("com.minecolonies.core.barracks.setting.borderpatrol.colony", 550);
+        COLONY(128);
 
         /**
-         * The translation key this mode shows as on the barracks setting button.
+         * How many blocks of border one patroller is given.
          */
-        private final String settingKey;
+        private final int lengthPerPatroller;
 
-        /**
-         * How many blocks of border this mode tries to cover.
-         */
-        private final int targetLength;
-
-        Mode(final String settingKey, final int targetLength)
+        Mode(final int lengthPerPatroller)
         {
-            this.settingKey = settingKey;
-            this.targetLength = targetLength;
+            this.lengthPerPatroller = lengthPerPatroller;
         }
 
         /**
-         * @return the translation key used as this mode's value in the barracks setting.
-         */
-        public String settingKey()
-        {
-            return settingKey;
-        }
-
-        /**
-         * @return how many blocks of border this mode tries to cover.
-         */
-        public int targetLength()
-        {
-            return targetLength;
-        }
-
-        /**
-         * The mode a setting value names.
+         * How much border one guard is asked to walk.
+         * <p>
+         * 128 blocks is eight chunks, which is a beat a unit can walk end to end and back inside a sortie, and short
+         * enough that a colony with a huge perimeter does not send anybody on a hike. The whole line is this times
+         * the number of patrollers sharing it, so each of them ends up with about this much after
+         * {@code sliceBorderPlan} cuts it: a bigger garrison covers more frontier rather than walking the same
+         * frontier in a tighter crowd.
          *
-         * @param value the stored setting value, which is one of the {@link #settingKey()}s.
-         * @return the mode, {@link #OFF} for anything unrecognised.
+         * @return the per patroller budget in blocks.
          */
-        public static Mode bySettingKey(@Nullable final String value)
+        public int lengthPerPatroller()
         {
-            for (final Mode mode : values())
-            {
-                if (mode.settingKey.equals(value))
-                {
-                    return mode;
-                }
-            }
-            return OFF;
+            return lengthPerPatroller;
         }
     }
 
@@ -224,7 +214,9 @@ public final class BorderPatrol
      * @param mode         the mode it was computed for.
      * @param waypoints    the line, in order, each one the centre column of a chunk. Empty when nothing was found.
      * @param failure      why {@link #waypoints} is empty, {@link Failure#NONE} when it is not.
-     * @param targetLength how many blocks of border were asked for.
+     * @param targetLength how many blocks of border were asked for, i.e. the per patroller budget times the number
+     *                     of them, capped. Reported by {@code /mc colony diagnose} so the length a patrol was cut to
+     *                     can be seen next to the length it came out at.
      */
     public record Plan(@NotNull Mode mode, @NotNull List<BlockPos> waypoints, @NotNull Failure failure, int targetLength)
     {
@@ -240,25 +232,34 @@ public final class BorderPatrol
     /**
      * Find the stretch of border nearest a position.
      *
-     * @param colony the colony asking, whose dimension is searched and whose claim {@link Mode#COLONY} follows.
-     * @param anchor the position the stretch should be nearest to, i.e. the barracks.
-     * @param mode   which line to follow.
+     * @param colony     the colony asking, whose dimension is searched and whose claim {@link Mode#COLONY} follows.
+     * @param anchor     the position the stretch should be nearest to, i.e. the barracks.
+     * @param mode       which line to follow.
+     * @param patrollers how many guards will share the line, which is what its length is budgeted from. Zero is
+     *                   treated as one, so a building with nobody posted still reports a line for the diagnose
+     *                   report rather than an empty plan that reads as "no border out there".
      * @return the plan, which may hold no waypoints — check {@link Plan#isUsable()}.
      */
     @NotNull
-    public static Plan findStretch(@NotNull final IColony colony, @NotNull final BlockPos anchor, @NotNull final Mode mode)
+    public static Plan findStretch(
+      @NotNull final IColony colony,
+      @NotNull final BlockPos anchor,
+      @NotNull final Mode mode,
+      final int patrollers)
     {
         if (mode == Mode.OFF)
         {
             return new Plan(mode, List.of(), Failure.NONE, 0);
         }
 
+        final int targetLength = Math.min(mode.lengthPerPatroller() * Math.max(1, patrollers), MAX_STRETCH_BLOCKS);
+
         final HostileTerritoryMap territory = HostileTerritory.in(colony.getDimension());
         if (mode == Mode.ENEMY && territory == null)
         {
             // The overwhelmingly common case, and the cheapest possible answer to it: one map lookup and out. A colony
             // in a world where nobody has ever painted a territory never reaches the chunk scan below.
-            return new Plan(mode, List.of(), Failure.NO_TERRITORY_AT_ALL, mode.targetLength());
+            return new Plan(mode, List.of(), Failure.NO_TERRITORY_AT_ALL, targetLength);
         }
 
         // One ring wider than the box we will report border in, so that a chunk on the very edge of the box is judged
@@ -279,16 +280,16 @@ public final class BorderPatrol
             }
         }
 
-        final List<BlockPos> line = trace(inside, side, originX, originZ, anchor, mode);
+        final List<BlockPos> line = trace(inside, side, originX, originZ, anchor, mode, targetLength);
         if (line.isEmpty())
         {
             return new Plan(mode,
               List.of(),
               mode == Mode.ENEMY ? Failure.NO_TERRITORY_IN_RANGE : Failure.NO_COLONY_BORDER,
-              mode.targetLength());
+              targetLength);
         }
 
-        return new Plan(mode, line, Failure.NONE, mode.targetLength());
+        return new Plan(mode, line, Failure.NONE, targetLength);
     }
 
     /**
@@ -301,8 +302,9 @@ public final class BorderPatrol
      * @param side    the width and height of the bitmap.
      * @param originX chunk x of the bitmap's first column.
      * @param originZ chunk z of the bitmap's first row.
-     * @param anchor  the position the stretch should be nearest to, which is the centre cell of the bitmap.
-     * @param mode    which line to follow.
+     * @param anchor       the position the stretch should be nearest to, which is the centre cell of the bitmap.
+     * @param mode         which line to follow.
+     * @param targetLength how many blocks of line to build.
      * @return the ordered waypoints, empty when there is no such line in the box.
      */
     @NotNull
@@ -312,7 +314,8 @@ public final class BorderPatrol
       final int originX,
       final int originZ,
       @NotNull final BlockPos anchor,
-      @NotNull final Mode mode)
+      @NotNull final Mode mode,
+      final int targetLength)
     {
         if (mode == Mode.COLONY)
         {
@@ -344,7 +347,7 @@ public final class BorderPatrol
             }
         }
 
-        return border.isEmpty() ? List.of() : walkLine(border, anchor, Math.min(mode.targetLength(), MAX_STRETCH_BLOCKS));
+        return border.isEmpty() ? List.of() : walkLine(border, anchor, targetLength);
     }
 
     /**
@@ -442,9 +445,15 @@ public final class BorderPatrol
      * arrived at and moves on, which is exactly the right thing for a stretch running out into ground nobody is
      * standing near.
      * <p>
-     * {@code MOTION_BLOCKING} counts fluids, so over sea this answers the water surface rather than the sea bed. That
-     * is what a guard crossing it wants: the navigator spawns a {@code MinecoloniesBoat} when a path runs over water
-     * and it has the Boats research, and a target on the surface is one it can sail to.
+     * {@code MOTION_BLOCKING_NO_LEAVES} counts fluids, so over sea this answers the water surface rather than the sea
+     * bed. That is what a guard crossing it wants: the navigator spawns a {@code MinecoloniesBoat} when a path runs
+     * over water and it has the Boats research, and a target on the surface is one it can sail to.
+     * <p>
+     * It is the no-leaves heightmap and not plain {@code MOTION_BLOCKING} because leaves block motion too, so in a
+     * forest the plain one answers the top of the canopy. A waypoint eight or ten blocks up a tree is one no guard
+     * ever reaches: arrival is {@code BlockPosUtil.dist(where he is, the waypoint) <= 4} measured in three
+     * dimensions, and the path job will not call a node at the foot of the tree the destination either, so the walk
+     * order is reissued for as long as the leg lasts. The waypoint belongs on the ground under the canopy.
      *
      * @param world    the level, may be null.
      * @param waypoint the waypoint.
@@ -457,7 +466,9 @@ public final class BorderPatrol
         {
             return waypoint;
         }
-        return new BlockPos(waypoint.getX(), world.getHeight(Heightmap.Types.MOTION_BLOCKING, waypoint.getX(), waypoint.getZ()), waypoint.getZ());
+        return new BlockPos(waypoint.getX(),
+          world.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, waypoint.getX(), waypoint.getZ()),
+          waypoint.getZ());
     }
 
     /**

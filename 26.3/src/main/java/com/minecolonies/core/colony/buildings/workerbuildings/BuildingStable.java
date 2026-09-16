@@ -109,10 +109,13 @@ public class BuildingStable extends AbstractBuildingGuards
     /**
      * How long a computed border stretch is kept before it is worked out again, in game ticks.
      * <p>
-     * The same five minutes the barracks uses, for the same reason: the line only moves when the claim does, and
-     * between recomputes handing a rider his next waypoint is a list index rather than a chunk scan.
+     * The same minute the barracks uses, for the same reason. Nothing tells a building that the colony's claim has
+     * changed shape, so in {@link BorderPatrol.Mode#COLONY} age is the only thing that can invalidate a plan, and at
+     * the five minutes this used to be a player who bought or lost a chunk watched his riders walk a border that was
+     * no longer there for the rest of it. A minute costs one chunk scan -- 1225 hash lookups, no world access -- per
+     * stable per minute, which is nothing next to being wrong for five.
      */
-    private static final int BORDER_PLAN_TTL_TICKS = 6000;
+    private static final int BORDER_PLAN_TTL_TICKS = 1200;
 
     /**
      * The border stretch currently being walked, or null when the task is not a border patrol.
@@ -478,7 +481,7 @@ public class BuildingStable extends AbstractBuildingGuards
             return;
         }
 
-        borderPlan = BorderPatrol.findStretch(getColony(), getPosition(), BorderPatrol.Mode.COLONY);
+        borderPlan = BorderPatrol.findStretch(getColony(), getPosition(), BorderPatrol.Mode.COLONY, riders.size());
         borderPlanRiders = ids;
         borderPlanTime = now;
         sliceBorderPlan(riders);
@@ -624,25 +627,51 @@ public class BuildingStable extends AbstractBuildingGuards
      * Initiate the next patrol.
      * <p>
      * Called when a patrol leg has been walked (every assigned guard reached the point) and when the patrol timer
-     * runs out part way through one. Either way the leg is over, so this is where a sortie ends and where the next
-     * one is dispatched once the rest window has passed.
+     * runs out part way through one. Either way that <em>leg</em> is over, which is not the same thing as the sortie
+     * being over: a sortie is many legs and lasts {@link #MAX_SORTIE_MINUTES}, and the rest window only opens when
+     * {@link #restingAtStable} says it has run out.
      */
     @Override
     public void startPatrolNext()
     {
-        if (patrolStartTime > 0)
-        {
-            endPatrol();
-        }
-
+        // Whether the sortie is over is {@link #restingAtStable}'s question and only its question. This used to end
+        // the sortie here, unconditionally, before asking -- and since this is called on every arrival, the sortie
+        // ended on the first leg of it: endPatrol stamps lastPatrolTime with the current time, so the rest window
+        // the very next line consults had just been opened and always answered "rest". A unit therefore walked one
+        // waypoint, came home for the whole interval, walked one more, and MAX_SORTIE_MINUTES was never reached by
+        // anything. The sortie now runs its length and this only dispatches the next leg of it.
         if (restingAtStable())
         {
             setPatrolTimer(REST_RECHECK_TICKS);
             return;
         }
 
-        patrolStartTime = getColony().getWorld().getGameTime();
+        if (patrolStartTime <= 0)
+        {
+            patrolStartTime = getColony().getWorld().getGameTime();
+        }
         super.startPatrolNext();
+    }
+
+    /**
+     * A stable has no shared route, so there is nothing here to hand out.
+     * <p>
+     * Every rider draws his own leg from {@link #getBorderPatrolTarget} or {@link #getPatrolTargetFor} against his
+     * own cursor, and {@code EntityAICavalry#patrol} never falls through to the building's route -- {@link
+     * #getPatrolTargetFor} always answers, so {@code patrolOwnLeg} always returns true. The inherited
+     * implementation was therefore computing a point nobody read: on every arrival of every rider it enqueued a
+     * {@code PathJobRandomPos} half the time and otherwise walked the colony's building list twice, and threw the
+     * answer away. {@code startPatrolNext} still runs, because that is also the clock the rest window turns on; it
+     * just no longer pays for a destination.
+     *
+     * @param newTarget ignored.
+     * @return null, always.
+     */
+    @Override
+    @Nullable
+    public BlockPos getNextPatrolTarget(final boolean newTarget)
+    {
+        return null;
     }
 
     /**

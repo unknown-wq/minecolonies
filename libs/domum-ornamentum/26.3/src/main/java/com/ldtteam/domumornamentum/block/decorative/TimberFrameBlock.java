@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import net.minecraft.core.Direction;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -78,7 +80,7 @@ public class TimberFrameBlock extends AbstractBlock<TimberFrameBlock> implements
         // Port note (26.3): the whole PushReaction enum was renamed and reordered. PUSH_ONLY is now PUSH
         // (26.2 NORMAL/DESTROY/BLOCK/IGNORE/PUSH_ONLY -> 26.3 PUSH_PULL/PUSH/POPPED/IMMOVEABLE/IGNORE_ENTITY).
         // Mapping by ordinal is wrong here: old DESTROY and new PUSH share index 1 but mean different things.
-        super(Properties.of().mapColor(MapColor.WOOD).pushReaction(PushReaction.PUSH).strength(BLOCK_HARDNESS, RESISTANCE).noOcclusion());
+        super(DOProps.of().mapColor(MapColor.WOOD).pushReaction(PushReaction.PUSH).strength(BLOCK_HARDNESS, RESISTANCE).noOcclusion());
         this.timberFrameType = timberFrameType;
     }
 

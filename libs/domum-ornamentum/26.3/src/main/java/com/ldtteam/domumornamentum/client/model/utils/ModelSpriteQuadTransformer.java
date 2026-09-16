@@ -1,6 +1,5 @@
 package com.ldtteam.domumornamentum.client.model.utils;
 
-import com.ldtteam.domumornamentum.client.color.MateriallyTexturedBlockBlockColor;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.Minecraft;
@@ -53,7 +52,6 @@ public final class ModelSpriteQuadTransformer
      * @param emitter      the emitter, already primed via {@link QuadEmitter#fromBakedQuad}
      * @param sourceQuad   the quad the emitter was primed from (needed for its original sprite and tint index)
      * @param replacement  the resolved replacement
-     * @param hostState    the Domum Ornamentum block state being rendered
      * @param level        render view, may be {@code null} when rendering outside of a level
      * @param pos          block position, may be {@code null} when rendering outside of a level
      */
@@ -61,7 +59,6 @@ public final class ModelSpriteQuadTransformer
       final QuadEmitter emitter,
       final BakedQuad sourceQuad,
       final ModelSpriteQuadTransformerData replacement,
-      final BlockState hostState,
       final @Nullable BlockAndTintGetter level,
       final @Nullable BlockPos pos)
     {
@@ -96,8 +93,7 @@ public final class ModelSpriteQuadTransformer
         // straight into the vertex colours, then clear the tint index so nothing tints us twice.
         if (sourceQuad.materialInfo().isTinted())
         {
-            final int tint = MateriallyTexturedBlockBlockColor.getColor(
-              hostState, replacement.state(), sourceQuad.materialInfo().tintIndex(), level, pos);
+            final int tint = resolveTint(replacement.state(), sourceQuad.materialInfo().tintIndex(), level, pos);
             emitter.multiplyColor(tint);
         }
 

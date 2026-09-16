@@ -1,7 +1,6 @@
 package com.ldtteam.domumornamentum;
 
 import com.ldtteam.domumornamentum.client.ClientRegistrations;
-import com.ldtteam.domumornamentum.network.ModNetworking;
 import net.fabricmc.api.ClientModInitializer;
 
 /**
@@ -12,8 +11,6 @@ import net.fabricmc.api.ClientModInitializer;
  * ({@code MateriallyTexturedModelLoader}), screen binding + render layers + item properties
  * ({@code client.event.handlers.ModBusEventHandler}) and the client tick counter
  * ({@code ClientTickEventHandler}).</p>
- *
- * <p>Client-only network receivers are registered separately, mirroring contract C3.</p>
  */
 public class DomumOrnamentumClient implements ClientModInitializer
 {
@@ -21,6 +18,5 @@ public class DomumOrnamentumClient implements ClientModInitializer
     public void onInitializeClient()
     {
         ClientRegistrations.register();
-        ModNetworking.registerClient();
     }
 }

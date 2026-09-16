@@ -43,6 +43,5 @@
   "com.minecolonies.coremod.assetfetch.cancelled.title": "Завантаження скасовано",
   "com.minecolonies.coremod.assetfetch.cancelled.body": "Нічого не встановлено й нічого не змінено.",
   "com.minecolonies.coremod.assetfetch.gate.title": "Ресурси MineColonies не встановлено",
-  "com.minecolonies.coremod.assetfetch.gate.body": "Цьому вікну потрібні вихідні файли розмітки й текстур MineColonies, яких поки що немає в цьому jar-файлі. Завантажте їх один раз, і всі вікна MineColonies запрацюють.",
-  "com.minecolonies.coremod.assetfetch.command.alreadyinstalled": "Ресурси MineColonies уже встановлено."
+  "com.minecolonies.coremod.assetfetch.gate.body": "Цьому вікну потрібні вихідні файли розмітки й текстур MineColonies, яких поки що немає в цьому jar-файлі. Завантажте їх один раз, і всі вікна MineColonies запрацюють."
 }

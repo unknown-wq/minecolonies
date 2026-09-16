@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import net.minecraft.core.Direction;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -81,7 +83,7 @@ public class TimberFrameBlock extends AbstractBlock<TimberFrameBlock> implements
      */
     public TimberFrameBlock(final TimberFrameType timberFrameType)
     {
-        super(Properties.of().mapColor(MapColor.WOOD).pushReaction(PushReaction.PUSH_ONLY).strength(BLOCK_HARDNESS, RESISTANCE).noOcclusion());
+        super(DOProps.of().mapColor(MapColor.WOOD).pushReaction(PushReaction.PUSH_ONLY).strength(BLOCK_HARDNESS, RESISTANCE).noOcclusion());
         this.timberFrameType = timberFrameType;
     }
 

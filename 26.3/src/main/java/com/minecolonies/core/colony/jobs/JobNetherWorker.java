@@ -2,6 +2,7 @@ package com.minecolonies.core.colony.jobs;
 
 import com.minecolonies.api.client.render.modeltype.ModModelTypes;
 import com.minecolonies.api.colony.ICitizenData;
+import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.core.entity.ai.workers.production.EntityAIWorkNether;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -88,14 +89,24 @@ public class JobNetherWorker extends AbstractJobCrafter<EntityAIWorkNether, JobN
         for (int i = 0; i < craftedList.size(); ++i)
         {
             final CompoundTag itemCompound = craftedList.getCompoundOrEmpty(i);
-            craftedResults.add(ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), itemCompound).result().orElse(ItemStack.EMPTY));
+            // These two lists are the loot the worker is carrying home from the nether. A stack that will not read
+            // back is loot the player never receives, so it is named; an air entry is dropped rather than handed over.
+            final ItemStack crafted = ItemStackUtils.readOptionalStack(provider, itemCompound, "nether trip result " + i);
+            if (!crafted.isEmpty())
+            {
+                craftedResults.add(crafted);
+            }
         }
 
         final ListTag processedList = compound.getListOrEmpty(TAG_PROCESSED);
         for (int i = 0; i < processedList.size(); ++i)
         {
             final CompoundTag itemCompound = processedList.getCompoundOrEmpty(i);
-            processedResults.add(ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), itemCompound).result().orElse(ItemStack.EMPTY));
+            final ItemStack processed = ItemStackUtils.readOptionalStack(provider, itemCompound, "processed nether trip result " + i);
+            if (!processed.isEmpty())
+            {
+                processedResults.add(processed);
+            }
         }
 
 

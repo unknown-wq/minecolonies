@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ScheduledTickAccess;
@@ -179,7 +181,7 @@ public class DynamicTimberFrameBlock extends AbstractBlock<DynamicTimberFrameBlo
      */
     public DynamicTimberFrameBlock()
     {
-        super(Properties.of().mapColor(MapColor.WOOD).pushReaction(PushReaction.PUSH_ONLY).strength(BLOCK_HARDNESS, RESISTANCE).noOcclusion());
+        super(DOProps.of().mapColor(MapColor.WOOD).pushReaction(PushReaction.PUSH_ONLY).strength(BLOCK_HARDNESS, RESISTANCE).noOcclusion());
     }
 
     // TODO(port-26.2): DISABLED — IBlockExtension#shouldDisplayFluidOverlay is a NeoForge-only hook

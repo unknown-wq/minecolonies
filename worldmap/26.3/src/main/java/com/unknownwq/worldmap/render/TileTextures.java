@@ -156,6 +156,10 @@ public final class TileTextures implements AutoCloseable
             }
             final int side = MapTile.SIZE >> this.detail;
             entry = new Entry(new DynamicTexture(() -> "World Map " + key, side, side, true));
+            // Stamped before the eviction runs, not after it. An unstamped entry carries lastFrame 0, which sorts
+            // as the least recently used one there is, so the texture made a statement ago would be chosen as the
+            // victim, closed, and then returned to the caller to draw with.
+            entry.lastFrame = this.frame;
             this.entries.put(key, entry);
             this.evictIfNeeded();
         }
@@ -180,6 +184,16 @@ public final class TileTextures implements AutoCloseable
         return Math.min(MAX_TEXTURES, this.capacity << Math.min(2 * this.detail, 20));
     }
 
+    /**
+     * Closes least recently used textures until the cache is back within capacity.
+     *
+     * <p>Nothing touched during the current frame is a candidate. A texture handed out this frame has already been
+     * recorded into the frame's render state by the caller, and the actual draw happens after the whole extraction
+     * pass, so closing one here means the renderer dereferences it afterwards. Since the screen asks for every
+     * visible tile in one pass, that is not a corner case: it is every tile drawn before the one that triggered
+     * the eviction. Staying over capacity for a frame is the cheaper failure -- the cache only grows by the
+     * per-frame upload budget, and the entries age out of the exemption as soon as they stop being drawn.</p>
+     */
     private void evictIfNeeded()
     {
         if (this.entries.size() <= this.liveCapacity())
@@ -187,7 +201,13 @@ public final class TileTextures implements AutoCloseable
             return;
         }
         this.evictionScratch.clear();
-        this.evictionScratch.addAll(this.entries.keySet());
+        for (final Map.Entry<TileKey, Entry> candidate : this.entries.entrySet())
+        {
+            if (candidate.getValue().lastFrame != this.frame)
+            {
+                this.evictionScratch.add(candidate.getKey());
+            }
+        }
         this.evictionScratch.sort((a, b) -> Long.compare(this.entries.get(a).lastFrame, this.entries.get(b).lastFrame));
         for (int i = 0; i < this.evictionScratch.size() && this.entries.size() > this.liveCapacity(); i++)
         {

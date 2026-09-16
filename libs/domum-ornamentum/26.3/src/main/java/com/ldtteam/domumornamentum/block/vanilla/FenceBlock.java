@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.vanilla;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.block.AbstractBlockFence;
@@ -22,7 +24,6 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,7 @@ public class FenceBlock extends AbstractBlockFence<FenceBlock> implements IMater
 
     public FenceBlock()
     {
-        super(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F));
+        super(DOProps.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F));
     }
 
     @Override

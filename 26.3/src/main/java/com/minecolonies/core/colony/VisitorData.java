@@ -3,6 +3,7 @@ package com.minecolonies.core.colony;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IVisitorData;
 import com.minecolonies.api.util.BlockPosUtil;
+import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.Utils;
 import com.minecolonies.api.util.WorldUtil;
 import net.minecraft.core.HolderLookup;
@@ -57,7 +58,13 @@ public class VisitorData extends CitizenData implements IVisitorData
     {
         CompoundTag compoundNBT = super.serializeNBT(provider);
         final ItemStack recruitCopy = recruitCost.copy();
-        recruitCopy.setCount(1);
+        if (!recruitCopy.isEmpty())
+        {
+            // ItemStack#copy hands back the ItemStack.EMPTY singleton itself for an empty stack, and setCount writes
+            // straight to the field, so counting an empty recruit cost here would leave every ItemStack.EMPTY in the
+            // game reporting a count of one.
+            recruitCopy.setCount(1);
+        }
 
         compoundNBT.put(TAG_RECRUIT_COST, ItemStack.OPTIONAL_CODEC.encodeStart(provider.createSerializationContext(NbtOps.INSTANCE), recruitCopy).getOrThrow());
         compoundNBT.putInt(TAG_RECRUIT_COST_QTY, recruitCost.getCount());
@@ -70,8 +77,15 @@ public class VisitorData extends CitizenData implements IVisitorData
     {
         super.deserializeNBT(provider, nbtTagCompound);
         sittingPosition = BlockPosUtil.read(nbtTagCompound, TAG_SITTING);
-        recruitCost = ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), nbtTagCompound.getCompoundOrEmpty(TAG_RECRUIT_COST)).result().orElse(ItemStack.EMPTY);
-        recruitCost.setCount(nbtTagCompound.getIntOr(TAG_RECRUIT_COST_QTY, 0));
+        // The recruitment cost is what the player has to hand over for this visitor. Losing it turns a paid recruit
+        // into a free one without a word anywhere, so name it when it cannot be read back.
+        recruitCost = ItemStackUtils.readOptionalStack(provider,
+          nbtTagCompound.getCompoundOrEmpty(TAG_RECRUIT_COST),
+          "the recruitment cost of visitor " + getId());
+        if (!recruitCost.isEmpty())
+        {
+            recruitCost.setCount(nbtTagCompound.getIntOr(TAG_RECRUIT_COST_QTY, 0));
+        }
     }
 
     @Override

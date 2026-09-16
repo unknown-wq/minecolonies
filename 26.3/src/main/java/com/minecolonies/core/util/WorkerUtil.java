@@ -375,14 +375,17 @@ public final class WorkerUtil
      */
     public static int getLastLadder(@NotNull final BlockPos pos, final Level world)
     {
-        if (world.getBlockState(pos).is(BlockTags.CLIMBABLE))
+        // Iterative and not recursive: a deep mine shaft is a hundred and more rungs, this is called several times
+        // per AI pass per miner, and the recursion allocated a BlockPos and a stack frame for every one of them.
+        // Same walk, same result.
+        final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos(pos.getX(), pos.getY(), pos.getZ());
+        // One below the bottom of the world, so a ladder that reaches it stops at the same y the recursion did.
+        final int floor = world.getMinY() - 2;
+        while (cursor.getY() > floor && world.getBlockState(cursor).is(BlockTags.CLIMBABLE))
         {
-            return getLastLadder(pos.below(), world);
+            cursor.move(0, -1, 0);
         }
-        else
-        {
-            return pos.getY() + 1;
-        }
+        return cursor.getY() + 1;
     }
 
 

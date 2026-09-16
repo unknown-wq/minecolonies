@@ -1,11 +1,9 @@
 package com.ldtteam.domumornamentum.block;
 
-import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.entity.block.IMateriallyTexturedBlockEntity;
 import com.ldtteam.domumornamentum.util.Constants;
 import com.ldtteam.domumornamentum.util.QuadFunction;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -20,9 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
-import java.util.stream.StreamSupport;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,25 +31,6 @@ public interface IMateriallyTexturedBlock
     Collection<IMateriallyTexturedBlockComponent> getComponents();
 
     void buildRecipes(RecipeOutput recipeOutput);
-
-    @NotNull
-    default MaterialTextureData getRandomMaterials()
-    {
-        final MaterialTextureData.Builder textureData = MaterialTextureData.builder();
-        for (final IMateriallyTexturedBlockComponent component : getComponents())
-        {
-            final List<Block> candidates = new ArrayList<>(
-              StreamSupport
-                .stream(BuiltInRegistries.BLOCK.getTagOrEmpty(component.getValidSkins()).spliterator(), false)
-                .map(Holder::value).toList());
-            if (candidates.isEmpty()) continue;
-
-            final Block texture = candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
-            textureData.setComponent(component.getId(), texture);
-        }
-        return textureData.build();
-    }
-
 
     /**
      * Method to tell mods like minecolonies if a tool is the right tool.
@@ -161,14 +138,5 @@ public interface IMateriallyTexturedBlock
     default IMateriallyTexturedBlockComponent getMainComponent()
     {
         return null;
-    }
-
-    /**
-     * Method to tell if the block tinting is world specific.
-     *
-     * @return true if world specific tinting.
-     */
-    default boolean usesWorldSpecificTinting() {
-        return true;
     }
 }

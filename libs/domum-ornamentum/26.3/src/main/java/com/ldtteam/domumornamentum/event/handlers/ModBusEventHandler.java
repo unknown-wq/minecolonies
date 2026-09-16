@@ -1,6 +1,8 @@
 package com.ldtteam.domumornamentum.event.handlers;
 
+import com.ldtteam.domumornamentum.block.ModBlocks;
 import com.ldtteam.domumornamentum.network.ModNetworking;
+import net.fabricmc.fabric.api.event.lifecycle.v1.CommonLifecycleEvents;
 
 /**
  * Common-side mod bus handlers (contract C5).
@@ -38,5 +40,11 @@ public class ModBusEventHandler
     public static void registerCommon()
     {
         ModNetworking.register();
+
+        // The creative-tab and Architect's Cutter variant caches are built from block tags, so they are
+        // only valid for the tag set currently in force. TAGS_LOADED fires on the server after every
+        // datapack (re)load and on the client every time a server sends its tags, which is exactly when
+        // those caches stop being true. Replaces the NeoForge TagsUpdatedEvent handler.
+        CommonLifecycleEvents.TAGS_LOADED.register((registries, client) -> ModBlocks.resetItemGroupCaches());
     }
 }

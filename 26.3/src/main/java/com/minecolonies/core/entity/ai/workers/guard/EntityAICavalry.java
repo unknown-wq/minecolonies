@@ -396,7 +396,11 @@ public class EntityAICavalry extends AbstractEntityAIGuard<JobCavalry, AbstractB
     {
         if (currentPatrolPoint == null || !currentPatrolPoint.equals(ownLeg))
         {
-            currentPatrolPoint = nextOwnPatrolPoint(stable);
+            // Joining the line rather than continuing along it: there is no leg in progress, because the rider has
+            // just come off a rest window, out of a fight, or off some other AI's destination. Where he is standing
+            // is the right place to join from, so he takes the nearest point of his arc instead of walking back to
+            // wherever the line last had him.
+            currentPatrolPoint = nextOwnPatrolPoint(stable, worker.blockPosition());
             if (currentPatrolPoint == null)
             {
                 ownLeg = null;
@@ -416,9 +420,17 @@ public class EntityAICavalry extends AbstractEntityAIGuard<JobCavalry, AbstractB
               || walkToSafePos(currentPatrolPoint)
               || world.getGameTime() - ownLegSince > OWN_LEG_TIMEOUT_TICKS)
         {
+            // Stepped off the leg that just ended, never off where the rider happens to be standing. Two of the
+            // three ways above end a leg the rider did not walk -- an unloaded waypoint is counted as reached
+            // without any walking at all, and the timeout fires precisely when he could not get there -- and in
+            // both of those he is still wherever he started. Asking for "the waypoint nearest here, plus one" from
+            // there hands back the very same waypoint, so the patrol could never get past the first point it
+            // failed to reach: the rider stood still for the rest of the save while the leg was reissued. Stepping
+            // off the leg means a leg that went nowhere still advances the line.
+            final BlockPos finished = ownLeg == null ? worker.blockPosition() : ownLeg;
             setCurrentDelay(10);
             building.arrivedAtPatrolPoint(worker);
-            currentPatrolPoint = nextOwnPatrolPoint(stable);
+            currentPatrolPoint = nextOwnPatrolPoint(stable, finished);
             beginOwnLeg();
         }
 
@@ -430,17 +442,20 @@ public class EntityAICavalry extends AbstractEntityAIGuard<JobCavalry, AbstractB
      * reachable border, his own cursor over the ordinary route otherwise.
      *
      * @param stable the stable that dispatched him.
+     * @param cursor the point the step is taken from -- the leg that just ended when there is one, and where the
+     *               rider stands when he is joining the line rather than continuing along it. See
+     *               {@link #patrolOwnLeg} for why those are not the same thing.
      * @return the waypoint, or null to fall back to the building's shared patrol.
      */
     @Nullable
-    private BlockPos nextOwnPatrolPoint(@NotNull final BuildingStable stable)
+    private BlockPos nextOwnPatrolPoint(@NotNull final BuildingStable stable, @NotNull final BlockPos cursor)
     {
-        final BlockPos border = stable.getBorderPatrolTarget(worker.getCitizenData(), worker.blockPosition());
+        final BlockPos border = stable.getBorderPatrolTarget(worker.getCitizenData(), cursor);
         if (border != null)
         {
             return border;
         }
-        return stable.getPatrolTargetFor(worker.getCitizenData(), worker.blockPosition());
+        return stable.getPatrolTargetFor(worker.getCitizenData(), cursor);
     }
 
     /**

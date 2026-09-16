@@ -10,6 +10,7 @@ import com.minecolonies.api.crafting.ModRecipeTypes;
 import com.minecolonies.api.crafting.RecipeStorage;
 import com.minecolonies.api.equipment.ModEquipmentTypes;
 import com.minecolonies.api.equipment.registry.EquipmentTypeEntry;
+import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.Utils;
 import com.minecolonies.api.util.constant.NbtTagConstants;
 import com.minecolonies.api.util.constant.SerializationIdentifierConstants;
@@ -168,12 +169,22 @@ public class RecipeStorageFactory implements IRecipeStorageFactory
             }
             else
             {
-                final ItemStorage newItem = new ItemStorage(ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), inputTag.getCompoundOrEmpty(NbtTagConstants.STACK)).result().orElse(ItemStack.EMPTY));
+                // Legacy input shape (no factory type tag). An input that will not read back leaves a recipe that
+                // asks for air, so it is named here; the entry is kept so the remaining inputs stay in position.
+                final ItemStorage newItem = new ItemStorage(ItemStackUtils.readOptionalStack(provider,
+                  inputTag.getCompoundOrEmpty(NbtTagConstants.STACK),
+                  "input " + i + " of a stored recipe"));
                 input.add(newItem);
             }
         }
 
-        final ItemStack primaryOutput = ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), nbt.getCompoundOrEmpty(NbtTagConstants.STACK)).result().orElse(ItemStack.EMPTY);
+        // An empty primary output is written on purpose by every multi-output recipe -- the lumberjack's log stripping
+        // keeps its results in the alternate list and RecipeStorage checks for exactly this (see its use of
+        // getPrimaryOutput alongside the secondary outputs) -- so emptiness on its own says nothing is wrong here.
+        // What does is a stack that was written and will not read back, and that the read itself now reports.
+        final ItemStack primaryOutput = ItemStackUtils.readOptionalStack(provider,
+          nbt.getCompoundOrEmpty(NbtTagConstants.STACK),
+          "the output of a stored recipe");
 
         final Block intermediate = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, nbt.getCompoundOrEmpty(BLOCK_TAG)).getBlock();
 
@@ -190,7 +201,7 @@ public class RecipeStorageFactory implements IRecipeStorageFactory
         for (int i = 0; i < altOutputTagList.size(); ++i)
         {
             final CompoundTag altOutputTag = altOutputTagList.getCompoundOrEmpty(i);
-            altOutputs.add(ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), altOutputTag).result().orElse(ItemStack.EMPTY));
+            altOutputs.add(ItemStackUtils.readOptionalStack(provider, altOutputTag, "alternate output " + i + " of a stored recipe"));
         }
 
         final ListTag secOutputTagList = nbt.getListOrEmpty(SECOUTPUT_TAG);
@@ -199,7 +210,7 @@ public class RecipeStorageFactory implements IRecipeStorageFactory
         for (int i = 0; i < secOutputTagList.size(); ++i)
         {
             final CompoundTag secOutputTag = secOutputTagList.getCompoundOrEmpty(i);
-            secOutputs.add(ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), secOutputTag).result().orElse(ItemStack.EMPTY));
+            secOutputs.add(ItemStackUtils.readOptionalStack(provider, secOutputTag, "secondary output " + i + " of a stored recipe"));
         }
 
         final ResourceKey<LootTable> lootTable = nbt.contains(LOOT_TAG) ? ResourceKey.create(Registries.LOOT_TABLE, Identifier.parse(nbt.getStringOr(LOOT_TAG, ""))) : null;

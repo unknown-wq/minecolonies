@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.block.AbstractPostBlock;
@@ -49,7 +51,7 @@ public class PostBlock extends AbstractPostBlock<PostBlock> implements IMaterial
 
     public PostBlock()
     {
-        this(Properties.of().mapColor(MapColor.WOOD).strength(3.0F));
+        this(DOProps.of().mapColor(MapColor.WOOD).strength(3.0F));
     }
 
     public PostBlock(final Properties props)

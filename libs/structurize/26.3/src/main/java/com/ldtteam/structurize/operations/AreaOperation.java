@@ -73,6 +73,25 @@ public abstract class AreaOperation extends BaseOperation
         super(new ChangeStorage(storageText, player != null ? player.getUUID() : UUID.randomUUID()));
         this.player = player;
         this.workPosList = workPosList;
+
+        // The bounds have to come from the list. Left at their default they are (0,0,0), and the render
+        // invalidation at the end of apply() then covers everything between world origin and the work area.
+        if (!workPosList.isEmpty())
+        {
+            int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+            for (final BlockPos pos : workPosList)
+            {
+                minX = Math.min(minX, pos.getX());
+                minY = Math.min(minY, pos.getY());
+                minZ = Math.min(minZ, pos.getZ());
+                maxX = Math.max(maxX, pos.getX());
+                maxY = Math.max(maxY, pos.getY());
+                maxZ = Math.max(maxZ, pos.getZ());
+            }
+            this.startPos = new BlockPos.MutableBlockPos(minX, minY, minZ);
+            this.endPos = new BlockPos.MutableBlockPos(maxX, maxY, maxZ);
+        }
     }
 
     @Override
@@ -87,11 +106,11 @@ public abstract class AreaOperation extends BaseOperation
         for (int i = currentListIndex; i < workPosList.size(); i++)
         {
             final BlockPos currentPos = workPosList.get(i);
-            currentListIndex = i;
+            // i + 1, not i: on a tick that runs out of budget the index has to point at the position that has
+            // not been done yet, otherwise the next tick applies this one a second time -- and records it in
+            // the change storage twice, so undo runs it twice as well.
+            currentListIndex = i + 1;
             apply(world, currentPos);
-
-            this.startPos.set(Math.min(startPos.getX(), currentPos.getX()), Math.min(startPos.getY(), currentPos.getY()), Math.min(startPos.getZ(), currentPos.getZ()));
-            this.endPos.set(Math.max(endPos.getX(), currentPos.getX()), Math.max(endPos.getY(), currentPos.getY()), Math.max(endPos.getZ(), currentPos.getZ()));
 
             count++;
             if (count >= Structurize.getConfig().getServer().maxOperationsPerTick.get())
@@ -100,7 +119,10 @@ public abstract class AreaOperation extends BaseOperation
             }
         }
 
-        new UpdateClientRender(startPos, endPos).sendToAllClients();
+        if (!workPosList.isEmpty())
+        {
+            UpdateClientRender.sendFor(world, startPos, endPos);
+        }
 
         return true;
     }

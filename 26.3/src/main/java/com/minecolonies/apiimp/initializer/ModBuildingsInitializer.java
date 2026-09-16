@@ -61,7 +61,6 @@ public final class ModBuildingsInitializer
           .setBuildingViewProducer(() -> BuildingBarracks.View::new)
           .setRegistryName(Identifier.fromNamespaceAndPath(Constants.MOD_ID, ModBuildings.BARRACKS_ID))
           .addBuildingModuleProducer(MIN_STOCK)
-          .addBuildingModuleProducer(BARRACKS_SETTINGS)
           .addBuildingModuleProducer(BARRACKS_STATS_MODULE)
           .createBuildingEntry());
 

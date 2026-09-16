@@ -29,6 +29,15 @@ public class EntityCitizenWalkToProxy extends AbstractWalkToProxy
     private static final int OTHER_SIDE_OF_SHAFT = 6;
 
     /**
+     * How many nodes a walk up the parent chain may visit before it gives up.
+     * <p>
+     * Parent chains are built downwards from the shaft and cannot loop, but this runs inside path calculation for
+     * every step a citizen takes through a mine, and a save whose chain does loop would hang the server rather
+     * than mislay a waypoint. Far above the length of any real chain on one level.
+     */
+    private static final int MAX_NODE_CHAIN = 128;
+
+    /**
      * The worker entity associated with the proxy.
      */
     private final AbstractEntityCitizen citizen;
@@ -114,17 +123,13 @@ public class EntityCitizenWalkToProxy extends AbstractWalkToProxy
             //Check if miner is underground in shaft and his target is overground.
             if (workerY <= levelDepth && targetY > levelDepth)
             {
-                if (module.getActiveNode() != null && module.getActiveNode().getParent() != null)
+                final MineNode activeNode = module.peekActiveNode();
+                if (activeNode != null && activeNode.getParent() != null)
                 {
-                    MineNode currentNode = level.getNode(module.getActiveNode().getParent());
-                    if (currentNode == null)
-                    {
-                        module.setActiveNode(null);
-                        module.setOldNode(null);
-                        return getProxy(target, citizen.blockPosition(), distanceToPath);
-                    }
+                    MineNode currentNode = level.getNode(activeNode.getParent());
 
-                    while (currentNode.getParent() != null)
+                    int guard = 0;
+                    while (currentNode != null && currentNode.getParent() != null && guard++ < MAX_NODE_CHAIN)
                     {
                         if (currentNode.getStyle() == MineNode.NodeType.SHAFT)
                         {
@@ -175,9 +180,10 @@ public class EntityCitizenWalkToProxy extends AbstractWalkToProxy
                     level.getDepth(),
                     ladderPos.getZ() + vector.getZ() * OTHER_SIDE_OF_SHAFT));
 
-                if (module.getActiveNode() != null && module.getActiveNode().getParent() != null)
+                final MineNode activeNode = module.peekActiveNode();
+                if (activeNode != null && activeNode.getParent() != null)
                 {
-                    calculateNodes(level, levelDepth, building);
+                    calculateNodes(level, levelDepth, building, activeNode);
                 }
 
                 return newProxy;
@@ -206,17 +212,22 @@ public class EntityCitizenWalkToProxy extends AbstractWalkToProxy
 
                 if (lastNode != null && lastNode.getParent() != null)
                 {
+                    // The condition used to be "this node is its own parent", which no node ever is, so the body
+                    // never ran and walking inside a level got no waypoints from the parent chain at all. It also
+                    // read the node before testing it for null. Same shape as calculateNodes now.
                     MineNode currentNode = level.getNode(lastNode.getParent());
-                    while (new Vec2i(currentNode.getX(), currentNode.getZ()).equals(currentNode.getParent()) && currentNode.getParent() != null)
+                    int guard = 0;
+                    while (currentNode != null && currentNode.getParent() != null && guard++ < MAX_NODE_CHAIN)
                     {
                         addToProxyList(new BlockPos(currentNode.getX(), levelDepth, currentNode.getZ()));
                         currentNode = level.getNode(currentNode.getParent());
                     }
                 }
 
-                if (module.getActiveNode() != null && module.getActiveNode().getParent() != null)
+                final MineNode activeNode = module.peekActiveNode();
+                if (activeNode != null && activeNode.getParent() != null)
                 {
-                    calculateNodes(level, levelDepth, building);
+                    calculateNodes(level, levelDepth, building, activeNode);
                 }
 
                 if (!getProxyList().isEmpty())
@@ -230,11 +241,12 @@ public class EntityCitizenWalkToProxy extends AbstractWalkToProxy
         return getProxy(target, citizen.blockPosition(), distanceToPath);
     }
 
-    private void calculateNodes(final MinerLevel level, final int levelDepth, final BuildingMiner buildingMiner)
+    private void calculateNodes(final MinerLevel level, final int levelDepth, @NotNull final BuildingMiner buildingMiner, @NotNull final MineNode activeNode)
     {
         final List<BlockPos> nodesToTarget = new ArrayList<>();
-        MineNode currentNode = level.getNode(buildingMiner.getFirstModuleOccurance(MinerLevelManagementModule.class).getActiveNode().getParent());
-        while (currentNode != null && currentNode.getParent() != null)
+        MineNode currentNode = level.getNode(activeNode.getParent());
+        int guard = 0;
+        while (currentNode != null && currentNode.getParent() != null && guard++ < MAX_NODE_CHAIN)
         {
             if (currentNode.getStyle() == MineNode.NodeType.SHAFT)
             {

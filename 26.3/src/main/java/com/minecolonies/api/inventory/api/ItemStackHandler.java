@@ -1,10 +1,12 @@
 package com.minecolonies.api.inventory.api;
 
 import com.minecolonies.api.util.INBTSerializable;
+import com.minecolonies.api.util.Log;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -202,7 +204,10 @@ public class ItemStackHandler implements IItemHandlerModifiable, INBTSerializabl
             {
                 final CompoundTag entry = new CompoundTag();
                 entry.putInt(TAG_SLOT, slot);
-                entry.store(ItemStack.MAP_CODEC, stack);
+                // Registry-aware ops, not the plain NbtOps the shorter overload defaults to: a component that points
+                // into a data-driven registry -- an enchantment -- cannot be written without them, and
+                // CompoundTag#store throws on a failed encode.
+                entry.store(ItemStack.MAP_CODEC, provider.createSerializationContext(NbtOps.INSTANCE), stack);
                 items.add(entry);
             }
         }
@@ -225,7 +230,16 @@ public class ItemStackHandler implements IItemHandlerModifiable, INBTSerializabl
             final int slot = entry.getIntOr(TAG_SLOT, -1);
             if (slot >= 0 && slot < this.stacks.size())
             {
-                this.stacks.set(slot, entry.read(ItemStack.MAP_CODEC).orElse(ItemStack.EMPTY));
+                // Only non-empty stacks are written, so an entry that decodes to nothing is not an empty slot: it is
+                // a stack that was in this inventory and is not coming back. Say which slot lost what, and carry on --
+                // one unreadable slot must not cost the whole container.
+                final ItemStack stack = entry.read(ItemStack.MAP_CODEC, provider.createSerializationContext(NbtOps.INSTANCE))
+                                          .orElse(ItemStack.EMPTY);
+                if (stack.isEmpty())
+                {
+                    Log.getLogger().warn("Lost the saved item stack in slot {} of an item handler. Stored as: {}", slot, entry);
+                }
+                this.stacks.set(slot, stack);
             }
         }
         onLoad();

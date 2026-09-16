@@ -1,0 +1,15 @@
+{
+  "branch": "minecolonies:combat",
+  "costs": [
+    {
+      "item": "minecraft:saddle"
+    },
+    {
+      "item": "minecraft:lead"
+    }
+  ],
+  "icon": "minecolonies:blockhutstable",
+  "parentResearch": "minecolonies:combat/tactictraining",
+  "researchLevel": 2,
+  "subtitle": "com.minecolonies.research.combat.mountedcombat.subtitle"
+}

@@ -231,7 +231,7 @@ public class BuildingBarracksTower extends AbstractBuildingGuards
     }
 
     /**
-     * Walk this tower's slice of the border, when the barracks has asked for one.
+     * Walk this tower's slice of the border, when this tower has been set to patrol one.
      *
      * <h2>What keeps the guard on his stretch</h2>
      * Three things, and none of them is a distance check on where he happens to be standing:
@@ -266,9 +266,9 @@ public class BuildingBarracksTower extends AbstractBuildingGuards
         final List<BlockPos> stretch = barracksBuilding.getStretchFor(getPosition());
         if (stretch.isEmpty())
         {
-            // No border within reach, or the mode is off. Fall back to the ordinary patrol rather than standing still:
-            // a guard with nothing to walk is worse than a guard walking the wrong thing, and the reason is reported
-            // by /mc colony diagnose.
+            // No border within reach, or this tower is not on the border task. Fall back to the ordinary patrol
+            // rather than standing still: a guard with nothing to walk is worse than a guard walking the wrong
+            // thing, and the reason is reported by /mc colony diagnose.
             return null;
         }
 

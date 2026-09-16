@@ -47,10 +47,7 @@ public class DOStairBlock extends Block implements SimpleWaterloggedBlock
     protected static final VoxelShape[]              BOTTOM_SHAPES  = makeShapes(BOTTOM_AABB, OCTET_NPN, OCTET_PPN, OCTET_NPP, OCTET_PPP);
     private static final   int[]                     SHAPE_BY_STATE = new int[] {12, 5, 3, 10, 14, 13, 7, 11, 13, 7, 11, 14, 8, 4, 1, 2, 4, 1, 2, 8};
 
-    // Forge Start
-    private final java.util.function.Supplier<BlockState> stateSupplier;
-
-    public DOStairBlock(java.util.function.Supplier<BlockState> state, BlockBehaviour.Properties properties)
+    public DOStairBlock(BlockBehaviour.Properties properties)
     {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any()
@@ -58,7 +55,6 @@ public class DOStairBlock extends Block implements SimpleWaterloggedBlock
                                     .setValue(HALF, Half.BOTTOM)
                                     .setValue(SHAPE, StairsShape.STRAIGHT)
                                     .setValue(WATERLOGGED, Boolean.valueOf(false)));
-        this.stateSupplier = state;
     }
 
     /**

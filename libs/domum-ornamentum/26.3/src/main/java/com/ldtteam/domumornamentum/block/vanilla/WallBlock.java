@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.vanilla;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -56,7 +58,7 @@ public class WallBlock extends AbstractBlockWall<WallBlock> implements IMaterial
 
     public WallBlock()
     {
-        super(Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F));
+        super(DOProps.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F));
     }
     @Override
     public @NotNull List<IMateriallyTexturedBlockComponent> getComponents()

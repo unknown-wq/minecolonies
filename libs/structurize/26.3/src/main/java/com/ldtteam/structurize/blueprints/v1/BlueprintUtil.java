@@ -298,9 +298,11 @@ public class BlueprintUtil
         tag.put("tile_entities", finishedTes);
 
         // Adding Entities
+        // Nulls have to go the same way they do for tile entities above: an entity that failed to read (fixEntities)
+        // or failed to transform (Blueprint#transformEntityInfoWithSettings) leaves a null in the array, and
+        // ListTag#write dereferences every element to identify the list type, so writing one is an NPE.
         final ListTag finishedEntities = new ListTag();
-        final CompoundTag[] entities = schem.getEntities();
-        finishedEntities.addAll(Arrays.asList(entities));
+        finishedEntities.addAll(Arrays.stream(schem.getEntities()).filter(Objects::nonNull).toList());
         tag.put("entities", finishedEntities);
 
         // Adding Required Mods

@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.ldtteam.domumornamentum.block.AbstractBlock;
 import com.ldtteam.domumornamentum.block.types.ExtraBlockType;
 import net.minecraft.core.BlockPos;
@@ -32,7 +34,7 @@ public class ExtraBlock extends AbstractBlock<ExtraBlock>
      */
     public ExtraBlock(final ExtraBlockType type)
     {
-        super(type.adjustProperties(Properties.of().mapColor(MapColor.WOOD).sound(type.getSoundType()).strength(BLOCK_HARDNESS, RESISTANCE)));
+        super(type.adjustProperties(DOProps.of().mapColor(MapColor.WOOD).sound(type.getSoundType()).strength(BLOCK_HARDNESS, RESISTANCE)));
         this.type = type;
     }
 

@@ -957,20 +957,24 @@ public final class PlacementHandlers
                 return ActionProcessingResult.DENY;
             }
 
-            try
-            {
-                // Try detecting inventory content.
-                ItemStackUtils.getItemStacksOfTileEntity(tileEntityData, blockState, world);
-            }
-            catch (final Exception ex)
-            {
-                // If we can't load the inventory content of the TE, return early, don't fill TE data.
-                return ActionProcessingResult.SUCCESS;
-            }
-
             if (tileEntityData != null)
             {
-                handleTileEntityPlacement(tileEntityData, world, pos, placementContext.getRotationMirror());
+                try
+                {
+                    handleTileEntityPlacement(tileEntityData, world, pos, placementContext.getRotationMirror());
+                }
+                catch (final Exception ex)
+                {
+                    // The block itself is placed either way; only its stored data is lost, and that is worth a
+                    // line in the log. The probe that used to stand here read the inventory once more just to
+                    // see whether it could be read, discarded the result, and silently dropped the entire tag
+                    // when anything in the read path -- including parts this placement does not even use --
+                    // threw.
+                    Log.getLogger()
+                        .error("Could not apply the stored block entity data of "
+                                 + tileEntityData.getStringOr("id", "<no id>") + " at " + pos
+                                 + "; the block was placed without it.", ex);
+                }
             }
 
             return ActionProcessingResult.SUCCESS;
@@ -1423,27 +1427,38 @@ public final class PlacementHandlers
     {
         if (tileEntityData != null)
         {
+            // Still inflated here, and only here, as the gate: loadStatic is what answers "is this a block
+            // entity this game still knows", and it is the only way to reach IRotatableBlockEntity.
             final BlockEntity newTile = BlockEntity.loadStatic(pos, world.getBlockState(pos), tileEntityData, world.registryAccess());
             if (newTile != null)
             {
-                if (newTile instanceof final IRotatableBlockEntity rotatable)
-                {
-                    rotatable.rotateAndMirror(settings);
-                }
-
                 final BlockEntity worldBlockEntity = world.getBlockEntity(pos);
-                if (worldBlockEntity != null)
+                if (worldBlockEntity == null)
                 {
+                    if (newTile instanceof final IRotatableBlockEntity rotatable)
+                    {
+                        rotatable.rotateAndMirror(settings);
+                    }
+                    world.setBlockEntity(newTile);
+                }
+                else if (newTile instanceof final IRotatableBlockEntity rotatable)
+                {
+                    // Only a rotatable block entity needs the detour: it is rotated while detached and then
+                    // written back out so the world copy picks up the rotated data.
+                    rotatable.rotateAndMirror(settings);
                     worldBlockEntity.loadWithComponents(
                         TagValueInput.create(ProblemReporter.DISCARDING, world.registryAccess(), newTile.saveWithFullMetadata(world.registryAccess())));
                     worldBlockEntity.setChanged();
                 }
                 else
                 {
-                    world.setBlockEntity(newTile);
+                    // Everything else -- chests, furnaces, signs, which is nearly all of them -- had its data
+                    // parsed, written back out to NBT and parsed again for no change at all. Hand the stored
+                    // tag straight to the world block entity, the way vanilla's own template placement does.
+                    worldBlockEntity.loadWithComponents(
+                        TagValueInput.create(ProblemReporter.DISCARDING, world.registryAccess(), tileEntityData));
+                    worldBlockEntity.setChanged();
                 }
-                world.getBlockState(pos).mirror(settings.mirror());
-                world.getBlockState(pos).rotate(settings.rotation());
             }
         }
     }

@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.ldtteam.domumornamentum.block.AbstractBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.DyeColor;
@@ -27,7 +29,7 @@ public class FloatingCarpetBlock extends AbstractBlock<FloatingCarpetBlock>
 
     public FloatingCarpetBlock(final DyeColor color)
     {
-        super(Properties.of().mapColor(MapColor.WOOL).sound(SoundType.WOOL).isRedstoneConductor((state, getter, pos) -> false).forceSolidOff().strength(0.1F));
+        super(DOProps.of().mapColor(MapColor.WOOL).sound(SoundType.WOOL).isRedstoneConductor((state, getter, pos) -> false).forceSolidOff().strength(0.1F));
         this.color = color;
     }
 

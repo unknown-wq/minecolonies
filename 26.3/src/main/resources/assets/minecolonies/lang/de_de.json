@@ -43,6 +43,5 @@
   "com.minecolonies.coremod.assetfetch.cancelled.title": "Download abgebrochen",
   "com.minecolonies.coremod.assetfetch.cancelled.body": "Es wurde nichts installiert und nichts verändert.",
   "com.minecolonies.coremod.assetfetch.gate.title": "MineColonies-Ressourcen sind nicht installiert",
-  "com.minecolonies.coremod.assetfetch.gate.body": "Dieses Fenster braucht die ursprünglichen Layout- und Texturdateien von MineColonies, die noch nicht Teil dieser JAR sind. Lade sie einmal herunter, dann funktionieren alle MineColonies-Fenster.",
-  "com.minecolonies.coremod.assetfetch.command.alreadyinstalled": "Die MineColonies-Ressourcen sind bereits installiert."
+  "com.minecolonies.coremod.assetfetch.gate.body": "Dieses Fenster braucht die ursprünglichen Layout- und Texturdateien von MineColonies, die noch nicht Teil dieser JAR sind. Lade sie einmal herunter, dann funktionieren alle MineColonies-Fenster."
 }

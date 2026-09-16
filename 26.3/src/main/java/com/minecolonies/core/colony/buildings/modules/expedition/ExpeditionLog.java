@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.minecolonies.api.colony.requestsystem.StandardFactoryController;
 import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.Tuple;
 import com.minecolonies.api.util.Utils;
 import net.minecraft.core.HolderLookup;
@@ -302,7 +303,11 @@ public class ExpeditionLog
         final ListTag equipment = compound.getListOrEmpty(TAG_EQUIPMENT);
         for (int i = 0; i < equipment.size(); i++)
         {
-            this.equipment.add(ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), equipment.getCompoundOrEmpty(i)).result().orElse(ItemStack.EMPTY));
+            // This list is positional: an empty stack means "nothing in that slot" and has to keep its place, so a
+            // failed read stays empty here. It is still worth naming, because the slot did hold something.
+            this.equipment.add(ItemStackUtils.readOptionalStack(provider,
+              equipment.getCompoundOrEmpty(i),
+              "equipment slot " + i + " of an expedition log"));
         }
 
         this.mobs.clear();

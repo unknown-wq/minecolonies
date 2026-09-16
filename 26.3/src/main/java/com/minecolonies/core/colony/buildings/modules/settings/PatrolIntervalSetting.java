@@ -29,8 +29,16 @@ public class PatrolIntervalSetting extends IntSetting
 
     /**
      * The interval a stable starts with, in minutes.
+     * <p>
+     * One minute, not the six this used to be. The six was picked when a "sortie" was one waypoint long, so the
+     * stable was in effect on duty all the time and the interval was the whole of the pacing. A sortie now runs for
+     * {@code BuildingStable#MAX_SORTIE_MINUTES} and the interval is the breather after it, which wants to be short
+     * or the unit is off the frontier more than it is on it.
+     * <p>
+     * A stable that has been saved keeps whatever it was set to: the value is written to NBT next to the default and
+     * read back over the registered one, so this only decides what a newly built stable starts at.
      */
-    public static final int DEFAULT_INTERVAL = 6;
+    public static final int DEFAULT_INTERVAL = 1;
 
     /**
      * Create a new patrol interval setting at the default interval.

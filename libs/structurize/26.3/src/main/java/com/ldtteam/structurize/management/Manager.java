@@ -87,6 +87,17 @@ public final class Manager
     }
 
     /**
+     * Drop everything held for the running server. Both collections are static and outlive it, so an
+     * operation or an undo entry left over from one world would otherwise be carried into the next one,
+     * holding on to its levels along the way.
+     */
+    public static void clear()
+    {
+        scanToolOperationPool.clear();
+        changeQueue.clear();
+    }
+
+    /**
      * Add a new item to the queue.
      *
      * @param storage the storage to add.

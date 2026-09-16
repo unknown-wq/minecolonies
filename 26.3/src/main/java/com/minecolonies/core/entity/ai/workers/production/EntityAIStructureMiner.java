@@ -65,6 +65,7 @@ import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
 import static com.minecolonies.api.util.constant.StatisticsConstants.*;
 import static com.minecolonies.api.util.constant.TranslationConstants.INVALID_MINESHAFT;
 import static com.minecolonies.api.util.constant.TranslationConstants.MINER_IN_DANGER;
+import static com.minecolonies.api.util.constant.TranslationConstants.MINER_NO_OPEN_NODES;
 import static com.minecolonies.api.util.constant.TranslationConstants.MINER_SHAFT_STUCK;
 import static com.minecolonies.api.util.constant.TranslationConstants.NEEDS_BETTER_HUT;
 import static com.minecolonies.core.colony.buildings.modules.BuildingModules.STATS_MODULE;
@@ -220,6 +221,19 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
      * that lasts three hundred of them.
      */
     private long lastFledAt = Long.MIN_VALUE;
+
+    /**
+     * Cached result of {@link WorkerUtil#getLastLadder}, and the game tick it was read on.
+     * <p>
+     * That walk goes down the whole ladder a block at a time, so it costs one block state read per rung -- a
+     * hundred and more in a deep mine. A single pass through the miner AI asked for it up to eight times
+     * (twice in checkMineShaft, five times in advanceLadder plus once in ladderDamaged), and the answer cannot
+     * change between those calls unless the miner himself moves the bottom of the ladder, which is why the cache
+     * is dropped in {@link #setBlockFromInventory(BlockPos, Block, BlockState)}.
+     */
+    private long cachedLadderTick = Long.MIN_VALUE;
+
+    private int cachedLadderY = 0;
 
     /**
      * Constructor for the Miner. Defines the tasks the miner executes.
@@ -429,11 +443,11 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
     private IAIState repairLadder()
     {
         @NotNull final BlockPos nextCobble =
-          new BlockPos(building.getCobbleLocation().getX(), getLastLadder(building.getLadderLocation(), world) - 1, building.getCobbleLocation().getZ());
+          new BlockPos(building.getCobbleLocation().getX(), lastLadderY() - 1, building.getCobbleLocation().getZ());
         @NotNull final BlockPos nextLadder =
-          new BlockPos(building.getLadderLocation().getX(), getLastLadder(building.getLadderLocation(), world) - 1, building.getLadderLocation().getZ());
+          new BlockPos(building.getLadderLocation().getX(), lastLadderY() - 1, building.getLadderLocation().getZ());
         @NotNull final BlockPos safeStand =
-          new BlockPos(building.getLadderLocation().getX(), getLastLadder(building.getLadderLocation(), world), building.getLadderLocation().getZ());
+          new BlockPos(building.getLadderLocation().getX(), lastLadderY(), building.getLadderLocation().getZ());
 
         if (!world.getBlockState(nextCobble).isSolid())
         {
@@ -498,13 +512,14 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
     {
         final BuildingMiner buildingMiner = building;
         // Check if we reached the bottom of the shaft
-        if (getLastLadder(buildingMiner.getLadderLocation(), world) < world.getMinY() + SHAFT_BASE_DEPTH)
+        final int lastLadder = lastLadderY();
+        if (lastLadder < world.getMinY() + SHAFT_BASE_DEPTH)
         {
             AdvancementUtils.TriggerAdvancementPlayersForColony(job.getColony(), AdvancementTriggers.DEEP_MINE.get()::trigger);
         }
 
         // Check if we reached the mineshaft depth limit
-        if (getLastLadder(buildingMiner.getLadderLocation(), world) < buildingMiner.getDepthLimit(world))
+        if (lastLadder < buildingMiner.getDepthLimit(world))
         {
             //If the miner hut has been placed too deep.
             if (buildingMiner.getFirstModuleOccurance(MinerLevelManagementModule.class).getNumberOfLevels() == 0)
@@ -551,7 +566,7 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
      */
     private void watchShaftProgress()
     {
-        final int lastLadder = getLastLadder(building.getLadderLocation(), world);
+        final int lastLadder = lastLadderY();
         final BuildingMiner.ShaftWatch watch =
           building.tickShaftWatch(lastLadder, world.getGameTime(), STALL_GAP_LIMIT, SHAFT_RETRY_TICKS, SHAFT_STALL_TICKS);
 
@@ -672,9 +687,9 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
         final int zOffset = SHAFT_RADIUS * vector.getZ();
 
         @NotNull final BlockPos nextLadder =
-          new BlockPos(building.getLadderLocation().getX(), getLastLadder(building.getLadderLocation(), world) - 1, building.getLadderLocation().getZ());
+          new BlockPos(building.getLadderLocation().getX(), lastLadderY() - 1, building.getLadderLocation().getZ());
         @NotNull final BlockPos safeCobble =
-          new BlockPos(building.getLadderLocation().getX(), getLastLadder(building.getLadderLocation(), world) - 2, building.getLadderLocation().getZ());
+          new BlockPos(building.getLadderLocation().getX(), lastLadderY() - 2, building.getLadderLocation().getZ());
 
         //Check for safe floor
         for (int x = -SAFE_CHECK_RANGE; x <= SAFE_CHECK_RANGE; x++)
@@ -690,9 +705,9 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
         }
 
         @NotNull final BlockPos safeStand =
-          new BlockPos(building.getLadderLocation().getX(), getLastLadder(building.getLadderLocation(), world), building.getLadderLocation().getZ());
+          new BlockPos(building.getLadderLocation().getX(), lastLadderY(), building.getLadderLocation().getZ());
         @NotNull final BlockPos nextCobble =
-          new BlockPos(building.getCobbleLocation().getX(), getLastLadder(building.getLadderLocation(), world) - 1, building.getCobbleLocation().getZ());
+          new BlockPos(building.getCobbleLocation().getX(), lastLadderY() - 1, building.getCobbleLocation().getZ());
 
         final MinerLevelManagementModule module = building.getFirstModuleOccurance(MinerLevelManagementModule.class);
         if (module.getStartingLevelShaft() == 0)
@@ -730,6 +745,22 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
     }
 
     /**
+     * The y of the bottom of the mine's ladder, read at most once per tick.
+     *
+     * @return the same value {@link WorkerUtil#getLastLadder} would return for the building's ladder.
+     */
+    private int lastLadderY()
+    {
+        final long now = world.getGameTime();
+        if (now != cachedLadderTick)
+        {
+            cachedLadderY = getLastLadder(building.getLadderLocation(), world);
+            cachedLadderTick = now;
+        }
+        return cachedLadderY;
+    }
+
+    /**
      * Calculates the next non-air block to mine. Will take the nearest block it finds.
      *
      * @return the next block to mine.
@@ -738,7 +769,7 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
     private BlockPos getNextBlockInShaftToMine()
     {
         final BlockPos ladderPos = building.getLadderLocation();
-        final int lastLadder = getLastLadder(ladderPos, world);
+        final int lastLadder = lastLadderY();
 
         // Sweep before anything else. This used to sit below the shortcut return further down, which meant it was
         // skipped on exactly the passes where the miner had a solid block to aim at -- that is, on nearly all of
@@ -957,7 +988,7 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
         }
 
         final BlockPos ladderPos = building.getLadderLocation();
-        final int lastLadder = getLastLadder(ladderPos, world) + 1;
+        final int lastLadder = lastLadderY() + 1;
 
         final BlockPos vector = ladderPos.subtract(building.getCobbleLocation());
         final int xOffset = SHAFT_RADIUS * vector.getX();
@@ -972,11 +1003,18 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
     {
         final MinerLevelManagementModule module = building.getFirstModuleOccurance(MinerLevelManagementModule.class);
         ;
-        @Nullable final MinerLevel currentLevel = module.getCurrentLevel();
+        @Nullable MinerLevel currentLevel = module.getCurrentLevel();
         if (currentLevel == null)
         {
+            // Aim at the deepest level and look again, without recursing: setCurrentLevel ignores an index it
+            // cannot use, and calling this method again from inside itself turned "no levels at all" into a
+            // StackOverflowError instead of a state change.
             module.setCurrentLevel(module.getNumberOfLevels() - 1);
-            return executeNodeMining();
+            currentLevel = module.getCurrentLevel();
+            if (currentLevel == null)
+            {
+                return MINER_CHECK_MINESHAFT;
+            }
         }
         return searchANodeToMine(currentLevel);
     }
@@ -1001,7 +1039,24 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
                 if (levelId > 0)
                 {
                     module.setCurrentLevel(levelId - 1);
+                    return MINER_CHECK_MINESHAFT;
                 }
+
+                // Nothing left to dig on this level. Look for one that still has something, and if no level has,
+                // say so: the miner is only ever sent here by checkMineShaft when the shaft has already reached
+                // its depth limit, so the two states hand him back and forth for as long as the colony lives.
+                // That used to happen in complete silence -- no chat message, nothing in /mc colony diagnose --
+                // and it is a state a mine really reaches, because closing a node next to water or lava drops the
+                // children that would have gone there and they are never offered again.
+                final int levelWithWork = module.getFirstLevelWithOpenNodes();
+                if (levelWithWork >= 0)
+                {
+                    module.setCurrentLevel(levelWithWork);
+                    return MINER_CHECK_MINESHAFT;
+                }
+
+                worker.getCitizenData().triggerInteraction(new StandardInteraction(Component.translatableEscape(MINER_NO_OPEN_NODES), ChatPriority.BLOCKING));
+                return IDLE;
             }
             return MINER_CHECK_MINESHAFT;
         }
@@ -1089,20 +1144,16 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
     {
         mineNode.setStatus(MineNode.NodeStatus.IN_PROGRESS);
         building.markDirty();
-        //Preload structures
-        if (building.getWorkOrder() == null || building.getWorkOrder().getBlueprint() == null)
-        {
-            initStructure(mineNode,
-              new BlockPos(mineNode.getX(), building.getFirstModuleOccurance(MinerLevelManagementModule.class).getCurrentLevel().getDepth(), mineNode.getZ()),
-              building,
-              world,
-              job);
-            return LOAD_STRUCTURE;
-        }
 
         // Check for liquids. This used to look only at isSource(), which left every flowing block of a lake that
         // had reached the node in place, and it placed the fill block without checking there was one to place.
         // Both are now replaceFluid's problem, and it is the same sweep the shaft uses.
+        //
+        // It also has to happen before the structure is loaded, not after. The node is always started with no work
+        // order -- finishing the previous node clears it, see AbstractBuildingStructureBuilder#complete -- so the
+        // shortcut return below was taken on every first pass and the sweep ran only for a node whose build had
+        // been interrupted and resumed. In practice that meant the lava was never taken out before the miner was
+        // sent in to build, which is how a fresh node came to be flooded with the miner standing in it.
         for (int x = -NODE_DISTANCE / 2 - 1; x <= NODE_DISTANCE / 2 + 1; x++)
         {
             for (int z = -NODE_DISTANCE / 2 - 1; z <= NODE_DISTANCE / 2 + 1; z++)
@@ -1112,6 +1163,17 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
                     replaceFluid(new BlockPos(mineNode.getX() + x, standingPosition.getY() + y, mineNode.getZ() + z));
                 }
             }
+        }
+
+        //Preload structures
+        if (building.getWorkOrder() == null || building.getWorkOrder().getBlueprint() == null)
+        {
+            initStructure(mineNode,
+              new BlockPos(mineNode.getX(), building.getFirstModuleOccurance(MinerLevelManagementModule.class).getCurrentLevel().getDepth(), mineNode.getZ()),
+              building,
+              world,
+              job);
+            return LOAD_STRUCTURE;
         }
 
         workingNode = null;
@@ -1153,6 +1215,8 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
             if (WorldUtil.setBlockState(world, location, metadata))
             {
                 getInventory().extractItem(slot, 1, false);
+                // The placed block may be the new bottom rung of the ladder, so the cached depth is stale now.
+                cachedLadderTick = Long.MIN_VALUE;
             }
         }
     }
@@ -1173,41 +1237,48 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
             if (building.getWorkOrder().getBlueprint().getFileName().contains("minermainshaft"))
             {
                 final int depth = building.getWorkOrder().getLocation().getY();
-                boolean exists = false;
+                MinerLevel existingLevel = null;
                 for (final MinerLevel level : module.getLevels())
                 {
                     if (level.getDepth() == depth)
                     {
-                        exists = true;
+                        existingLevel = level;
                         break;
                     }
                 }
 
-                @Nullable final BlockPos levelSignPos = WorkerUtil.findFirstLevelSign(building.getWorkOrder().getBlueprint(), building.getWorkOrder().getLocation(), worker.level());
-                @NotNull final MinerLevel currentLevel = new MinerLevel(minerBuilding, building.getWorkOrder().getLocation().getY(), levelSignPos);
-                if (!exists)
+                // A shaft finished at a depth that already has a level -- a repair, or a shaft dug back down past
+                // a level that is still in the list -- used to build a brand new MinerLevel object, leave it out
+                // of the list and then ask for its id. MinerLevel has no equals, so the id was -1 and the sign
+                // read "Mine node: -1" with "Nodes: 0" under it. The level that is really there is the one to
+                // write about, and its own nodes are the ones to count.
+                final MinerLevel currentLevel;
+                if (existingLevel == null)
                 {
+                    @Nullable final BlockPos levelSignPos =
+                      WorkerUtil.findFirstLevelSign(building.getWorkOrder().getBlueprint(), building.getWorkOrder().getLocation(), worker.level());
+                    currentLevel = new MinerLevel(minerBuilding, depth, levelSignPos);
                     module.addLevel(currentLevel);
-                    module.setCurrentLevel(module.getNumberOfLevels());
+                    // The new level is the last one in the list, so its index is size - 1. Passing size put the
+                    // current level one past the end, where getCurrentLevel() returns null.
+                    module.setCurrentLevel(module.getNumberOfLevels() - 1);
+                }
+                else
+                {
+                    currentLevel = existingLevel;
                 }
                 WorkerUtil.updateLevelSign(world, currentLevel, module.getLevelId(currentLevel));
             }
             else
             {
-                final MinerLevel currentLevel = module.getCurrentLevel();
-                if (currentLevel == null)
+                if (module.getCurrentLevel() == null)
                 {
                     Log.getLogger().error("The mine state of the mine at: " + building.getID().toShortString() + " got corrupted. Trying to recover from this somehow....");
 
-                    // This can only happen if something with the state got broken. Safest option is not handling the node closing and just doing the normal complete actions, it will potentially recover.
+                    // This can only happen if something with the state got broken. The node still knows which level
+                    // it belongs to, so the closing below is attempted anyway; it does nothing if it cannot find it.
                 }
-                else
-                {
-                    currentLevel.closeNextNode(structurePlacer.getB().getRotationMirror(), module.getActiveNode(), world);
-                    module.setActiveNode(null);
-                    module.setOldNode(workingNode);
-                    WorkerUtil.updateLevelSign(world, currentLevel, module.getLevelId(currentLevel));
-                }
+                closeBuiltNode(module);
             }
         }
         super.executeSpecificCompleteActions();
@@ -1218,6 +1289,46 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
         {
             building.getWorkOrder().clearBlueprint();
         }
+    }
+
+    /**
+     * Close the node whose structure has just been finished, on the level that node belongs to.
+     * <p>
+     * The node to close is the one the miner was building, which is not the same thing as "whatever the mine would
+     * hand out now". {@link MinerLevelManagementModule#getActiveNode()} takes a fresh random node out of the
+     * current level whenever there is no active one, and changing level in the GUI is exactly what clears it -- so
+     * a player switching to level 1 while a node on level 3 was being built had an untouched node of level 1
+     * marked COMPLETED, taken out of the open queue and given children. That node was then solid stone forever,
+     * and its children stood the miner inside it, which he could not reach.
+     * <p>
+     * If neither the node the AI was working on nor the stored active node can be matched to a level, nothing is
+     * closed: the node keeps its IN_PROGRESS status and its place in the open queue, and is dug again later.
+     *
+     * @param module the level management module.
+     */
+    private void closeBuiltNode(@NotNull final MinerLevelManagementModule module)
+    {
+        MineNode builtNode = workingNode;
+        MinerLevel levelOfNode = module.getLevelForNode(builtNode);
+        if (levelOfNode == null)
+        {
+            // The AI field is gone after a reload; the saved active node is the same object as the level's own one.
+            builtNode = module.peekActiveNode();
+            levelOfNode = module.getLevelForNode(builtNode);
+        }
+
+        if (builtNode == null || levelOfNode == null)
+        {
+            Log.getLogger().warn("Minecolonies mine at " + building.getID().toShortString()
+                                   + ": a node build finished with no node to close, it will be dug again");
+            module.setActiveNode(null);
+            return;
+        }
+
+        levelOfNode.closeNextNode(structurePlacer.getB().getRotationMirror(), builtNode, world);
+        module.setActiveNode(null);
+        module.setOldNode(builtNode);
+        WorkerUtil.updateLevelSign(world, levelOfNode, module.getLevelId(levelOfNode));
     }
 
     @Override
@@ -1355,7 +1466,7 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
     private boolean ladderDamaged()
     {
         @NotNull final BlockPos nextLadder =
-          new BlockPos(building.getLadderLocation().getX(), getLastLadder(building.getLadderLocation(), world) - 1, building.getLadderLocation().getZ());
+          new BlockPos(building.getLadderLocation().getX(), lastLadderY() - 1, building.getLadderLocation().getZ());
 
         return !world.getBlockState(nextLadder).is(net.minecraft.tags.BlockTags.CLIMBABLE) && !world.getBlockState(nextLadder).isSolid();
     }

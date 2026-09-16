@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.block.AbstractBlock;
@@ -29,7 +31,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
@@ -76,7 +77,7 @@ public class PillarBlock extends AbstractBlock<PillarBlock> implements IMaterial
      */
     public PillarBlock()
     {
-        super(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(BLOCK_HARDNESS, RESISTANCE));
+        super(DOProps.of().mapColor(MapColor.STONE).strength(BLOCK_HARDNESS, RESISTANCE));
         this.registerDefaultState(this.stateDefinition.any().setValue(COLUMN,PillarShapeType.FULL_PILLAR));
     }
 

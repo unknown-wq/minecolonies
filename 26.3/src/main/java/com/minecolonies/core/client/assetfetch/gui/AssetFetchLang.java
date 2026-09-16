@@ -189,8 +189,31 @@ public final class AssetFetchLang
 
     // ---- client command ----
 
-    /** Chat feedback when {@code /minecolonies-client fetchassets} finds the assets already installed. */
-    public static final String COMMAND_ALREADY_INSTALLED = P + "command.alreadyinstalled";
+    /**
+     * Chat feedback when {@code /minecolonies-client fetchassets} has checked the installed pack and found
+     * every file the manifest lists. One argument: how many files, already formatted for the language.
+     *
+     * <p>A count rather than a bare "already installed", because the count is the evidence. The player
+     * typing this command is usually a player whose game looks wrong, and "8,474 files, all present" tells
+     * them where not to keep looking.</p>
+     */
+    public static final String COMMAND_VERIFIED = P + "command.verified";
+
+    /**
+     * Chat feedback when the check found files missing and the download is about to start. Three arguments:
+     * how many files are missing, how many the pack should hold, and the archive's size in bare megabytes.
+     *
+     * <p>The size is in it because the repair is the whole archive again however few files are missing —
+     * there is no way to ask a source for three textures — and a player owed a download that large should
+     * read the number before it starts rather than watch a progress bar and wonder.</p>
+     */
+    public static final String COMMAND_REPAIRING = P + "command.repairing";
+
+    /**
+     * Chat feedback when the installed pack could not be checked at all, because this build's own manifest
+     * could not be read. One argument: the reason.
+     */
+    public static final String COMMAND_CHECK_FAILED = P + "command.checkfailed";
 
     /**
      * Private constructor to hide the public one.

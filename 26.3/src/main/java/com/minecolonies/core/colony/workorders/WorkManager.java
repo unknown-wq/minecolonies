@@ -465,7 +465,10 @@ public class WorkManager implements IWorkManager
     @Override
     public void onColonyTick(@NotNull final IColony colony)
     {
+        final List<IServerWorkOrder> orderedWorkOrders = new ArrayList<>(workOrders.size());
         @NotNull final Iterator<IServerWorkOrder> iter = workOrders.values().iterator();
+
+        // Drop invalid orders and release the ones whose claiming hut is gone.
         while (iter.hasNext())
         {
             final IServerWorkOrder order = iter.next();
@@ -486,12 +489,18 @@ public class WorkManager implements IWorkManager
                 order.setClaimedBy(BlockPos.ZERO);
             }
 
-            tryAssignWorkOrder(order, (b) -> order.getClaimedBy().equals(b.getPosition()));
+            orderedWorkOrders.add(order);
         }
 
-        for (final IServerWorkOrder wo : colony.getWorkManager().getWorkOrders().values())
+        // Claimed orders first, then by priority. A HashMap iteration order is not a priority order.
+        orderedWorkOrders.sort(
+          Comparator.comparing(IServerWorkOrder::isClaimed)
+            .reversed()
+            .thenComparing(IWorkOrder.WORK_ORDER_COMPARATOR));
+
+        for (final IServerWorkOrder order : orderedWorkOrders)
         {
-            tryAssignWorkOrder(wo, wo::canBuild);
+            tryAssignWorkOrder(order, order::canBuild);
         }
     }
 
@@ -523,7 +532,7 @@ public class WorkManager implements IWorkManager
                     {
                         abstractBuildingStructureBuilder.setWorkOrder(order);
                         order.setClaimedBy(building.getID());
-                        continue;
+                        return;
                     }
                     continue;
                 }
@@ -538,6 +547,7 @@ public class WorkManager implements IWorkManager
                 {
                     abstractBuildingStructureBuilder.setWorkOrder(order);
                     order.setClaimedBy(building.getID());
+                    return;
                 }
             }
         }
@@ -573,7 +583,7 @@ public class WorkManager implements IWorkManager
         return workOrders.values().stream()
           .filter(o -> (!o.isClaimed() || o.getClaimedBy().equals(builder)))
           .filter(predicate)
-          .sorted(Comparator.comparingInt(IWorkOrder::getPriority).reversed())
+          .sorted(IWorkOrder.WORK_ORDER_COMPARATOR)
           .collect(Collectors.toList());
     }
 

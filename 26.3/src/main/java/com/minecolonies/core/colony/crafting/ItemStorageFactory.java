@@ -5,6 +5,7 @@ import com.minecolonies.api.colony.requestsystem.factory.FactoryVoidInput;
 import com.minecolonies.api.colony.requestsystem.factory.IFactoryController;
 import com.minecolonies.api.crafting.IItemStorageFactory;
 import com.minecolonies.api.crafting.ItemStorage;
+import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.Utils;
 import com.minecolonies.api.util.constant.SerializationIdentifierConstants;
 import com.minecolonies.api.util.constant.TypeConstants;
@@ -77,8 +78,13 @@ public class ItemStorageFactory implements IItemStorageFactory
     @Override
     public ItemStorage deserialize(@NotNull final HolderLookup.Provider provider, @NotNull final IFactoryController controller, @NotNull final CompoundTag nbt)
     {
-        final ItemStack stack = ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), nbt.getCompoundOrEmpty(TAG_STACK)).result().orElse(ItemStack.EMPTY);
-        stack.setCount(1);  // fix old data
+        final ItemStack stack = ItemStackUtils.readOptionalStack(provider, nbt.getCompoundOrEmpty(TAG_STACK), "an item storage entry");
+        if (!stack.isEmpty())
+        {
+            // Guarded because ItemStack.EMPTY is a shared singleton and setCount writes straight to its field: a
+            // count stamped onto it here would be seen by every holder of ItemStack.EMPTY in the game.
+            stack.setCount(1);  // fix old data
+        }
         final int size = nbt.getIntOr(TAG_SIZE, 0);
         final boolean ignoreNBT = nbt.getBooleanOr(TAG_SHOULDIGNORENBT, false);
         final boolean ignoreDamage = nbt.getBooleanOr(TAG_SHOULDIGNOREDAMAGE, false);

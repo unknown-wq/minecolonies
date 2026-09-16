@@ -179,7 +179,15 @@ public class MinimumStockModule extends AbstractBuildingModule implements IMinim
         for (int i = 0; i < minimumStockTagList.size(); i++)
         {
             final CompoundTag compoundNBT = minimumStockTagList.getCompoundOrEmpty(i);
-            minimumStock.put(new ItemStorage(ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), compoundNBT.getCompoundOrEmpty(NbtTagConstants.STACK)).result().orElse(ItemStack.EMPTY)), compoundNBT.getIntOr(TAG_QUANTITY, 0));
+            // The minimum stock list is the player's own standing order. An entry that cannot be read back is one
+            // of those orders disappearing; an air entry in its place would keep the row and request nothing for ever.
+            final ItemStack stack = ItemStackUtils.readOptionalStack(provider,
+              compoundNBT.getCompoundOrEmpty(NbtTagConstants.STACK),
+              "entry " + i + " of the minimum stock list");
+            if (!stack.isEmpty())
+            {
+                minimumStock.put(new ItemStorage(stack), compoundNBT.getIntOr(TAG_QUANTITY, 0));
+            }
         }
     }
 

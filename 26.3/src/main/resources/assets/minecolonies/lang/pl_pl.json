@@ -43,6 +43,5 @@
   "com.minecolonies.coremod.assetfetch.cancelled.title": "Pobieranie anulowane",
   "com.minecolonies.coremod.assetfetch.cancelled.body": "Nic nie zostało zainstalowane ani zmienione.",
   "com.minecolonies.coremod.assetfetch.gate.title": "Zasoby MineColonies nie są zainstalowane",
-  "com.minecolonies.coremod.assetfetch.gate.body": "To okno potrzebuje oryginalnych plików układu i tekstur MineColonies, których nie ma jeszcze w tym pliku JAR. Pobierz je raz, a wszystkie okna MineColonies zaczną działać.",
-  "com.minecolonies.coremod.assetfetch.command.alreadyinstalled": "Zasoby MineColonies są już zainstalowane."
+  "com.minecolonies.coremod.assetfetch.gate.body": "To okno potrzebuje oryginalnych plików układu i tekstur MineColonies, których nie ma jeszcze w tym pliku JAR. Pobierz je raz, a wszystkie okna MineColonies zaczną działać."
 }

@@ -43,6 +43,5 @@
   "com.minecolonies.coremod.assetfetch.cancelled.title": "내려받기를 취소했습니다",
   "com.minecolonies.coremod.assetfetch.cancelled.body": "아무것도 설치되지 않았고 아무것도 바뀌지 않았습니다.",
   "com.minecolonies.coremod.assetfetch.gate.title": "MineColonies 리소스가 설치되지 않았습니다",
-  "com.minecolonies.coremod.assetfetch.gate.body": "이 창에는 MineColonies 원본 레이아웃과 텍스처 파일이 필요하지만, 아직 이 jar에 들어 있지 않습니다. 한 번만 내려받으면 모든 MineColonies 창이 정상적으로 열립니다.",
-  "com.minecolonies.coremod.assetfetch.command.alreadyinstalled": "MineColonies 리소스가 이미 설치되어 있습니다."
+  "com.minecolonies.coremod.assetfetch.gate.body": "이 창에는 MineColonies 원본 레이아웃과 텍스처 파일이 필요하지만, 아직 이 jar에 들어 있지 않습니다. 한 번만 내려받으면 모든 MineColonies 창이 정상적으로 열립니다."
 }

@@ -121,7 +121,7 @@ public class StructurePlacer
             iterator.includeEntities();
         }
 
-        iterator.setProgressPos(new BlockPos(inputPos.getX(), inputPos.getY(), inputPos.getZ()));
+        iterator.setProgressPos(inputPos);
 
         AbstractBlueprintIterator.Result iterationResult = iterateFunction.get();
         BlockPos lastPos = inputPos;
@@ -139,7 +139,7 @@ public class StructurePlacer
             }
 
             final BlockState localState = handler.getBluePrint().getBlockState(localPos);
-            if (localState == null || world.isOutsideBuildHeight(worldPos))
+            if (world.isOutsideBuildHeight(worldPos))
             {
                 iterationResult = iterateFunction.get();
                 continue;

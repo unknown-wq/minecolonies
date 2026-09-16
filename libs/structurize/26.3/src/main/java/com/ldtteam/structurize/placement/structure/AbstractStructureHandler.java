@@ -1,7 +1,9 @@
 package com.ldtteam.structurize.placement.structure;
 
+import com.ldtteam.structurize.api.Log;
 import com.ldtteam.structurize.blockentities.interfaces.IBlueprintDataProviderBE;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
+import com.ldtteam.structurize.storage.StructurePackMeta;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.api.RotationMirror;
 import net.minecraft.core.BlockPos;
@@ -22,16 +24,17 @@ public abstract class AbstractStructureHandler implements IStructureHandler
      * The blueprint future.
      */
     private Future<Blueprint> blueprintFuture = null;
+
+    /**
+     * Whether the future above has already been taken. A future that resolved to null must not be asked again,
+     * or every call re-reports the same failure.
+     */
+    private boolean blueprintFutureTaken = false;
     
     /**
      * blueprint of the structure.
      */
     private Blueprint               blueprint;
-
-    /**
-     * The MD5 value of the blueprint.
-     */
-    private String md5;
 
     /**
      * The used settings for the placement.
@@ -82,14 +85,29 @@ public abstract class AbstractStructureHandler implements IStructureHandler
     @Override
     public void triggerSuccess(final BlockPos pos, final List<ItemStack> requiredRes, final boolean placement)
     {
-        final BlockEntity be = getWorld().getBlockEntity(getProgressPosInWorld(pos));
-        if (be instanceof IBlueprintDataProviderBE)
+        // Worked out once: getProgressPosInWorld allocates, and this runs for every iterated position, not
+        // only the ones actually placed.
+        final BlockPos inWorld = getProgressPosInWorld(pos);
+        final BlockEntity be = getWorld().getBlockEntity(inWorld);
+        if (be instanceof final IBlueprintDataProviderBE dataProvider)
         {
-            if (getProgressPosInWorld(pos).equals(worldPos))
+            if (inWorld.equals(worldPos))
             {
-                ((IBlueprintDataProviderBE) be).setBlueprintPath(StructurePacks.getStructurePack(getBluePrint().getPackName()).getSubPath(getBluePrint().getFilePath().resolve(getBluePrint().getFileName())) + ".blueprint");
+                // The pack can be gone -- an unloaded or renamed pack leaves the blueprint holding a name that
+                // no longer resolves -- and this used to dereference the lookup straight away.
+                final StructurePackMeta pack = StructurePacks.getStructurePack(getBluePrint().getPackName());
+                if (pack != null)
+                {
+                    dataProvider.setBlueprintPath(
+                        pack.getSubPath(getBluePrint().getFilePath().resolve(getBluePrint().getFileName())) + ".blueprint");
+                }
+                else
+                {
+                    Log.getLogger().warn("No structure pack named '" + getBluePrint().getPackName()
+                                           + "'; the placed block keeps no blueprint path.");
+                }
             }
-            ((IBlueprintDataProviderBE) be).setPackName(getBluePrint().getPackName());
+            dataProvider.setPackName(getBluePrint().getPackName());
         }
     }
 
@@ -97,12 +115,6 @@ public abstract class AbstractStructureHandler implements IStructureHandler
     public boolean hasBluePrint()
     {
         return blueprint != null;
-    }
-
-    @Override
-    public void setMd5(final String md5)
-    {
-        this.md5 = md5;
     }
 
     @Override
@@ -114,16 +126,32 @@ public abstract class AbstractStructureHandler implements IStructureHandler
     @Override
     public Blueprint getBluePrint()
     {
-        if (blueprint == null && blueprintFuture != null && blueprintFuture.isDone())
+        if (blueprint == null && blueprintFuture != null && !blueprintFutureTaken)
         {
+            if (!blueprintFuture.isDone())
+            {
+                return null;
+            }
+
+            blueprintFutureTaken = true;
             try
             {
-                blueprint = blueprintFuture.get();
-                blueprint.setRotationMirror(rotMir, world);
+                // A refused or unreadable blueprint resolves to null here, which is a legal result and not an
+                // error to dereference: the caller has to be able to see that there is nothing to place.
+                final Blueprint loaded = blueprintFuture.get();
+                if (loaded == null)
+                {
+                    Log.getLogger().error("Structure at " + worldPos + " could not be loaded; nothing will be placed.");
+                }
+                else
+                {
+                    loaded.setRotationMirror(rotMir, world);
+                }
+                blueprint = loaded;
             }
             catch (InterruptedException | ExecutionException e)
             {
-                e.printStackTrace();
+                Log.getLogger().error("Failed to load the structure at " + worldPos, e);
             }
         }
         return this.blueprint;
@@ -133,12 +161,6 @@ public abstract class AbstractStructureHandler implements IStructureHandler
     public Level getWorld()
     {
         return this.world;
-    }
-
-    @Override
-    public String getMd5()
-    {
-        return md5;
     }
 
     @Override

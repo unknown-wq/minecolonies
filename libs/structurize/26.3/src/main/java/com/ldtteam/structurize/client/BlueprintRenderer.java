@@ -111,7 +111,7 @@ public class BlueprintRenderer implements AutoCloseable
      */
     public void updateBlueprint(final BlueprintPreviewData previewData)
     {
-        if (blockAccess.getLevelSource() != previewData.getBlueprint() && blockAccess.getLevelSource().hashCode() == previewData.getBlueprint().hashCode())
+        if (blockAccess.getLevelSource() != previewData.getBlueprint() && blockAccess.getLevelSource().equals(previewData.getBlueprint()))
         {
             blockAccess.setLevelSource(previewData.getBlueprint());
         }

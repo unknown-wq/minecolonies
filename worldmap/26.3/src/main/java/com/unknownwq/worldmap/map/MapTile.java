@@ -347,7 +347,11 @@ public final class MapTile
         }
 
         this.lastUsed = System.nanoTime();
-        this.revision++;
+        // Taken from the shared counter, not incremented in place. A local increment walks this tile's revision
+        // into the range the counter is still handing out to tiles created later, so a tile written N times and a
+        // tile made N places further along collide -- and a collision on the same key tells the texture cache the
+        // picture is current when it is not, freezing that square until the zoom changes.
+        this.revision = REVISIONS.incrementAndGet();
         if (!this.dirty)
         {
             this.dirtySince = System.currentTimeMillis();

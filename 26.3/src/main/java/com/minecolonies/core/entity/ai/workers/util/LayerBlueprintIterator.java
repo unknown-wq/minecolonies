@@ -191,18 +191,6 @@ public class LayerBlueprintIterator extends AbstractBlueprintIteratorWrapper
             layerBlueprint = null;
         }
 
-        @Override
-        public void setMd5(final String s)
-        {
-            delegate.setMd5(s);
-        }
-
-        @Override
-        public String getMd5()
-        {
-            return delegate.getMd5();
-        }
-
         /**
          * Helper to get the layer from the iterator. `outer` may temporarily be null, during the super class constructor call of LayerBlueprintIterator
          * @return the layer, or a default "0" when outer is not initialised yet

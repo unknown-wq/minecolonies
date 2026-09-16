@@ -181,6 +181,20 @@ public class UpdateSchematicsCommand extends AbstractCommand
             bluePrintCompound.put("name", (StringTag.valueOf(input.toString().replaceAll("\\.nbt", ""))));
             bluePrintCompound.putInt("version", 1);
 
+            // Carry the source file's data version across. The blueprint loader reads this tag to decide which
+            // fixers to run, and refuses anything below MIN_SUPPORTED_DATA_VERSION; without it every file this
+            // command writes reads back as DEFAULT_FIXER_IF_NOT_FOUND, i.e. older than the floor, so the loader
+            // rejects the command's own output. A vanilla structure with no DataVersion predates the tag entirely
+            // (pre-1.9) and stays below the floor on purpose -- there is nothing to fix it with.
+            final int sourceDataVersion = blueprint.getIntOr("DataVersion", DEFAULT_FIXER_IF_NOT_FOUND);
+            bluePrintCompound.putInt("mcversion", sourceDataVersion);
+            if (sourceDataVersion < MIN_SUPPORTED_DATA_VERSION)
+            {
+                Log.getLogger().warn("Converted '" + input.getFileName() + "' but its data version (" + sourceDataVersion
+                                       + ") is below the oldest supported (" + MIN_SUPPORTED_DATA_VERSION
+                                       + " / Minecraft 1.13), so the result will not load. Re-save the source in a newer Minecraft first.");
+            }
+
             final ListTag newEntities = new ListTag();
             if (blueprint.contains("entities"))
             {

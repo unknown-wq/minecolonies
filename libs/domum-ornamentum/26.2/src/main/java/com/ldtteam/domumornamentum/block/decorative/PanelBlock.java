@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.decorative;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.block.AbstractPanelBlockTrapdoor;
@@ -58,7 +60,7 @@ public class PanelBlock extends AbstractPanelBlockTrapdoor<PanelBlock> implement
 
     public PanelBlock()
     {
-        this(Properties.of().mapColor(MapColor.WOOD).strength(3.0F).noOcclusion().isValidSpawn((state, blockGetter, pos, type) -> false));
+        this(DOProps.of().mapColor(MapColor.WOOD).strength(3.0F).noOcclusion().isValidSpawn((state, blockGetter, pos, type) -> false));
     }
 
     public PanelBlock(final Properties props)

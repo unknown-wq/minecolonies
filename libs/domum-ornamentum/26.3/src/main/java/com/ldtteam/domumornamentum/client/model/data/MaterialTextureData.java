@@ -7,7 +7,6 @@ import com.ldtteam.domumornamentum.block.IMateriallyTexturedBlockComponent;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -18,7 +17,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.IntFunction;
 import java.util.function.UnaryOperator;
 
@@ -72,43 +70,6 @@ public record MaterialTextureData(Map<Identifier, Block> getTexturedComponents)
 
         final Builder newData = new Builder();
         block.getComponents().forEach(comp -> newData.setComponent(comp.getId(), getTexturedComponents().get(comp.getId())));
-        return newData.build();
-    }
-
-    /**
-     * @deprecated use datacomponent or codec, remove at 1.22
-     */
-    @Deprecated(forRemoval = true, since = "1.21")
-    public CompoundTag serializeNBT()
-    {
-        final CompoundTag nbt = new CompoundTag();
-
-        if (isEmpty())
-            return nbt;
-
-        this.getTexturedComponents().forEach((key, value) -> nbt.putString(key.toString(), Objects.requireNonNull(BuiltInRegistries.BLOCK.getKey(value)).toString()));
-
-        return nbt;
-    }
-
-    /**
-     * @deprecated use datacomponent or codec, remove at 1.22
-     */
-    @Deprecated(forRemoval = true, since = "1.21")
-    public static MaterialTextureData deserializeFromNBT(final CompoundTag nbt)
-    {
-        if (nbt == null || nbt.isEmpty())
-            return EMPTY;
-
-        // 26.2: CompoundTag#getAllKeys -> keySet(), getString(String) -> Optional<String>,
-        // Registry#get(Identifier) -> Optional<Holder.Reference<T>> (the direct value lookup is getValue).
-        // Verified in /opt/mc-src/net/minecraft/nbt/CompoundTag.java:193,331 and
-        // /opt/mc-src/net/minecraft/core/Registry.java:65,133.
-        final Builder newData = new Builder();
-        nbt.keySet().forEach(key -> nbt.getString(key)
-            .map(Identifier::parse)
-            .map(BuiltInRegistries.BLOCK::getValue)
-            .ifPresent(block -> newData.setComponent(Identifier.parse(key), block)));
         return newData.build();
     }
 

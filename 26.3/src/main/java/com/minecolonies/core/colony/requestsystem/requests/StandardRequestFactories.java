@@ -14,6 +14,7 @@ import com.minecolonies.api.colony.requestsystem.requestable.deliveryman.Deliver
 import com.minecolonies.api.colony.requestsystem.requestable.deliveryman.Pickup;
 import com.minecolonies.api.colony.requestsystem.requester.IRequester;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
+import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.NBTUtils;
 import com.minecolonies.api.util.Utils;
 import com.minecolonies.api.util.constant.SerializationIdentifierConstants;
@@ -1194,7 +1195,13 @@ public final class StandardRequestFactories
         {
             final ImmutableList.Builder<ItemStack> stackBuilder = ImmutableList.builder();
             final ListTag deliveriesList = compound.getListOrEmpty(NBT_DELIVERIES);
-            NBTUtils.streamCompound(deliveriesList).forEach(itemStackCompound -> stackBuilder.add(ItemStack.OPTIONAL_CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), itemStackCompound).result().orElse(ItemStack.EMPTY)));
+            // The deliveries are the stacks a courier is already carrying for this request. One that will not read
+            // back is cargo that vanishes; it is named, and left out rather than turned into a delivery of air, which
+            // the deliveryman would otherwise try to hand over.
+            NBTUtils.streamCompound(deliveriesList)
+              .map(itemStackCompound -> ItemStackUtils.readOptionalStack(provider, itemStackCompound, "a delivery of request " + token))
+              .filter(stack -> !stack.isEmpty())
+              .forEach(stackBuilder::add);
 
             request.overrideCurrentDeliveries(stackBuilder.build());
         }

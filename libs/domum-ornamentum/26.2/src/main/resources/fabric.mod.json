@@ -31,9 +31,6 @@
       "com.ldtteam.domumornamentum.datagen.DomumOrnamentumDataGenerator"
     ]
   },
-  "mixins": [
-    "domum_ornamentum.mixins.json"
-  ],
   "accessWidener": "domum_ornamentum.accesswidener",
 
   "depends": {

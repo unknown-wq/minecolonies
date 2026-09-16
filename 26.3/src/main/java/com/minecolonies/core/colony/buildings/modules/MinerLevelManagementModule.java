@@ -2,6 +2,8 @@ package com.minecolonies.core.colony.buildings.modules;
 
 import com.minecolonies.api.colony.buildings.modules.AbstractBuildingModule;
 import com.minecolonies.api.colony.buildings.modules.IPersistentModule;
+import com.minecolonies.api.util.Log;
+import com.minecolonies.api.util.Vec2i;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.core.colony.workorders.WorkOrderMiner;
 import com.minecolonies.core.entity.ai.workers.util.MinerLevel;
@@ -68,12 +70,49 @@ public class MinerLevelManagementModule extends AbstractBuildingModule implement
 
         if (compound.contains(TAG_ACTIVE))
         {
-            activeNode = MineNode.createFromNBT(compound.getCompoundOrEmpty(TAG_ACTIVE));
+            activeNode = resolveAgainstCurrentLevel(MineNode.createFromNBT(compound.getCompoundOrEmpty(TAG_ACTIVE)));
         }
         else if (compound.contains(TAG_OLD))
         {
-            oldNode = MineNode.createFromNBT(compound.getCompoundOrEmpty(TAG_OLD));
+            oldNode = resolveAgainstCurrentLevel(MineNode.createFromNBT(compound.getCompoundOrEmpty(TAG_OLD)));
         }
+    }
+
+    /**
+     * Turn a node that was just read out of NBT into the level's own node object.
+     * <p>
+     * The active node is stored a second time, next to the level it belongs to, so reading it back gave a third
+     * copy of a node that the level already held: status changes made through it never reached the copy that gets
+     * saved. The node always comes from the current level (that is the only place {@link #getActiveNode()} takes
+     * one from), so it is looked up there; a node that is not in it any more is dropped rather than kept as a
+     * detached copy, and the miner simply picks a new one.
+     *
+     * @param node the node read from NBT.
+     * @return the level's own object for that position, or null.
+     */
+    @Nullable
+    private MineNode resolveAgainstCurrentLevel(@Nullable final MineNode node)
+    {
+        if (node == null)
+        {
+            return null;
+        }
+
+        final MinerLevel level = getCurrentLevel();
+        if (level == null)
+        {
+            Log.getLogger().warn("Minecolonies mine: dropping the stored node " + node.getX() + ":" + node.getZ()
+                                   + ", level " + currentLevel + " of " + levels.size() + " is not there");
+            return null;
+        }
+
+        final MineNode stored = level.getNode(new Vec2i(node.getX(), node.getZ()));
+        if (stored == null)
+        {
+            Log.getLogger().warn("Minecolonies mine: dropping the stored node " + node.getX() + ":" + node.getZ()
+                                   + ", it is not part of level " + currentLevel + " (depth " + level.getDepth() + ") any more");
+        }
+        return stored;
     }
 
     @Override
@@ -178,6 +217,14 @@ public class MinerLevelManagementModule extends AbstractBuildingModule implement
      */
     public void setCurrentLevel(final int currentLevel)
     {
+        if (currentLevel < 0 || currentLevel >= levels.size())
+        {
+            // The index comes straight off a GUI packet, the same way repairLevel's does, and a level that is out
+            // of range would be stored as-is: getCurrentLevel() then hands back null for good, and a negative one
+            // threw out of getActiveNode's levels.get.
+            return;
+        }
+
         this.currentLevel = currentLevel;
         this.activeNode = null;
         this.oldNode = null;
@@ -220,6 +267,10 @@ public class MinerLevelManagementModule extends AbstractBuildingModule implement
             {
                 currentLevel = levels.size() - 1;
             }
+            if (currentLevel < 0)
+            {
+                currentLevel = 0;
+            }
             calcNode = levels.get(currentLevel).getRandomNode(oldNode);
         }
 
@@ -228,6 +279,82 @@ public class MinerLevelManagementModule extends AbstractBuildingModule implement
             activeNode = calcNode;
         }
         return activeNode;
+    }
+
+    /**
+     * Read the active node without picking a new one.
+     * <p>
+     * {@link #getActiveNode()} is not a getter: when there is no active node it takes a fresh one out of the
+     * current level and stores it. That is what the mining AI wants when it is looking for work, and it is exactly
+     * wrong for everybody else -- the pathfinding proxy asking which node the miner is at, or the build-completion
+     * code asking which node was just dug, would silently invent one. In particular, switching level in the GUI
+     * clears the active node, so a completion that asked the lazy getter got an untouched node of the newly
+     * selected level and closed that instead.
+     *
+     * @return the active node, or null if there is none.
+     */
+    @Nullable
+    public MineNode peekActiveNode()
+    {
+        return activeNode;
+    }
+
+    /**
+     * Find the level a node object belongs to.
+     *
+     * @param node the node.
+     * @return the level holding this very node object, or null if no level does.
+     */
+    @Nullable
+    public MinerLevel getLevelForNode(@Nullable final MineNode node)
+    {
+        if (node == null)
+        {
+            return null;
+        }
+
+        for (final MinerLevel level : levels)
+        {
+            if (level.holds(node))
+            {
+                return level;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Whether any level of this mine still has a node left to dig.
+     *
+     * @return true if at least one level has an open node.
+     */
+    public boolean hasOpenNodes()
+    {
+        for (final MinerLevel level : levels)
+        {
+            if (level.hasOpenNodes())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Find the first level that still has a node left to dig.
+     *
+     * @return the index of that level, or -1 if the whole mine is dug out.
+     */
+    public int getFirstLevelWithOpenNodes()
+    {
+        for (int i = 0; i < levels.size(); i++)
+        {
+            if (levels.get(i).hasOpenNodes())
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**

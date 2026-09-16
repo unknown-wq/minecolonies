@@ -140,6 +140,8 @@ public final class ResearchConstants
     public static final Identifier TOOL_DURABILITY   = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "effects/tooldurabilitymultiplier");
     public static final Identifier WALKING           = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "effects/walkingmultiplier");
     public static final Identifier LOOTING           = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "effects/looting");
+    public static final Identifier MOUNT_HEALTH      = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "effects/mounthealth");
+    public static final Identifier MOUNT_ARMOR       = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "effects/mountarmor");
 
     //Unlock Ability modifiers.
     public static final Identifier CRUSHING_11       = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "effects/crushing11unlock");

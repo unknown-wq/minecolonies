@@ -43,6 +43,5 @@
   "com.minecolonies.coremod.assetfetch.cancelled.title": "下载已取消",
   "com.minecolonies.coremod.assetfetch.cancelled.body": "没有安装任何内容，也没有改动任何内容。",
   "com.minecolonies.coremod.assetfetch.gate.title": "MineColonies 资源文件尚未安装",
-  "com.minecolonies.coremod.assetfetch.gate.body": "此界面需要 MineColonies 原有的布局和材质文件，而它们还不在这个 jar 中。下载一次之后，所有 MineColonies 界面都能正常打开。",
-  "com.minecolonies.coremod.assetfetch.command.alreadyinstalled": "MineColonies 资源文件已经安装。"
+  "com.minecolonies.coremod.assetfetch.gate.body": "此界面需要 MineColonies 原有的布局和材质文件，而它们还不在这个 jar 中。下载一次之后，所有 MineColonies 界面都能正常打开。"
 }

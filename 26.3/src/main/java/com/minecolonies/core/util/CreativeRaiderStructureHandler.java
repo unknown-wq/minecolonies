@@ -80,10 +80,14 @@ public final class CreativeRaiderStructureHandler extends CreativeStructureHandl
 
         this.event = event;
         this.colonyId = colonyId;
-        final BlockInfo info = getBluePrint().getBlockInfoAsMap().getOrDefault(getBluePrint().getPrimaryBlockOffset(), null);
-        if (info.getTileEntityData() != null)
+        // getBluePrint() may legitimately answer null now (a blueprint that was refused or could not be read),
+        // and the anchor lookup could always answer null for a blueprint whose primary offset is not a block
+        // of its own; both used to be straight NPEs in a constructor.
+        final Blueprint loaded = getBluePrint();
+        final BlockInfo info = loaded == null ? null : loaded.getBlockInfoAsMap().get(loaded.getPrimaryBlockOffset());
+        if (info != null && info.getTileEntityData() != null)
         {
-            final CompoundTag teData = getBluePrint().getTileEntityData(pos, getBluePrint().getPrimaryBlockOffset());
+            final CompoundTag teData = loaded.getTileEntityData(pos, loaded.getPrimaryBlockOffset());
             if (teData != null && teData.contains(TAG_BLUEPRINTDATA))
             {
                 final BlockEntity entity = BlockEntity.loadStatic(pos, info.getState(), info.getTileEntityData(), world.registryAccess());
@@ -124,10 +128,14 @@ public final class CreativeRaiderStructureHandler extends CreativeStructureHandl
 
         this.event = event;
         this.colonyId = colonyId;
-        final BlockInfo info = getBluePrint().getBlockInfoAsMap().getOrDefault(getBluePrint().getPrimaryBlockOffset(), null);
-        if (info.getTileEntityData() != null)
+        // getBluePrint() may legitimately answer null now (a blueprint that was refused or could not be read),
+        // and the anchor lookup could always answer null for a blueprint whose primary offset is not a block
+        // of its own; both used to be straight NPEs in a constructor.
+        final Blueprint loaded = getBluePrint();
+        final BlockInfo info = loaded == null ? null : loaded.getBlockInfoAsMap().get(loaded.getPrimaryBlockOffset());
+        if (info != null && info.getTileEntityData() != null)
         {
-            final CompoundTag teData = getBluePrint().getTileEntityData(pos, getBluePrint().getPrimaryBlockOffset());
+            final CompoundTag teData = loaded.getTileEntityData(pos, loaded.getPrimaryBlockOffset());
             if (teData != null && teData.contains(TAG_BLUEPRINTDATA))
             {
                 final BlockEntity entity = BlockEntity.loadStatic(pos, info.getState(), info.getTileEntityData(), world.registryAccess());

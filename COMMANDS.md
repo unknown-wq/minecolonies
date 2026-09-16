@@ -26,15 +26,22 @@ room", "the colony has no warehouse" and "that warehouse is set to manual" are
 three different repairs and the counts are what tell them apart. It counts as a
 problem, so a colony with one no longer reports `No problems found`.
 
-**Border patrols.** When a barracks has been set to walk a border (its `Border
-Patrol` setting), the report ends with a section saying where those patrols are:
-the barracks and its mode, how many waypoints the stretch has or why none were
-found, each tower's slice of it and the point it is heading for, and every guard
-by name with where he is standing and how far that is off his own stretch. A guard
-more than 100 blocks off it is called out in words. This is the answer to "where
-are my patrols and what are they doing", including the one that has ended up
-somewhere odd. Colonies with no barracks, or a barracks with the setting off, add
-nothing to the report and pay one string compare for it.
+**Border patrols.** When a barracks tower has been set to the `Border Patrol`
+task, the report ends with a section saying where those patrols are: the barracks
+and its mode, how many waypoints the stretch has (and how many blocks of line were
+asked for) or why none were found, each tower's slice of it and the point it is
+heading for, and every guard by name with where he is standing and how far that is
+off his own stretch. A guard more than 100 blocks off it is called out in words.
+This is the answer to "where are my patrols and what are they doing", including the
+one that has ended up somewhere odd. Colonies with no barracks, or a barracks none
+of whose towers is on the task, add nothing to the report and pay one walk of the
+tower list for it.
+
+The switch used to be a setting on the barracks itself, which put every tower on the
+border while each tower's own task still read `Patrol`. It is now the guard task and
+only the guard task, on the tower, the same way a Stable turns one on. A save from
+before the change has its towers put on the task the first time the barracks ticks,
+so a garrison that was patrolling a border keeps patrolling one.
 
 A **Stable** set to the `Border Patrol` task appears in the same section, but per rider
 rather than per tower: a Stable is one building with a whole troop in it, so the report
@@ -1473,6 +1480,67 @@ so standing on a territory does not make your own tools start editing it.
 
 `/mc colony list` shows a territory like any other colony, and that is deliberate:
 it is where you look up the id you need for `bind` and `delete`.
+
+### `/minecolonies-client fetchassets`
+
+**Client-side, not a colony command.** It has its own root because it has to work
+before — and whether or not — a colony or a server exists, and it is the one entry
+point to the downloaded asset pack. There is no startup prompt beyond the consent
+screen that already exists; nothing new appears on its own.
+
+It does one of three things, decided by what is on disk:
+
+**Nothing installed, or an earlier version's pack, or a pack an archive could not
+fill in completely.** The consent screen opens, exactly as before. The download is
+78 MB of someone else's All-Rights-Reserved files and the player is asked before it
+starts; that is what the screen is for.
+
+**Installed and complete.** The command now *looks* before it answers. It checks
+every one of the 8,474 paths the manifest lists against the pack on disk and
+reports the count:
+
+```
+The MineColonies assets are installed and complete: all 8,474 files are present. Nothing needed repairing.
+```
+
+Nothing is written, moved or deleted — the check is a `stat` per file and takes on
+the order of 60 ms on a tree the game has just finished reading.
+
+**Installed but damaged.** This is the case the command used to be unable to see.
+`state.json` saying `installed` and a `pack.mcmeta` that parses are all it takes
+to look installed, and a pack can satisfy both while having lost any number of its
+files — to an interrupted copy, a disk that filled, a backup tool, a hand-cleaned
+cache. The player then gets a checkerboarded game, types the only command there is,
+and used to be told everything was fine. Now the missing files are counted, named
+in the log, and fetched:
+
+```
+35 of the 8,474 MineColonies asset files are missing from the downloaded pack. They are only
+available inside the full archive, so repairing them means downloading it again -- about 74.5 MB.
+Starting that now.
+```
+
+**The whole archive comes down again even to replace three files, and the message
+says so before it starts.** That is not laziness: every download source is one
+whole upstream jar, and the manifest is a list of paths with no per-file hashes in
+it, so there is nothing to ask a source for a single file *with* and nothing to
+check a single file's bytes *against*. The one integrity guarantee the feature
+makes is the whole-archive SHA-256 pin, and a partial fetch cannot honour it.
+The player is not asked a second time — they consented to this download when they
+installed these same assets — but they are told the size first.
+
+**It cannot make things worse.** The check only reads. The repair is the ordinary
+install: the replacement pack is built in `minecolonies/fetched-assets/tmp/` and
+swapped in only once it is finished, the pack being replaced is parked rather than
+deleted and put back if anything fails, and nothing outside
+`minecolonies/fetched-assets/` is touched at any point. A repair that cannot reach
+a source reports that and leaves the pack exactly as it found it, damage and all —
+which is still better than the pack it would otherwise have deleted.
+
+A file the pack holds that the manifest does *not* list is not damage and is not
+counted; the install prunes those anyway on its next run. What counts as missing is
+a path with no regular file at it, or one of zero length — the shape a half-written
+file takes.
 
 ## Item
 

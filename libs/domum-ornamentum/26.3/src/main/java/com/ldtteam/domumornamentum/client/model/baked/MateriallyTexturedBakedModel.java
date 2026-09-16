@@ -126,7 +126,7 @@ public class MateriallyTexturedBakedModel extends WrapperBlockStateModel
 
         for (final BlockStateModelPart part : parts)
         {
-            emitPart(emitter, part, replacements, state, level, pos, cullTest);
+            emitPart(emitter, part, replacements, level, pos, cullTest);
         }
     }
 
@@ -141,7 +141,6 @@ public class MateriallyTexturedBakedModel extends WrapperBlockStateModel
       final QuadEmitter emitter,
       final BlockStateModelPart part,
       final RetexturedBakedModelBuilder replacements,
-      final BlockState hostState,
       final @Nullable BlockAndTintGetter level,
       final @Nullable BlockPos pos,
       final Predicate<Direction> cullTest)
@@ -177,7 +176,7 @@ public class MateriallyTexturedBakedModel extends WrapperBlockStateModel
                 if (replacement != null)
                 {
                     ModelSpriteQuadTransformer.retexture(
-                      emitter, quad, replacement.dataFor(cullFace, quad.direction()), hostState, level, pos);
+                      emitter, quad, replacement.dataFor(cullFace, quad.direction()), level, pos);
                 }
 
                 emitter.emit();

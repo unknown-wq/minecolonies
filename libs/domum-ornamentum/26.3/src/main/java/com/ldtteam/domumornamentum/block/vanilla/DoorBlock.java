@@ -1,5 +1,7 @@
 package com.ldtteam.domumornamentum.block.vanilla;
 
+import com.ldtteam.domumornamentum.core.DOProps;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.block.AbstractBlockDoor;
@@ -50,7 +52,7 @@ public class DoorBlock extends AbstractBlockDoor<DoorBlock> implements IMaterial
 
     public DoorBlock()
     {
-        super(Properties.of().mapColor(MapColor.WOOD).strength(3.0F).noOcclusion().isValidSpawn((state, blockGetter, pos, type) -> false));
+        super(DOProps.of().mapColor(MapColor.WOOD).strength(3.0F).noOcclusion().isValidSpawn((state, blockGetter, pos, type) -> false));
         this.registerDefaultState(this.defaultBlockState().setValue(TYPE, DoorType.FULL));
     }
 

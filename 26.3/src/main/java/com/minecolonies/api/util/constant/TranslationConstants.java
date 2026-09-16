@@ -350,6 +350,7 @@ public final class TranslationConstants
     public static final String MINER_SHAFT_STUCK                                                    = "entity.miner.messageshaftstuck";
     @NonNls
     public static final String MINER_IN_DANGER                                                      = "entity.miner.messageindanger";
+    public static final String MINER_NO_OPEN_NODES                                                  = "entity.miner.messagenoopennodes";
     @NonNls
     public static final String WATER_TOO_FAR                                                        = "entity.fisherman.messagewatertoofar";
     @NonNls

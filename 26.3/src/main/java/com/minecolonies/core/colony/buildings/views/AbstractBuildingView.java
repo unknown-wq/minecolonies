@@ -26,6 +26,7 @@ import com.minecolonies.core.client.assetfetch.AssetFetchGate;
 import com.minecolonies.core.client.gui.WindowHutMinPlaceholder;
 import com.minecolonies.core.client.gui.huts.WindowHutWorkerModulePlaceholder;
 import com.minecolonies.core.colony.buildings.moduleviews.WorkerBuildingModuleView;
+import com.minecolonies.core.colony.requestsystem.locations.StaticLocation;
 import com.minecolonies.core.network.messages.server.colony.OpenInventoryMessage;
 import com.minecolonies.core.network.messages.server.colony.building.HutRenameMessage;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
@@ -162,6 +163,12 @@ public abstract class AbstractBuildingView implements IBuildingView
     private int prestige;
 
     /**
+     * Requester location of this building.
+     */
+    @NotNull
+    private final ILocation requesterLocation;
+
+    /**
      * Creates a building view.
      *
      * @param c ColonyView the building is in.
@@ -173,6 +180,7 @@ public abstract class AbstractBuildingView implements IBuildingView
         // 26.3: BlockPos has no copy constructor any more; immutable() keeps the defensive copy this line
         // was making, since the caller may pass a MutableBlockPos.
         location = l.immutable();
+        this.requesterLocation = new StaticLocation(getPosition(), colony.getDimension());
     }
 
     /**
@@ -611,7 +619,7 @@ public abstract class AbstractBuildingView implements IBuildingView
     @Override
     public ILocation getLocation()
     {
-        return null;
+        return this.requesterLocation;
     }
 
     @Override
