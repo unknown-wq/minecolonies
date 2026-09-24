@@ -125,6 +125,22 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
 
         requestTotemsIfNeeded();
 
+        // A burial that a sleep cycle or a break interrupted is resumed rather than forgotten: the grave data is
+        // still on the module, and nothing else ever clears it, so the citizen would otherwise stay unburied while
+        // the undertaker went looking for the next grave to empty.
+        //
+        // Only when there is somewhere to put him, though. A graveyard whose every plot is taken is an ordinary and
+        // long-lived state, and resuming into it would pin the worker in a BURY_CITIZEN -> "no space" -> IDLE loop
+        // that repeats the message every tick and stops him emptying graves at all - which is where the player's
+        // lost items come back from. With no free plot he does his other work and the burial waits for one.
+        final GraveyardManagementModule module = building.getModule(GraveyardManagementModule.class);
+        if (module != null && module.getLastGraveData() != null
+              && (burialPos != null || building.getRandomFreeVisualGravePos() != null))
+        {
+            worker.getCitizenData().setJobStatus(JobStatus.WORKING);
+            return BURY_CITIZEN;
+        }
+
         @Nullable final BlockPos currentGrave = building.getGraveToWorkOn();
         if (currentGrave != null)
         {
@@ -215,6 +231,13 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
         unequip();
 
         @Nullable final BlockPos gravePos = buildingGraveyard.getGraveToWorkOn();
+
+        if (gravePos == null)
+        {
+            // The reservation went away between the two lookups above - the grave was emptied by someone else, or
+            // its block entity is gone. There is nothing to walk to.
+            return IDLE;
+        }
 
         // Still moving to the block
         if (walkWithProxy(gravePos, 3))
@@ -505,7 +528,13 @@ public class EntityAIWorkUndertaker extends AbstractEntityAIInteract<JobUndertak
         }
         unequip();
 
-        module.buryCitizenHere(burialPos, worker);
+        if (!module.buryCitizenHere(burialPos, worker))
+        {
+            // No headstone went down. Drop the plot and try another one rather than clearing the grave data.
+            burialPos = null;
+            return getState();
+        }
+
         //Disabled until Mourning AI update: worker.getCitizenColonyHandler().getColony().setNeedToMourn(false, buildingGraveyard.getLastGraveData().getCitizenName());
         AdvancementUtils.TriggerAdvancementPlayersForColony(worker.getCitizenColonyHandler().getColony(), playerMP -> AdvancementTriggers.CITIZEN_BURY.get().trigger(playerMP));
 
