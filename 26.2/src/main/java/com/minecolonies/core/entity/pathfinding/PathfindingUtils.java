@@ -61,9 +61,9 @@ public class PathfindingUtils
      * @param reached the reached blocks.
      * @param players the tracking players.
      */
-    public static void syncDebugReachedPositions(final HashSet<BlockPos> reached, final List<ServerPlayer> players)
+    public static void syncDebugReachedPositions(final BlockPos reached, final List<ServerPlayer> players)
     {
-        if (reached.isEmpty() || players.isEmpty())
+        if (reached == null || players.isEmpty())
         {
             return;
         }
@@ -265,7 +265,7 @@ public class PathfindingUtils
     }
 
     /**
-     * Check if the block at this position is actually some kind of waterly fluid.
+     * Check if the block at this position is path-able/passable water. Excludes most waterlogged blocks
      *
      * @param pos the pos in the world.
      * @return true if so.
@@ -276,7 +276,7 @@ public class PathfindingUtils
     }
 
     /**
-     * Check if the block at this position is actually some kind of waterly fluid.
+     * Check if the block at this position is path-able/passable water. Excludes most waterlogged blocks
      *
      * @param pos         the pos in the world.
      * @param pState      existing blockstate or null

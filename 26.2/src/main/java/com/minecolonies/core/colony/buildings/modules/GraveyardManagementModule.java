@@ -1,5 +1,6 @@
 package com.minecolonies.core.colony.buildings.modules;
 
+import com.minecolonies.api.IMinecoloniesAPI;
 import com.minecolonies.api.blocks.AbstractBlockMinecoloniesNamedGrave;
 import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.colony.GraveData;
@@ -9,6 +10,7 @@ import com.minecolonies.api.colony.buildings.modules.IBuildingEventsModule;
 import com.minecolonies.api.colony.buildings.modules.IBuildingModule;
 import com.minecolonies.api.colony.buildings.modules.IPersistentModule;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.eventbus.events.colony.citizens.CitizenBuriedModEvent;
 import com.minecolonies.core.tileentities.TileEntityGrave;
 import com.minecolonies.core.tileentities.TileEntityNamedGrave;
 import com.minecolonies.api.util.Tuple;
@@ -192,7 +194,7 @@ public class GraveyardManagementModule extends AbstractBuildingModule implements
     /**
      * Add a citizen to the list of resting citizen in this graveyard
      */
-    public void buryCitizenHere(final Tuple<BlockPos, Direction> positionAndDirection, final AbstractEntityCitizen worker)
+    public boolean buryCitizenHere(final Tuple<BlockPos, Direction> positionAndDirection, final AbstractEntityCitizen worker)
     {
         // No !restingCitizen.contains(name) guard. Citizen names come from a fixed pool of first and last names, so
         // a colony of any size and age repeats one sooner or later, and the guard silently placed no headstone at
@@ -208,8 +210,14 @@ public class GraveyardManagementModule extends AbstractBuildingModule implements
             }
 
             colony.getWorld().destroyBlock(positionAndDirection.getA(), true, worker);
-            colony.getWorld().setBlockAndUpdate(positionAndDirection.getA(),
-                    ModBlocks.blockNamedGrave.defaultBlockState().setValue(AbstractBlockMinecoloniesNamedGrave.FACING, facing));
+            if (!colony.getWorld().setBlockAndUpdate(positionAndDirection.getA(),
+                    ModBlocks.blockNamedGrave.defaultBlockState().setValue(AbstractBlockMinecoloniesNamedGrave.FACING, facing)))
+            {
+                // The headstone did not go down - the chunk went away, or the spot stopped being replaceable between
+                // picking it and reaching it. Say so, so the undertaker picks another plot instead of counting a
+                // burial that left no grave.
+                return false;
+            }
 
             BlockEntity tileEntity = colony.getWorld().getBlockEntity(positionAndDirection.getA());
             if (tileEntity instanceof TileEntityNamedGrave)
@@ -229,6 +237,20 @@ public class GraveyardManagementModule extends AbstractBuildingModule implements
 
             restingCitizen.add(lastGraveData.getCitizenName());
             markDirty();
+
+            final CompoundTag savedCitizenNbt = lastGraveData.getCitizenDataNBT();
+            if (savedCitizenNbt != null)
+            {
+                IMinecoloniesAPI.getInstance().getEventBus().post(new CitizenBuriedModEvent(
+                  colony,
+                  positionAndDirection.getA(),
+                  savedCitizenNbt,
+                  lastGraveData.getCitizenName(),
+                  lastGraveData.getCitizenJobName(),
+                  worker.getCitizenData()));
+            }
+            return true;
         }
+        return false;
     }
 }

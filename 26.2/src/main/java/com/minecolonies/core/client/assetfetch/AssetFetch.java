@@ -16,50 +16,183 @@ import java.nio.file.Path;
 
 import static com.minecolonies.api.util.constant.Constants.MOD_ID;
 
+/**
+ * Install state of the runtime-fetched upstream assets.
+ *
+ * <p>This is the read side of the contract between the installer (which writes {@code state.json} and the
+ * {@code pack/} directory) and everything that has to know whether those assets are present: the
+ * {@link FetchedAssetsSource} resource-pack source, the window-open gate and the consent UI.</p>
+ *
+ * <p><b>Cache layout</b> ({@code C1} in the implementation brief), all under {@link #baseDir()}:</p>
+ * <ul>
+ *     <li>{@code pack/} — the pack root that gets injected: {@code pack.mcmeta} plus
+ *         {@code assets/minecolonies/**}. See {@link #packDir()}.</li>
+ *     <li>{@code state.json} — the install record. See {@link #stateFile()}.</li>
+ *     <li>{@code tmp/} — in-flight download, atomically promoted on success. Owned by the installer. The
+ *         one thing read here is the pack an interrupted swap may have parked in it; see
+ *         {@link #computeReady()}.</li>
+ * </ul>
+ *
+ * <p><b>{@code state.json}, schema version 1</b> — UTF-8 JSON, a single object:</p>
+ * <pre>
+ * {
+ *   "version":        1,
+ *   "status":         "installed",   // "declined" is legacy: read tolerantly, never written any more
+ *   "sourceId":       string,   // which entry of the source chain produced the install
+ *   "sourceUrl":      string,   // the URL (or local path) the jar came from
+ *   "jarSha256":      string,   // whole-jar hash of what was downloaded
+ *   "manifestSha256": string,   // hash of the manifest the install was made against
+ *   "complete":       boolean,  // false when part of the file set is not in the pack; see filesAbsent
+ *   "filesAbsent":    number,   // manifest files the pack does not carry at all; omitted when 0
+ *   "filesCarried":   number,   // files kept from the install before this one; omitted when 0
+ *   "installedAt":    string,   // ISO-8601 instant
+ *   "customSourceUrl": string   // owner-supplied override for source 3; may be absent or empty
+ * }
+ * </pre>
+ *
+ * <p>{@code "declined"} was written by builds up to 0.0.52, when "not now" was permanent. It no longer is:
+ * the answer lives in a field that dies with the game, so the prompt returns on the next launch. A leftover
+ * {@code "declined"} in an existing {@code state.json} still parses, is still not {@code "installed"}, and is
+ * therefore simply ignored — it cannot silence the prompt.</p>
+ *
+ * <p>This class only ever <em>reads</em> that file, and treats every kind of damage — missing, unreadable,
+ * not an object, unknown {@code version}, absent {@code status} — as "not installed". A half-written or
+ * hand-edited state file must never be able to throw on a resource reload.</p>
+ *
+ * <p>The same applies to {@code pack/pack.mcmeta}: {@link #isReady()} does not merely check that the file is
+ * there, it parses it and requires the {@code pack.min_format} and {@code pack.max_format} integers
+ * {@link PackMetaWriter} writes. That is exactly what {@code Pack.readMetaAndCreate} needs to build the pack,
+ * and it returns {@code null} on anything less — at which point {@link FetchedAssetsSource} can only drop the
+ * pack and log. Were {@link #isReady()} still to answer true for such a pack, the whole downloaded asset set
+ * would vanish with no gate, no consent screen and no way back short of deleting the cache by hand. Judging
+ * the metadata by the same standard the game does keeps a damaged install visible as "not installed", so the
+ * consent screen offers the download again.</p>
+ *
+ * <p><b>Installed is not the same as current.</b> {@link #isReady()} answers whether there is a pack the game
+ * can be handed; {@link #isStale()} answers whether that pack is the set of files <em>this</em> build
+ * expects, by comparing the {@code manifestSha256} the install recorded against the hash of the manifest
+ * this build ships. The two are kept apart on purpose. A player who updates the mod and gets a new manifest must be
+ * offered the new assets — that is the whole point — but until they accept and the replacement has been
+ * downloaded and put in place, the pack they already have goes on being served. Answering "not installed" for a
+ * pack that is merely old would take away every texture the moment the mod was updated, which is worse than
+ * the stale pack it was meant to fix.</p>
+ *
+ * <p>Deliberately <em>not</em> annotated {@code @Environment(EnvType.CLIENT)}: it is only ever consulted on
+ * the client, but it is a plain static utility with no client-side types in it, and leaving it un-stripped
+ * means a caller on a shared code path cannot trip over a missing class on a dedicated server.</p>
+ */
 public final class AssetFetch
 {
+    /**
+     * Directory under the game directory holding everything this feature owns.
+     */
     private static final String CACHE_DIR_NAME = "fetched-assets";
 
+    /**
+     * Name of the injected pack root inside {@link #baseDir()}.
+     */
     private static final String PACK_DIR_NAME = "pack";
 
+    /**
+     * The pack metadata file the game itself requires; its presence is part of {@link #isReady()}.
+     */
     private static final String PACK_META_NAME = "pack.mcmeta";
 
+    /**
+     * Name of the install-state file inside {@link #baseDir()}.
+     */
     private static final String STATE_FILE_NAME = "state.json";
 
+    /**
+     * Name of the installer's scratch directory inside {@link #baseDir()}. Read here for one purpose only:
+     * a pack an interrupted swap parked in it. Spelled the same as {@code InstallConfig.tempDir()}.
+     */
     private static final String TEMP_DIR_NAME = "tmp";
 
+    /**
+     * The only {@code state.json} schema this build understands.
+     */
     private static final int SCHEMA_VERSION = 1;
 
+    /**
+     * The one {@code status} value that means "the assets are installed".
+     */
     private static final String STATUS_INSTALLED = "installed";
 
+    /**
+     * Memoised result of {@link #isReady()}. {@code null} means "not computed since the last
+     * {@link #invalidate()}". Volatile because the resource reload runs off the render thread.
+     */
     private static volatile Boolean readyCache = null;
 
+    /**
+     * Memoised result of {@link #isStale()}, on the same terms as {@link #readyCache}.
+     */
     private static volatile Boolean staleCache = null;
 
+    /**
+     * Private constructor to hide the public one.
+     */
     private AssetFetch()
     {
+        /*
+         * Intentionally left empty.
+         */
     }
 
+    /**
+     * Root of this feature's cache: {@code <gameDir>/minecolonies/fetched-assets/}.
+     *
+     * @return the base directory. It is not created here; the installer creates it.
+     */
     public static Path baseDir()
     {
         return FabricLoader.getInstance().getGameDir().resolve(MOD_ID).resolve(CACHE_DIR_NAME);
     }
 
+    /**
+     * The pack root that {@link FetchedAssetsSource} hands to the game.
+     *
+     * @return {@link #baseDir()}{@code /pack}.
+     */
     public static Path packDir()
     {
         return baseDir().resolve(PACK_DIR_NAME);
     }
 
+    /**
+     * The install-state file.
+     *
+     * @return {@link #baseDir()}{@code /state.json}.
+     */
     public static Path stateFile()
     {
         return baseDir().resolve(STATE_FILE_NAME);
     }
 
+    /**
+     * The installer's scratch directory.
+     *
+     * @return {@link #baseDir()}{@code /tmp}.
+     */
     private static Path tempDir()
     {
         return baseDir().resolve(TEMP_DIR_NAME);
     }
 
+    /**
+     * Whether the fetched assets are installed and usable.
+     *
+     * <p>True only when {@code state.json} exists, parses as a schema-version-1 object with
+     * {@code status == "installed"}, and {@code pack/pack.mcmeta} exists <em>and</em> parses as pack metadata
+     * the game would accept — an object with a {@code pack} object carrying integer {@code min_format} and
+     * {@code max_format} members. Anything else is false — including every parse failure.</p>
+     *
+     * <p>The answer is cached, because it is consulted on every {@code loadPacks} and on every
+     * gated window open. Call {@link #invalidate()} after installing or uninstalling.</p>
+     *
+     * @return true if the pack directory may be offered to the game.
+     */
     public static boolean isReady()
     {
         Boolean cached = readyCache;
@@ -71,6 +204,32 @@ public final class AssetFetch
         return cached;
     }
 
+    /**
+     * Whether an installed pack was put there by a build that expected different files from this one.
+     *
+     * <p>True only when there <em>is</em> an installed pack — a stale answer about a pack that is not there
+     * is no answer at all — and the manifest hash it recorded is not the one this build ships. That covers
+     * the case this exists for: the player updates the mod, the manifest changes with it, and the pack on
+     * disk is the previous version's. It also covers a state file that records no manifest at all, which
+     * nothing this project ever wrote and which therefore vouches for nothing.</p>
+     *
+     * <p>What it deliberately does not do is look at the pack's contents, and nothing else does either: the
+     * installer stopped comparing files against hashes, so there is no per-file expectation left to hold a
+     * pack to. This is the identity question — <em>which</em> set of files is installed — and the manifest
+     * hash answers exactly that.</p>
+     *
+     * <p>An install that is missing files nothing could supply ({@code complete} false) is <b>not</b> stale:
+     * it was made against this manifest, and reinstalling it would fetch the same partial source again on
+     * every launch and end in the same gap.</p>
+     *
+     * <p>When the shipped manifest cannot be read at all the answer is false. There is then nothing to
+     * compare against, and a mod that cannot read its own resources must not answer that by starting a
+     * 78 MB download the installer would fail on for the same reason.</p>
+     *
+     * <p>Cached and invalidated exactly like {@link #isReady()}.</p>
+     *
+     * @return true when the installed pack should be replaced.
+     */
     public static boolean isStale()
     {
         Boolean cached = staleCache;
@@ -82,14 +241,26 @@ public final class AssetFetch
         return cached;
     }
 
+    /**
+     * Drops the cached {@link #isReady()} and {@link #isStale()} answers, so the next call re-reads the disk.
+     * The installer calls this after a successful install and after an uninstall.
+     */
     public static void invalidate()
     {
         readyCache = null;
         staleCache = null;
     }
 
+    /**
+     * The actual disk check behind {@link #isReady()}.
+     *
+     * @return true if state and pack are both present and consistent.
+     */
     private static boolean computeReady()
     {
+        // First, because everything below reads a pack directory that an interrupted install may have left
+        // parked in the scratch directory rather than in its place. Restoring it costs one existence check on
+        // every other launch, and not restoring it costs the player every asset they had.
         InstallPipeline.recoverInterruptedSwap(packDir(), tempDir(), stateFile());
 
         final Path state = stateFile();
@@ -136,6 +307,11 @@ public final class AssetFetch
         return hasUsablePackMeta(meta);
     }
 
+    /**
+     * The actual disk check behind {@link #isStale()}.
+     *
+     * @return true if there is an install and it was made against a different manifest.
+     */
     private static boolean computeStale()
     {
         if (!isReady())
@@ -165,11 +341,30 @@ public final class AssetFetch
         return true;
     }
 
+    /**
+     * Whether {@code pack.mcmeta} still says what {@link PackMetaWriter} wrote, to the depth the game itself
+     * demands: an object with a {@code pack} object in it holding integer {@code min_format} and
+     * {@code max_format} members.
+     *
+     * <p>Checked because {@code Pack.readMetaAndCreate} yields {@code null} for metadata it cannot read, and a
+     * {@code null} pack is only logged. Answering "not installed" here instead keeps the install visible as
+     * missing, so the gate holds and the consent screen offers the download again.</p>
+     *
+     * <p>Cheap by construction: the file {@link PackMetaWriter} writes is a hundred-odd bytes, and this runs
+     * only when {@link #isReady()} has no cached answer.</p>
+     *
+     * @param meta the {@code pack.mcmeta} to judge.
+     * @return true if the game would be able to build a pack from it.
+     */
     private static boolean hasUsablePackMeta(final Path meta)
     {
         final JsonObject root;
         try (BufferedReader reader = Files.newBufferedReader(meta, StandardCharsets.UTF_8))
         {
+            // Strict on purpose: the game reads pack.mcmeta through GsonHelper.parse, which sets its reader
+            // to Strictness.STRICT, while JsonParser on a plain Reader is lenient. A file that only parses
+            // leniently would pass here and then yield a null pack from Pack.readMetaAndCreate, which is the
+            // silent drop this check exists to prevent.
             final JsonReader strict = new JsonReader(reader);
             strict.setStrictness(Strictness.STRICT);
             final JsonElement parsed = JsonParser.parseReader(strict);
@@ -207,6 +402,13 @@ public final class AssetFetch
         return true;
     }
 
+    /**
+     * Whether a member is present and holds a whole number, the way a pack format has to be.
+     *
+     * @param root   the object to read from.
+     * @param member the member name.
+     * @return true if the member is an integral JSON number.
+     */
     private static boolean hasInt(final JsonObject root, final String member)
     {
         final JsonElement value = root.get(member);
@@ -218,6 +420,13 @@ public final class AssetFetch
         return number == Math.floor(number) && !Double.isInfinite(number);
     }
 
+    /**
+     * Reads a string member, tolerating absence and wrong types.
+     *
+     * @param root   the object to read from.
+     * @param member the member name.
+     * @return the value, or null if absent or not a string.
+     */
     private static String getString(final JsonObject root, final String member)
     {
         final JsonElement value = root.get(member);
@@ -228,6 +437,14 @@ public final class AssetFetch
         return value.getAsString();
     }
 
+    /**
+     * Reads an int member, tolerating absence and wrong types.
+     *
+     * @param root         the object to read from.
+     * @param member       the member name.
+     * @param fallback     what to return when the member is absent or not a number.
+     * @return the value, or the fallback.
+     */
     private static int getInt(final JsonObject root, final String member, final int fallback)
     {
         final JsonElement value = root.get(member);

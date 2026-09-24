@@ -455,5 +455,7 @@
   "com.minecolonies.gui.workerhuts.graveyard.unknowncitizen": "Unknown Citizen",
   "com.minecolonies.coremod.setting.minecolonies:leashing": "Tie animals to fences",
   "com.minecolonies.coremod.setting.tooltip.minecolonies:leashing": "Let the worker tie loose animals to any fence standing near them, so the herd stays where the pen puts it instead of milling about. One lead is spent per animal, taken from this hut's chest and ordered from the warehouse when there is none; vanilla hands the lead back when the hitch is undone or the fence is broken. Animals already on a lead, animals the worker is about to butcher, and species that refuse a lead are left alone, and no fence is ever built - a pen without one simply gets no hitches.",
-  "com.minecolonies.coremod.stable.borderpatrol.unreachable": "The %s at %s looked for the colony border and found none within %s blocks. Its riders will walk an ordinary patrol until the border comes into reach."
+  "com.minecolonies.coremod.stable.borderpatrol.unreachable": "The %s at %s looked for the colony border and found none within %s blocks. Its riders will walk an ordinary patrol until the border comes into reach.",
+  "com.minecolonies.coremod.setting.minecolonies:playmusic": "Play music at night",
+  "com.minecolonies.coremod.setting.tooltip.minecolonies:playmusic": "Whether the Tavern plays its theme to a player who walks in after dark. It needs at least two visitors sitting down, and it plays at most once every twenty minutes. The theme goes out on the jukebox volume slider, so turning that down silences it without touching the rest of the game's sound."
 }

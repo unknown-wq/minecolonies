@@ -13,6 +13,7 @@ import com.minecolonies.api.colony.IVisitorData;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.ModBuildings;
 import com.minecolonies.api.colony.buildings.modules.*;
+import com.minecolonies.api.colony.buildings.modules.settings.ISettingKey;
 import com.minecolonies.api.colony.buildings.modules.stat.IStat;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
 import com.minecolonies.api.sounds.TavernSounds;
@@ -20,6 +21,8 @@ import com.minecolonies.api.util.MathUtils;
 import com.minecolonies.api.util.StatsUtil;
 import com.minecolonies.core.MineColonies;
 import com.minecolonies.core.client.gui.huts.WindowHutLiving;
+import com.minecolonies.core.colony.buildings.modules.settings.BoolSetting;
+import com.minecolonies.core.colony.buildings.modules.settings.SettingKey;
 import com.minecolonies.core.colony.buildings.views.LivingBuildingView;
 import com.minecolonies.core.colony.interactionhandling.RecruitmentInteraction;
 import com.minecolonies.core.datalistener.CustomVisitorListener;
@@ -34,6 +37,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +47,7 @@ import java.util.Map;
 
 import static com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickRateConstants.MAX_TICKRATE;
 import static com.minecolonies.api.util.constant.Constants.MAX_STORY;
+import static com.minecolonies.api.util.constant.Constants.MOD_ID;
 import static com.minecolonies.api.util.constant.Constants.TAG_COMPOUND;
 import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_VISITORS;
 import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_WORK;
@@ -53,6 +58,11 @@ import static com.minecolonies.api.util.constant.StatisticsConstants.NEW_VISITOR
  */
 public class TavernBuildingModule extends AbstractBuildingModule implements IDefinesCoreBuildingStatsModule, IBuildingEventsModule, IPersistentModule, ITickingModule
 {
+    /**
+     * Whether the tavern plays its theme to players who walk in at night.
+     */
+    public static final ISettingKey<BoolSetting> PLAYMUSIC = new SettingKey<>(BoolSetting.class, Identifier.fromNamespaceAndPath(MOD_ID, "playmusic"));
+
     /**
      * Schematic name
      */
@@ -105,7 +115,7 @@ public class TavernBuildingModule extends AbstractBuildingModule implements IDef
     @Override
     public void onPlayerEnterBuilding(final Player player)
     {
-        if (musicCooldown <= 0 && building.getBuildingLevel() > 0 && !building.getColony().isDay())
+        if (building.getSettingValueOrDefault(PLAYMUSIC, true) && musicCooldown <= 0 && building.getBuildingLevel() > 0 && !building.getColony().isDay())
         {
             int count = 0;
             BlockPos avg = BlockPos.ZERO;

@@ -529,6 +529,7 @@ public final class ModBuildingsInitializer
           .addBuildingModuleProducer(TAVERN_VISITOR)
           .addBuildingModuleProducer(BED)
           .addBuildingModuleProducer(STATS_MODULE)
+          .addBuildingModuleProducer(TAVERN_SETTINGS)
           .createBuildingEntry());
 
         ModBuildings.mechanic = register(ModBuildings.MECHANIC_ID, () -> new BuildingEntry.Builder()
@@ -610,6 +611,7 @@ public final class ModBuildingsInitializer
           .setRegistryName(Identifier.fromNamespaceAndPath(Constants.MOD_ID, ModBuildings.GRAVEYARD_ID))
           .addBuildingModuleProducer(GRAVEYARD_WORK)
           .addBuildingModuleProducer(GRAVEYARD)
+          .addBuildingModuleProducer(MIN_STOCK)
           .addBuildingModuleProducer(STATS_MODULE)
           .createBuildingEntry());
 

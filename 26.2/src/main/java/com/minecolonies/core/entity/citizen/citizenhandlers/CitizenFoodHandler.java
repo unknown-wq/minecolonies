@@ -84,7 +84,14 @@ public class CitizenFoodHandler implements ICitizenFoodHandler
     @Override
     public Item getLastEaten()
     {
-        return lastEatenFoods.peek();
+        // The tail, not the head. lastEatenFoods is an EvictingQueue that new meals are added to the end of, so
+        // peek() answers the oldest meal still remembered rather than the most recent one.
+        Item last = null;
+        for (final Item food : lastEatenFoods)
+        {
+            last = food;
+        }
+        return last;
     }
 
     @Override
