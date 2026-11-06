@@ -1,61 +1,28 @@
 package com.minecolonies.core.client.render.worldevent;
 
-import com.minecolonies.api.util.constant.Constants;
-import com.mojang.renderpearl.api.pipeline.BlendFunction;
-import com.mojang.renderpearl.api.pipeline.ColorTargetState;
-import com.mojang.renderpearl.api.pipeline.CompareOp;
-import com.mojang.renderpearl.api.pipeline.DepthStencilState;
-import com.mojang.renderpearl.api.pipeline.RenderPipeline;
-import net.minecraft.util.Util;
-import net.minecraft.client.renderer.BindGroupLayouts;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 
-import java.util.function.Function;
-
 /**
- * Render types owned by MineColonies.
+ * Render types used by MineColonies' own world rendering.
  * <p>
- * PORT-26.2: {@code RenderStateShard} and {@code RenderType.CompositeState} are gone; a render type is now
- * {@code RenderType.create(name, RenderSetup)} around a Blaze3D {@link RenderPipeline}, and every former shard is a
- * pipeline property. The old {@code AlwaysDepthTestStateShard} borrowed from Structurize became
- * {@link CompareOp#ALWAYS_PASS}. This mirrors the shape Structurize itself uses in
- * {@code WorldRenderMacros.RenderTypes}.
+ * The citizen status icon used to have a mod-registered pipeline (entity format, emissive, no depth test). Shader
+ * mods such as Iris only know the vanilla pipelines, so that unknown pipeline was drawn with a mismatched vertex
+ * layout and smeared long streaks across the sky whenever a citizen with an icon was near the camera. The icon now
+ * goes through vanilla's see-through text pipeline instead, the one name tags use behind walls: translucent, no depth
+ * test, and already supported by every shader pack.
  */
 public class RenderTypes
 {
     /**
-     * Pipeline for the citizen status icons: entity format, emissive (no lightmap), translucent and always passing the
-     * depth test, so the icon stays readable through terrain the way it did on 1.21.1.
-     */
-    private static final RenderPipeline WORLD_ENTITY_ICON_PIPELINE = RenderPipelines.register(
-      RenderPipeline.builder(RenderPipelines.ENTITY_EMISSIVE_SNIPPET)
-        .withLocation(Identifier.fromNamespaceAndPath(Constants.MOD_ID, "pipeline/world_entity_icon"))
-        .withShaderDefine("ALPHA_CUTOUT", 0.1F)
-        .withShaderDefine("PER_FACE_LIGHTING")
-        .withBindGroupLayout(BindGroupLayouts.SAMPLER1)
-        .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
-        .withCull(false)
-        .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
-        .build());
-
-    private static final Function<Identifier, RenderType> WORLD_ENTITY_ICON = Util.memoize(texture ->
-      RenderType.create("minecolonies_entity_icon",
-        RenderSetup.builder(WORLD_ENTITY_ICON_PIPELINE)
-          .withTexture("Sampler0", texture)
-          .useOverlay()
-          .createRenderSetup()));
-
-    /**
-     * Usable for rendering simple flat textures.
+     * Usable for rendering simple flat textures that stay visible through terrain. The vertex format is that of text:
+     * position, color, uv and light, with no overlay or normal.
      *
      * @param resLoc texture location
      * @return render type
      */
     public static RenderType worldEntityIcon(final Identifier resLoc)
     {
-        return WORLD_ENTITY_ICON.apply(resLoc);
+        return net.minecraft.client.renderer.rendertype.RenderTypes.textSeeThrough(resLoc);
     }
 }

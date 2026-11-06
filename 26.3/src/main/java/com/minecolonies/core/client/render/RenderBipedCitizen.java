@@ -18,7 +18,6 @@ import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.InteractionHand;
@@ -43,6 +42,11 @@ public class RenderBipedCitizen extends MobRenderer<AbstractEntityCitizen, Citiz
 {
     private static final double  SHADOW_SIZE   = 0.5F;
     public static        boolean isItGhostTime = false;
+
+    /**
+     * Packed full-bright light (sky 15, block 15) for the status icon above a citizen's head.
+     */
+    private static final int ICON_LIGHT = 0xF000F0;
 
     /**
      * Alpha the ghost preview is drawn with (0.3 of 255).
@@ -221,10 +225,12 @@ public class RenderBipedCitizen extends MobRenderer<AbstractEntityCitizen, Citiz
           com.minecolonies.core.client.render.worldevent.RenderTypes.worldEntityIcon(state.statusIcon),
           (pose, buffer) ->
           {
-              buffer.addVertex(pose, -5, 0, 0).setColor(-1).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(state.lightCoords).setNormal(pose, 0, 0, 1);
-              buffer.addVertex(pose, -5, 10, 0).setColor(-1).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(state.lightCoords).setNormal(pose, 0, 0, 1);
-              buffer.addVertex(pose, 5, 10, 0).setColor(-1).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(state.lightCoords).setNormal(pose, 0, 0, 1);
-              buffer.addVertex(pose, 5, 0, 0).setColor(-1).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(state.lightCoords).setNormal(pose, 0, 0, 1);
+              // Text vertex format (no overlay, no normal). Full-bright light keeps the icon readable at night, as
+              // the old emissive pipeline did.
+              buffer.addVertex(pose, -5, 0, 0).setColor(-1).setUv(0, 0).setLight(ICON_LIGHT);
+              buffer.addVertex(pose, -5, 10, 0).setColor(-1).setUv(0, 1).setLight(ICON_LIGHT);
+              buffer.addVertex(pose, 5, 10, 0).setColor(-1).setUv(1, 1).setLight(ICON_LIGHT);
+              buffer.addVertex(pose, 5, 0, 0).setColor(-1).setUv(1, 0).setLight(ICON_LIGHT);
           });
 
         poseStack.popPose();
