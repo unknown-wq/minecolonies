@@ -18,6 +18,8 @@ import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.minecolonies.api.util.constant.Constants.FULL_BRIGHT_LIGHT;
+
 public class PathfindingDebugRenderer
 {
     /**
@@ -141,10 +143,10 @@ public class PathfindingDebugRenderer
 
         ctx.poseStack.translate(0.0F, -5F, -0.1F);
         ctx.submitNodeCollector.submitText(ctx.poseStack, -fontrenderer.width(s1) / 2.0f, 1,
-          Component.literal(s1).getVisualOrderText(), false, Font.DisplayMode.NORMAL, 15728880, 0xFFFFFFFF, 0, 0);
+          Component.literal(s1).getVisualOrderText(), false, Font.DisplayMode.NORMAL, FULL_BRIGHT_LIGHT, 0xFFFFFFFF, 0, 0);
         ctx.poseStack.translate(0.0F, 8F, -0.1F);
         ctx.submitNodeCollector.submitText(ctx.poseStack, -fontrenderer.width(s2) / 2.0f, 1,
-          Component.literal(s2).getVisualOrderText(), false, Font.DisplayMode.NORMAL, 15728880, 0xFFFFFFFF, 0, 0);
+          Component.literal(s2).getVisualOrderText(), false, Font.DisplayMode.NORMAL, FULL_BRIGHT_LIGHT, 0xFFFFFFFF, 0, 0);
 
         ctx.poseStack.popPose();
     }

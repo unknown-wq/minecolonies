@@ -175,6 +175,11 @@ public final class Constants
     public static final int MAX_STORY = 20;
 
     /**
+     * Packed light coordinates for full brightness (block 15, sky 15), for world-space overlays that ignore lighting.
+     */
+    public static final int FULL_BRIGHT_LIGHT = 0xF000F0;
+
+    /**
      * Builder infinite resoureces toggle
      */
     public static boolean BUILDER_INF_RESOURECES = false;
