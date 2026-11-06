@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.resources.Identifier;
@@ -30,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+import static com.minecolonies.api.util.constant.Constants.FULL_BRIGHT_LIGHT;
+
 /**
  * Renderer for the citizens.
  * <p>
@@ -42,11 +45,6 @@ public class RenderBipedCitizen extends MobRenderer<AbstractEntityCitizen, Citiz
 {
     private static final double  SHADOW_SIZE   = 0.5F;
     public static        boolean isItGhostTime = false;
-
-    /**
-     * Packed full-bright light (sky 15, block 15) for the status icon above a citizen's head.
-     */
-    private static final int ICON_LIGHT = 0xF000F0;
 
     /**
      * Alpha the ghost preview is drawn with (0.3 of 255).
@@ -196,7 +194,7 @@ public class RenderBipedCitizen extends MobRenderer<AbstractEntityCitizen, Citiz
     {
         if (state.ghost && isBodyVisible && !forceTransparent)
         {
-            return net.minecraft.client.renderer.rendertype.RenderTypes.entityTranslucent(getTextureLocation(state));
+            return RenderTypes.entityTranslucent(getTextureLocation(state));
         }
         return super.getRenderType(state, isBodyVisible, forceTransparent, appearGlowing);
     }
@@ -221,16 +219,16 @@ public class RenderBipedCitizen extends MobRenderer<AbstractEntityCitizen, Citiz
         poseStack.rotate(camera.orientation);
         poseStack.scale(0.025F, -0.025F, 0.025F);
 
+        // Vanilla's see-through text type (translucent, no depth test) rather than a mod pipeline, so shader mods such
+        // as Iris can draw it. Text vertex format: no overlay, no normal; full bright so it stays readable at night.
         submitNodeCollector.submitCustomGeometry(poseStack,
-          com.minecolonies.core.client.render.worldevent.RenderTypes.worldEntityIcon(state.statusIcon),
+          RenderTypes.textSeeThrough(state.statusIcon),
           (pose, buffer) ->
           {
-              // Text vertex format (no overlay, no normal). Full-bright light keeps the icon readable at night, as
-              // the old emissive pipeline did.
-              buffer.addVertex(pose, -5, 0, 0).setColor(-1).setUv(0, 0).setLight(ICON_LIGHT);
-              buffer.addVertex(pose, -5, 10, 0).setColor(-1).setUv(0, 1).setLight(ICON_LIGHT);
-              buffer.addVertex(pose, 5, 10, 0).setColor(-1).setUv(1, 1).setLight(ICON_LIGHT);
-              buffer.addVertex(pose, 5, 0, 0).setColor(-1).setUv(1, 0).setLight(ICON_LIGHT);
+              buffer.addVertex(pose, -5, 0, 0).setColor(-1).setUv(0, 0).setLight(FULL_BRIGHT_LIGHT);
+              buffer.addVertex(pose, -5, 10, 0).setColor(-1).setUv(0, 1).setLight(FULL_BRIGHT_LIGHT);
+              buffer.addVertex(pose, 5, 10, 0).setColor(-1).setUv(1, 1).setLight(FULL_BRIGHT_LIGHT);
+              buffer.addVertex(pose, 5, 0, 0).setColor(-1).setUv(1, 0).setLight(FULL_BRIGHT_LIGHT);
           });
 
         poseStack.popPose();
